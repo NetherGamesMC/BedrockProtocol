@@ -1,5 +1,5 @@
 {
-    "name": "nethergamesmc/bedrock-protocol",
+    "name": "xsuperr/bedrock-protocol",
     "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
     "type": "library",
     "require": {
