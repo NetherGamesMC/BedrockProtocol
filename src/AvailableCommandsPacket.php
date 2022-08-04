@@ -129,7 +129,7 @@ class AvailableCommandsPacket extends DataPacket implements ClientboundPacket{
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_18_30) {
 			return match($type) {
-				self::ARG_TYPE_TARGET => 0x08,
+				self::ARG_TYPE_TARGET => 0x07,
 				self::ARG_TYPE_WILDCARD_TARGET => 0x09,
 				self::ARG_TYPE_FILEPATH => 0x10,
 				self::ARG_TYPE_EQUIPMENT_SLOT => 0x25,
@@ -145,9 +145,12 @@ class AvailableCommandsPacket extends DataPacket implements ClientboundPacket{
 		}
 
 		return match ($type) {
+			self::ARG_TYPE_TARGET => 0x07,
 			self::ARG_TYPE_WILDCARD_TARGET => 0x08,
+			self::ARG_TYPE_FILEPATH => 0x10,
 			self::ARG_TYPE_STRING => 0x20,
-			self::ARG_TYPE_POSITION => 0x28,
+			self::ARG_TYPE_INT_POSITION => 0x28,
+			self::ARG_TYPE_POSITION => 0x29,
 			self::ARG_TYPE_MESSAGE => 0x2c,
 			self::ARG_TYPE_RAWTEXT => 0x2e,
 			self::ARG_TYPE_JSON => 0x32,
