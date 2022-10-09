@@ -771,8 +771,10 @@ class PacketSerializer extends BinaryStream{
 		$result->lastTouchedByPlayerID = $this->getActorUniqueId();
 		$result->rotation = $this->getByte();
 		$result->mirror = $this->getByte();
-		$result->animationMode = $this->getByte();
-		$result->animationSeconds = $this->getLFloat();
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_0){
+			$result->animationMode = $this->getByte();
+			$result->animationSeconds = $this->getLFloat();
+		}
 		$result->integrityValue = $this->getLFloat();
 		$result->integritySeed = $this->getLInt();
 		$result->pivot = $this->getVector3();
@@ -792,8 +794,10 @@ class PacketSerializer extends BinaryStream{
 		$this->putActorUniqueId($structureSettings->lastTouchedByPlayerID);
 		$this->putByte($structureSettings->rotation);
 		$this->putByte($structureSettings->mirror);
-		$this->putByte($structureSettings->animationMode);
-		$this->putLFloat($structureSettings->animationSeconds);
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_0){
+			$this->putByte($structureSettings->animationMode);
+			$this->putLFloat($structureSettings->animationSeconds);
+		}
 		$this->putLFloat($structureSettings->integrityValue);
 		$this->putLInt($structureSettings->integritySeed);
 		$this->putVector3($structureSettings->pivot);
