@@ -32,30 +32,32 @@ final class ItemStackWrapper{
 	public function getItemStack() : ItemStack{ return $this->itemStack; }
 
 	public static function read(PacketSerializer $in) : self{
-		if($in->getProtocolId() <= ProtocolInfo::PROTOCOL_1_16_210){
-			return new self(0, $in->getItemStackWithoutStackId());
+		$stackId = 0;
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+			$stack = $in->getItemStack(function(PacketSerializer $in) use (&$stackId) : void{
+				$hasNetId = $in->getBool();
+				if($hasNetId){
+					$stackId = $in->readGenericTypeNetworkId();
+				}
+			});
+		}else{
+			$stack = $in->getItemStackWithoutStackId();
 		}
 
-		$stackId = 0;
-		$stack = $in->getItemStack(function(PacketSerializer $in) use (&$stackId) : void{
-			$hasNetId = $in->getBool();
-			if($hasNetId){
-				$stackId = $in->readGenericTypeNetworkId();
-			}
-		});
 		return new self($stackId, $stack);
 	}
 
 	public function write(PacketSerializer $out) : void{
-		if($out->getProtocolId() <= ProtocolInfo::PROTOCOL_1_16_210){
-			$out->putItemStackWithoutStackId($this->itemStack);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+			$out->putItemStack($this->itemStack, function(PacketSerializer $out) : void{
+				$out->putBool($this->stackId !== 0);
+				if($this->stackId !== 0){
+					$out->writeGenericTypeNetworkId($this->stackId);
+				}
+			});
+			return;
 		}
 
-		$out->putItemStack($this->itemStack, function(PacketSerializer $out) : void{
-			$out->putBool($this->stackId !== 0);
-			if($this->stackId !== 0){
-				$out->writeGenericTypeNetworkId($this->stackId);
-			}
-		});
+		$out->putItemStackWithoutStackId($this->itemStack);
 	}
 }

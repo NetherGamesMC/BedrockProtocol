@@ -57,7 +57,7 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		$out->putUnsignedVarInt($this->windowId);
 		$out->putUnsignedVarInt(count($this->items));
 		foreach($this->items as $item){
-			if($out->getProtocolId() <= ProtocolInfo::PROTOCOL_1_16_210){
+			if($out->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
 				$out->writeGenericTypeNetworkId($item->getStackId());
 			}
 			$item->write($out);
