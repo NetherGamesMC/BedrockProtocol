@@ -369,7 +369,11 @@ class PacketSerializer extends BinaryStream{
 
 		$shieldBlockingTick = null;
 		if($id === $serializer->shieldItemRuntimeId){
-			$shieldBlockingTick = $serializer->getLLong();
+			if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+				$shieldBlockingTick = $serializer->getLLong();
+			}else{
+				$shieldBlockingTick = $serializer->getVarLong();
+			}
 		}
 
 		if(!$serializer->feof()){
@@ -413,7 +417,7 @@ class PacketSerializer extends BinaryStream{
 
 	private static function putExtraItemStackData(PacketSerializer $serializer, ItemStack $item) : void{
 		/**
-		 * @param string[] $count
+		 * @param string[] $list
 		 */
 		$putList = static function(array $list) use ($serializer) : void{
 			if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
@@ -444,9 +448,13 @@ class PacketSerializer extends BinaryStream{
 		$putList($item->getCanPlaceOn());
 		$putList($item->getCanDestroy());
 
-		$blockingTick = $item->getShieldBlockingTick();
+		$blockingTick = $item->getShieldBlockingTick() ?? 0;
 		if($item->getId() === $serializer->shieldItemRuntimeId){
-			$serializer->putLLong($blockingTick ?? 0);
+			if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+				$serializer->putLLong($blockingTick);
+			}else{
+				$serializer->putVarLong($blockingTick);
+			}
 		}
 	}
 
