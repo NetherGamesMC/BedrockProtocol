@@ -322,6 +322,27 @@ class PacketSerializer extends BinaryStream{
 	}
 
 	private static function readExtraItemStackData(PacketSerializer $serializer, int $id, int $meta, int $count, int $blockRuntimeId) : ItemStack{
+		/** @var callable() : string[] $readList */
+		$readList = static function() use ($serializer) : array{
+			if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+				$count = $serializer->getLInt();
+			}else{
+				$count = $serializer->getVarInt();
+			}
+
+			$list = [];
+			for($i = 0; $i < $count; ++$i){
+				if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+					$strlen = $serializer->getLShort();
+				}else{
+					$strlen = $serializer->getUnsignedVarInt();
+				}
+				$list[] = $serializer->get($strlen);
+			}
+
+			return $list;
+		};
+
 		$nbtLen = $serializer->getLShort();
 
 		/** @var CompoundTag|null $compound */
@@ -343,15 +364,8 @@ class PacketSerializer extends BinaryStream{
 			throw new PacketDecodeException("Unexpected fake NBT length $nbtLen");
 		}
 
-		$canPlaceOn = [];
-		for($i = 0, $canPlaceOnCount = $serializer->getLInt(); $i < $canPlaceOnCount; ++$i){
-			$canPlaceOn[] = $serializer->get($serializer->getLShort());
-		}
-
-		$canDestroy = [];
-		for($i = 0, $canDestroyCount = $serializer->getLInt(); $i < $canDestroyCount; ++$i){
-			$canDestroy[] = $serializer->get($serializer->getLShort());
-		}
+		$canPlaceOn = $readList();
+		$canDestroy = $readList();
 
 		$shieldBlockingTick = null;
 		if($id === $serializer->shieldItemRuntimeId){
@@ -398,6 +412,26 @@ class PacketSerializer extends BinaryStream{
 	}
 
 	private static function putExtraItemStackData(PacketSerializer $serializer, ItemStack $item) : void{
+		/**
+		 * @param string[] $count
+		 */
+		$putList = static function(array $list) use ($serializer) : void{
+			if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+				$serializer->putLInt(count($list));
+			}else{
+				$serializer->putVarInt(count($list));
+			}
+
+			foreach($list as $entry){
+				if($serializer->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+					$serializer->putLShort(strlen($entry));
+				}else{
+					$serializer->putUnsignedVarInt(strlen($entry));
+				}
+				$serializer->put($entry);
+			}
+		};
+
 		$nbt = $item->getNbt();
 		if($nbt !== null){
 			$serializer->putLShort(0xffff);
@@ -407,16 +441,8 @@ class PacketSerializer extends BinaryStream{
 			$serializer->putLShort(0);
 		}
 
-		$serializer->putLInt(count($item->getCanPlaceOn()));
-		foreach($item->getCanPlaceOn() as $entry){
-			$serializer->putLShort(strlen($entry));
-			$serializer->put($entry);
-		}
-		$serializer->putLInt(count($item->getCanDestroy()));
-		foreach($item->getCanDestroy() as $entry){
-			$serializer->putLShort(strlen($entry));
-			$serializer->put($entry);
-		}
+		$putList($item->getCanPlaceOn());
+		$putList($item->getCanDestroy());
 
 		$blockingTick = $item->getShieldBlockingTick();
 		if($item->getId() === $serializer->shieldItemRuntimeId){
