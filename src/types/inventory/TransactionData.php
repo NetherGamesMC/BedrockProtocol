@@ -36,7 +36,7 @@ abstract class TransactionData{
 	 * @throws BinaryDataException
 	 * @throws PacketDecodeException
 	 */
-	final public function decode(PacketSerializer $stream) : void{
+	final public function decode(PacketSerializer $stream, bool $hasItemStackIds = false) : void{
 		$actionCount = $stream->getUnsignedVarInt();
 		for($i = 0; $i < $actionCount; ++$i){
 			$this->actions[] = (new NetworkInventoryAction())->read($stream);
@@ -50,10 +50,10 @@ abstract class TransactionData{
 	 */
 	abstract protected function decodeData(PacketSerializer $stream) : void;
 
-	final public function encode(PacketSerializer $stream) : void{
+	final public function encode(PacketSerializer $stream, bool $hasItemStackIds = false) : void{
 		$stream->putUnsignedVarInt(count($this->actions));
 		foreach($this->actions as $action){
-			$action->write($stream);
+			$action->write($stream, $hasItemStackIds);
 		}
 		$this->encodeData($stream);
 	}

@@ -40,7 +40,16 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		$this->windowId = $in->getUnsignedVarInt();
 		$count = $in->getUnsignedVarInt();
 		for($i = 0; $i < $count; ++$i){
-			$this->items[] = ItemStackWrapper::read($in);
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+				$itemStackWrapper = ItemStackWrapper::read($in);
+			}else{
+				$stackId = $in->readGenericTypeNetworkId();
+				$itemStack = $in->getItemStackWithoutStackId();
+
+				$itemStackWrapper = new ItemStackWrapper($stackId, $itemStack);
+			}
+
+			$this->items[] = $itemStackWrapper;
 		}
 	}
 
@@ -48,6 +57,9 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		$out->putUnsignedVarInt($this->windowId);
 		$out->putUnsignedVarInt(count($this->items));
 		foreach($this->items as $item){
+			if($out->getProtocolId() <= ProtocolInfo::PROTOCOL_1_16_210){
+				$out->writeGenericTypeNetworkId($item->getStackId());
+			}
 			$item->write($out);
 		}
 	}

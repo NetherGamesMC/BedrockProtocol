@@ -301,56 +301,68 @@ class PacketSerializer extends BinaryStream{
 			return ItemStack::null();
 		}
 
-		$count = $this->getLShort();
-		$meta = $this->getUnsignedVarInt();
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+			$count = $this->getLShort();
+			$meta = $this->getUnsignedVarInt();
 
-		$readExtraCrapInTheMiddle($this);
+			$readExtraCrapInTheMiddle($this);
 
-		$blockRuntimeId = $this->getVarInt();
-		$extraData = self::decoder($this->getString(), 0, $this->context);
-		return (static function() use ($extraData, $id, $meta, $count, $blockRuntimeId) : ItemStack{
-			$nbtLen = $extraData->getLShort();
+			$blockRuntimeId = $this->getVarInt();
+			$extraData = self::decoder($this->getString(), 0, $this->context);
+		}else{
+			$auxValue = $this->getVarInt();
+			$count = $auxValue & 0xff;
+			$meta = $auxValue >> 8;
 
-			/** @var CompoundTag|null $compound */
-			$compound = null;
-			if($nbtLen === 0xffff){
-				$nbtDataVersion = $extraData->getByte();
-				if($nbtDataVersion !== 1){
-					throw new PacketDecodeException("Unexpected NBT data version $nbtDataVersion");
-				}
-				$offset = $extraData->getOffset();
-				try{
-					$compound = (new LittleEndianNbtSerializer())->read($extraData->getBuffer(), $offset, 512)->mustGetCompoundTag();
-				}catch(NbtDataException $e){
-					throw PacketDecodeException::wrap($e, "Failed decoding NBT root");
-				}finally{
-					$extraData->setOffset($offset);
-				}
-			}elseif($nbtLen !== 0){
-				throw new PacketDecodeException("Unexpected fake NBT length $nbtLen");
+			$blockRuntimeId = 0; // TODO: somehow get a runtime id?
+			$extraData = $this;
+		}
+
+		return self::readExtraItemStackData($extraData, $id, $meta, $count, $blockRuntimeId);
+	}
+
+	private static function readExtraItemStackData(PacketSerializer $serializer, int $id, int $meta, int $count, int $blockRuntimeId) : ItemStack{
+		$nbtLen = $serializer->getLShort();
+
+		/** @var CompoundTag|null $compound */
+		$compound = null;
+		if($nbtLen === 0xffff){
+			$nbtDataVersion = $serializer->getByte();
+			if($nbtDataVersion !== 1){
+				throw new PacketDecodeException("Unexpected NBT data version $nbtDataVersion");
 			}
-
-			$canPlaceOn = [];
-			for($i = 0, $canPlaceOnCount = $extraData->getLInt(); $i < $canPlaceOnCount; ++$i){
-				$canPlaceOn[] = $extraData->get($extraData->getLShort());
+			$offset = $serializer->getOffset();
+			try{
+				$compound = (new LittleEndianNbtSerializer())->read($serializer->getBuffer(), $offset, 512)->mustGetCompoundTag();
+			}catch(NbtDataException $e){
+				throw PacketDecodeException::wrap($e, "Failed decoding NBT root");
+			}finally{
+				$serializer->setOffset($offset);
 			}
+		}elseif($nbtLen !== 0){
+			throw new PacketDecodeException("Unexpected fake NBT length $nbtLen");
+		}
 
-			$canDestroy = [];
-			for($i = 0, $canDestroyCount = $extraData->getLInt(); $i < $canDestroyCount; ++$i){
-				$canDestroy[] = $extraData->get($extraData->getLShort());
-			}
+		$canPlaceOn = [];
+		for($i = 0, $canPlaceOnCount = $serializer->getLInt(); $i < $canPlaceOnCount; ++$i){
+			$canPlaceOn[] = $serializer->get($serializer->getLShort());
+		}
 
-			$shieldBlockingTick = null;
-			if($id === $extraData->shieldItemRuntimeId){
-				$shieldBlockingTick = $extraData->getLLong();
-			}
+		$canDestroy = [];
+		for($i = 0, $canDestroyCount = $serializer->getLInt(); $i < $canDestroyCount; ++$i){
+			$canDestroy[] = $serializer->get($serializer->getLShort());
+		}
 
-			if(!$extraData->feof()){
-				throw new PacketDecodeException("Unexpected trailing extradata for network item $id");
-			}
+		$shieldBlockingTick = null;
+		if($id === $serializer->shieldItemRuntimeId){
+			$shieldBlockingTick = $serializer->getLLong();
+		}
 
-			return new ItemStack($id, $meta, $count, $blockRuntimeId, $compound, $canPlaceOn, $canDestroy, $shieldBlockingTick);
-		})();
+		if(!$serializer->feof()){
+			throw new PacketDecodeException("Unexpected trailing extradata for network item $id");
+		}
+
+		return new ItemStack($id, $meta, $count, $blockRuntimeId, $compound, $canPlaceOn, $canDestroy, $shieldBlockingTick);
 	}
 
 	/**
@@ -364,42 +376,52 @@ class PacketSerializer extends BinaryStream{
 		}
 
 		$this->putVarInt($item->getId());
-		$this->putLShort($item->getCount());
-		$this->putUnsignedVarInt($item->getMeta());
 
-		$writeExtraCrapInTheMiddle($this);
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+			$this->putLShort($item->getCount());
+			$this->putUnsignedVarInt($item->getMeta());
 
-		$this->putVarInt($item->getBlockRuntimeId());
-		$context = $this->context;
-		$this->putString((static function() use ($item, $context) : string{
-			$extraData = PacketSerializer::encoder($context);
+			$writeExtraCrapInTheMiddle($this);
 
-			$nbt = $item->getNbt();
-			if($nbt !== null){
-				$extraData->putLShort(0xffff);
-				$extraData->putByte(1); //TODO: NBT data version (?)
-				$extraData->put((new LittleEndianNbtSerializer())->write(new TreeRoot($nbt)));
-			}else{
-				$extraData->putLShort(0);
-			}
+			$this->putVarInt($item->getBlockRuntimeId());
 
-			$extraData->putLInt(count($item->getCanPlaceOn()));
-			foreach($item->getCanPlaceOn() as $entry){
-				$extraData->putLShort(strlen($entry));
-				$extraData->put($entry);
-			}
-			$extraData->putLInt(count($item->getCanDestroy()));
-			foreach($item->getCanDestroy() as $entry){
-				$extraData->putLShort(strlen($entry));
-				$extraData->put($entry);
-			}
+			$extraData = PacketSerializer::encoder($this->context);
+			self::putExtraItemStackData($extraData, $item);
+			$this->putString($extraData->getBuffer());
+			return;
+		}
 
-			$blockingTick = $item->getShieldBlockingTick();
-			if($item->getId() === $extraData->shieldItemRuntimeId){
-				$extraData->putLLong($blockingTick ?? 0);
-			}
-			return $extraData->getBuffer();
-		})());
+		$auxValue = (($item->getMeta() & 0x7fff) << 8) | $item->getCount();
+		$this->putVarInt($auxValue);
+
+		self::putExtraItemStackData($this, $item);
+	}
+
+	private static function putExtraItemStackData(PacketSerializer $serializer, ItemStack $item) : void{
+		$nbt = $item->getNbt();
+		if($nbt !== null){
+			$serializer->putLShort(0xffff);
+			$serializer->putByte(1); //TODO: NBT data version (?)
+			$serializer->put((new LittleEndianNbtSerializer())->write(new TreeRoot($nbt)));
+		}else{
+			$serializer->putLShort(0);
+		}
+
+		$serializer->putLInt(count($item->getCanPlaceOn()));
+		foreach($item->getCanPlaceOn() as $entry){
+			$serializer->putLShort(strlen($entry));
+			$serializer->put($entry);
+		}
+		$serializer->putLInt(count($item->getCanDestroy()));
+		foreach($item->getCanDestroy() as $entry){
+			$serializer->putLShort(strlen($entry));
+			$serializer->put($entry);
+		}
+
+		$blockingTick = $item->getShieldBlockingTick();
+		if($item->getId() === $serializer->shieldItemRuntimeId){
+			$serializer->putLLong($blockingTick ?? 0);
+		}
 	}
 
 	public function getRecipeIngredient() : RecipeIngredient{
