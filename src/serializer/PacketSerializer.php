@@ -318,7 +318,15 @@ class PacketSerializer extends BinaryStream{
 			$extraData = $this;
 		}
 
-		return self::readExtraItemStackData($extraData, $id, $meta, $count, $blockRuntimeId);
+		$stack = self::readExtraItemStackData($extraData, $id, $meta, $count, $blockRuntimeId);
+
+		if($extraData !== $this) {
+			if(!$extraData->feof()){
+				throw new PacketDecodeException("Unexpected trailing extradata for network item $id");
+			}
+		}
+
+		return $stack;
 	}
 
 	private static function readExtraItemStackData(PacketSerializer $serializer, int $id, int $meta, int $count, int $blockRuntimeId) : ItemStack{
@@ -371,10 +379,6 @@ class PacketSerializer extends BinaryStream{
 		$shieldBlockingTick = null;
 		if($id === $serializer->shieldItemRuntimeId){
 			$shieldBlockingTick = $getBlockingTick();
-		}
-
-		if(!$serializer->feof()){
-			throw new PacketDecodeException("Unexpected trailing extradata for network item $id");
 		}
 
 		return new ItemStack($id, $meta, $count, $blockRuntimeId, $compound, $canPlaceOn, $canDestroy, $shieldBlockingTick);
