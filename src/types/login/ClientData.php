@@ -96,7 +96,7 @@ final class ClientData{
 
 	public string $PlatformUserId = ""; //xbox-only, apparently
 
-	/** @required */
+	/** >= PROTOCOL_1_16_210 */
 	public string $PlayFabId;
 
 	/** @required */
