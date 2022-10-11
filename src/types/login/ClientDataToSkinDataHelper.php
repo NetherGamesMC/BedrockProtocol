@@ -55,6 +55,11 @@ final class ClientDataToSkinDataHelper{
 			);
 		}
 
+		$playFabId = $clientData->PlayFabId;
+		if(!isset($clientData->PlayFabId)){
+			$playFabId = "";
+		}
+
 		if(isset($clientData->SkinGeometryDataEngineVersion)){
 			$geometryDataEngineVersion = self::safeB64Decode($clientData->SkinGeometryDataEngineVersion, "SkinGeometryDataEngineVersion"); //yes, they actually base64'd the version!
 		}else{
@@ -63,7 +68,7 @@ final class ClientDataToSkinDataHelper{
 
 		return new SkinData(
 			$clientData->SkinId,
-			$clientData->PlayFabId,
+			$playFabId,
 			self::safeB64Decode($clientData->SkinResourcePatch, "SkinResourcePatch"),
 			new SkinImage($clientData->SkinImageHeight, $clientData->SkinImageWidth, self::safeB64Decode($clientData->SkinData, "SkinData")),
 			$animations,
