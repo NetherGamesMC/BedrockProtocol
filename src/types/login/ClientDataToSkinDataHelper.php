@@ -55,8 +55,9 @@ final class ClientDataToSkinDataHelper{
 			);
 		}
 
-		$playFabId = $clientData->PlayFabId;
-		if(!isset($clientData->PlayFabId)){
+		if(isset($clientData->PlayFabId)){
+			$playFabId = $clientData->PlayFabId;
+		}else{
 			$playFabId = "";
 		}
 
