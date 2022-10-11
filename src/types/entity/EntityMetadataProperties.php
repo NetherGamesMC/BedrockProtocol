@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\entity;
 
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+
 final class EntityMetadataProperties{
 
 	private function __construct(){
@@ -138,4 +140,53 @@ final class EntityMetadataProperties{
 	public const AMBIENT_SOUND_INTERVAL_MIN = 108; //float
 	public const AMBIENT_SOUND_INTERVAL_RANGE = 109; //float
 	public const AMBIENT_SOUND_EVENT = 110; //string
+
+	public static function convertProp(int $protocolId, int $type) : int{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_16_210){
+			return $type;
+		}
+
+		return match ($type){
+			self::AREA_EFFECT_CLOUD_RADIUS => 60,
+			self::AREA_EFFECT_CLOUD_WAITING => 61,
+			self::AREA_EFFECT_CLOUD_PARTICLE_ID => 62,
+			self::SHULKER_ATTACH_FACE => 64,
+			self::SHULKER_ATTACH_POS => 66,
+			self::TRADING_PLAYER_EID => 67,
+			self::COMMAND_BLOCK_COMMAND => 70,
+			self::COMMAND_BLOCK_LAST_OUTPUT => 71,
+			self::COMMAND_BLOCK_TRACK_OUTPUT => 72,
+			self::CONTROLLING_RIDER_SEAT_NUMBER => 73,
+			self::STRENGTH => 74,
+			self::MAX_STRENGTH => 75,
+			self::LIMITED_LIFE => 77,
+			self::ARMOR_STAND_POSE_INDEX => 78,
+			self::ENDER_CRYSTAL_TIME_OFFSET => 79,
+			self::ALWAYS_SHOW_NAMETAG => 80,
+			self::COLOR_2 => 81,
+			self::SCORE_TAG => 83,
+			self::BALLOON_ATTACHED_ENTITY => 84,
+			self::PUFFERFISH_SIZE => 85,
+			self::BOAT_BUBBLE_TIME => 86,
+			self::PLAYER_AGENT_EID => 87,
+			self::EAT_COUNTER => 90,
+			self::FLAGS2 => 91,
+			self::AREA_EFFECT_CLOUD_DURATION => 94,
+			self::AREA_EFFECT_CLOUD_SPAWN_TIME => 95,
+			self::AREA_EFFECT_CLOUD_RADIUS_PER_TICK => 96,
+			self::AREA_EFFECT_CLOUD_RADIUS_CHANGE_ON_PICKUP => 97,
+			self::AREA_EFFECT_CLOUD_PICKUP_COUNT => 98,
+			self::INTERACTIVE_TAG => 99,
+			self::TRADE_TIER => 100,
+			self::MAX_TRADE_TIER => 101,
+			self::TRADE_XP => 102,
+			self::SKIN_ID => 104,
+			self::COMMAND_BLOCK_TICK_DELAY => 105,
+			self::COMMAND_BLOCK_EXECUTE_ON_FIRST_TICK => 106,
+			self::AMBIENT_SOUND_INTERVAL_MIN => 107,
+			self::AMBIENT_SOUND_INTERVAL_RANGE => 108,
+			self::AMBIENT_SOUND_EVENT => 109,
+			default => $type,
+		};
+	}
 }

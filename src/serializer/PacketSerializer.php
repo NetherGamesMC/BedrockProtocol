@@ -122,7 +122,10 @@ class PacketSerializer extends BinaryStream{
 
 	public function getSkin() : SkinData{
 		$skinId = $this->getString();
-		$skinPlayFabId = $this->getString();
+		$skinPlayFabId = "";
+		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210) {
+			$skinPlayFabId = $this->getString();
+		}
 		$skinResourcePatch = $this->getString();
 		$skinData = $this->getSkinImage();
 		$animationCount = $this->getLInt();
@@ -207,7 +210,9 @@ class PacketSerializer extends BinaryStream{
 
 	public function putSkin(SkinData $skin) : void{
 		$this->putString($skin->getSkinId());
-		$this->putString($skin->getPlayFabId());
+		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210) {
+			$this->putString($skin->getPlayFabId());
+		}
 		$this->putString($skin->getResourcePatch());
 		$this->putSkinImage($skin->getSkinImage());
 		$this->putLInt(count($skin->getAnimations()));

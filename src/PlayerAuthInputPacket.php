@@ -197,22 +197,25 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		}
 		$this->tick = $in->getUnsignedVarLong();
 		$this->delta = $in->getVector3();
-		if($this->hasFlag(PlayerAuthInputFlags::PERFORM_ITEM_INTERACTION)){
-			$this->itemInteractionData = ItemInteractionData::read($in);
-		}
-		if($this->hasFlag(PlayerAuthInputFlags::PERFORM_ITEM_STACK_REQUEST)){
-			$this->itemStackRequest = ItemStackRequest::read($in);
-		}
-		if($this->hasFlag(PlayerAuthInputFlags::PERFORM_BLOCK_ACTIONS)){
-			$this->blockActions = [];
-			$max = $in->getVarInt();
-			for($i = 0; $i < $max; ++$i){
-				$actionType = $in->getVarInt();
-				$this->blockActions[] = match(true){
-					PlayerBlockActionWithBlockInfo::isValidActionType($actionType) => PlayerBlockActionWithBlockInfo::read($in, $actionType),
-					$actionType === PlayerAction::STOP_BREAK => new PlayerBlockActionStopBreak(),
-					default => throw new PacketDecodeException("Unexpected block action type $actionType")
-				};
+
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
+			if($this->hasFlag(PlayerAuthInputFlags::PERFORM_ITEM_INTERACTION)){
+				$this->itemInteractionData = ItemInteractionData::read($in);
+			}
+			if($this->hasFlag(PlayerAuthInputFlags::PERFORM_ITEM_STACK_REQUEST)){
+				$this->itemStackRequest = ItemStackRequest::read($in);
+			}
+			if($this->hasFlag(PlayerAuthInputFlags::PERFORM_BLOCK_ACTIONS)){
+				$this->blockActions = [];
+				$max = $in->getVarInt();
+				for($i = 0; $i < $max; ++$i){
+					$actionType = $in->getVarInt();
+					$this->blockActions[] = match (true) {
+						PlayerBlockActionWithBlockInfo::isValidActionType($actionType) => PlayerBlockActionWithBlockInfo::read($in, $actionType),
+						$actionType === PlayerAction::STOP_BREAK => new PlayerBlockActionStopBreak(),
+						default => throw new PacketDecodeException("Unexpected block action type $actionType")
+					};
+				}
 			}
 		}
 	}
@@ -236,17 +239,20 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		}
 		$out->putUnsignedVarLong($this->tick);
 		$out->putVector3($this->delta);
-		if($this->itemInteractionData !== null){
-			$this->itemInteractionData->write($out);
-		}
-		if($this->itemStackRequest !== null){
-			$this->itemStackRequest->write($out);
-		}
-		if($this->blockActions !== null){
-			$out->putVarInt(count($this->blockActions));
-			foreach($this->blockActions as $blockAction){
-				$out->putVarInt($blockAction->getActionType());
-				$blockAction->write($out);
+
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
+			if($this->itemInteractionData !== null){
+				$this->itemInteractionData->write($out);
+			}
+			if($this->itemStackRequest !== null){
+				$this->itemStackRequest->write($out);
+			}
+			if($this->blockActions !== null){
+				$out->putVarInt(count($this->blockActions));
+				foreach($this->blockActions as $blockAction){
+					$out->putVarInt($blockAction->getActionType());
+					$blockAction->write($out);
+				}
 			}
 		}
 	}
