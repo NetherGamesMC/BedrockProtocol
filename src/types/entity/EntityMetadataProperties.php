@@ -142,8 +142,8 @@ final class EntityMetadataProperties{
 	public const AMBIENT_SOUND_EVENT = 110; //string
 
 	/**
-	 * @param array<int, mixed> $types
-	 * @return array<int, mixed>
+	 * @param array<int, MetadataProperty> $types
+	 * @return array<int, MetadataProperty>
 	 */
 	public static function convertProps(int $protocolId, array $types) : array{
 		$properties = [];
