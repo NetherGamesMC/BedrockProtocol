@@ -29,7 +29,8 @@ final class ItemStackRequest{
 	public function __construct(
 		private int $requestId,
 		private array $actions,
-		private array $filterStrings
+		private array $filterStrings,
+		private int $origin
 	){}
 
 	public function getRequestId() : int{ return $this->requestId; }
@@ -42,6 +43,8 @@ final class ItemStackRequest{
 	 * @phpstan-return list<string>
 	 */
 	public function getFilterStrings() : array{ return $this->filterStrings; }
+
+	public function getOrigin() : int{ return $this->origin; }
 
 	/**
 	 * @throws BinaryDataException
@@ -83,11 +86,16 @@ final class ItemStackRequest{
 			}
 			$actions[] = self::readAction($in, $typeId);
 		}
-		$filterStrings = [];
-		for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
-			$filterStrings[] = $in->getString();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_200){
+			$filterStrings = [];
+			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+				$filterStrings[] = $in->getString();
+			}
 		}
-		return new self($requestId, $actions, $filterStrings);
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_30) {
+			$origin = $in->getLInt();
+		}
+		return new self($requestId, $actions, $filterStrings ?? [], $origin ?? -1);
 	}
 
 	public function write(PacketSerializer $out) : void{
@@ -101,9 +109,14 @@ final class ItemStackRequest{
 			$out->putByte($typeId);
 			$action->write($out);
 		}
-		$out->putUnsignedVarInt(count($this->filterStrings));
-		foreach($this->filterStrings as $string){
-			$out->putString($string);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_200){
+			$out->putUnsignedVarInt(count($this->filterStrings));
+			foreach($this->filterStrings as $string){
+				$out->putString($string);
+			}
+		}
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_30) {
+			$out->putLInt($this->origin);
 		}
 	}
 }
