@@ -141,6 +141,18 @@ final class EntityMetadataProperties{
 	public const AMBIENT_SOUND_INTERVAL_RANGE = 109; //float
 	public const AMBIENT_SOUND_EVENT = 110; //string
 
+	/**
+	 * @param array<int, mixed> $types
+	 * @return array<int, mixed>
+	 */
+	public static function convertProps(int $protocolId, array $types) : array{
+		$properties = [];
+		foreach($types as $type => $val) {
+			$properties[self::convertProp($protocolId, $type)] = $val;
+		}
+		return $properties;
+	}
+
 	public static function convertProp(int $protocolId, int $type) : int{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_16_210){
 			return $type;
