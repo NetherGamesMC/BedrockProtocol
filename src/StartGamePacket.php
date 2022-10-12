@@ -188,9 +188,11 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		for($i = 0, $count = $in->getUnsignedVarInt(); $i < $count; ++$i){
 			$stringId = $in->getString();
 			$numericId = $in->getSignedLShort();
-			$isComponentBased = $in->getBool();
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+				$isComponentBased = $in->getBool();
+			}
 
-			$this->itemTable[] = new ItemTypeEntry($stringId, $numericId, $isComponentBased);
+			$this->itemTable[] = new ItemTypeEntry($stringId, $numericId, $isComponentBased ?? false);
 		}
 
 		$this->multiplayerCorrelationId = $in->getString();
@@ -257,7 +259,9 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		foreach($this->itemTable as $entry){
 			$out->putString($entry->getStringId());
 			$out->putLShort($entry->getNumericId());
-			$out->putBool($entry->isComponentBased());
+			if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+				$out->putBool($entry->isComponentBased());
+			}
 		}
 
 		$out->putString($this->multiplayerCorrelationId);
