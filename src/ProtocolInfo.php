@@ -34,6 +34,7 @@ final class ProtocolInfo{
 	/** Actual Minecraft: PE protocol version */
 	public const CURRENT_PROTOCOL = self::PROTOCOL_1_19_30;
 	public const ACCEPTED_PROTOCOL = [
+		self::PROTOCOL_1_16_20,
 		self::PROTOCOL_1_16_100,
 		self::PROTOCOL_1_16_200,
 		self::PROTOCOL_1_16_210,
@@ -73,6 +74,7 @@ final class ProtocolInfo{
 	public const PROTOCOL_1_16_210 = 428;
 	public const PROTOCOL_1_16_200 = 422;
 	public const PROTOCOL_1_16_100 = 419;
+	public const PROTOCOL_1_16_20 = 408;
 
 	public const LOGIN_PACKET = 0x01;
 	public const PLAY_STATUS_PACKET = 0x02;

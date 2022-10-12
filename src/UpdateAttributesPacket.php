@@ -41,13 +41,17 @@ class UpdateAttributesPacket extends DataPacket implements ClientboundPacket{
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->actorRuntimeId = $in->getActorRuntimeId();
 		$this->entries = $in->getAttributeList();
-		$this->tick = $in->getUnsignedVarLong();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			$this->tick = $in->getUnsignedVarLong();
+		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putActorRuntimeId($this->actorRuntimeId);
 		$out->putAttributeList(...array_values($this->entries));
-		$out->putUnsignedVarLong($this->tick);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			$out->putUnsignedVarLong($this->tick);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

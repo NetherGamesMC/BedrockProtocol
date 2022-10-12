@@ -117,7 +117,9 @@ final class LevelSettings{
 		$this->commandsEnabled = $in->getBool();
 		$this->isTexturePacksRequired = $in->getBool();
 		$this->gameRules = $in->getGameRules();
-		$this->experiments = Experiments::read($in);
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			$this->experiments = Experiments::read($in);
+		}
 		$this->hasBonusChestEnabled = $in->getBool();
 		$this->hasStartWithMapEnabled = $in->getBool();
 		$this->defaultPlayerPermission = $in->getVarInt();
@@ -176,7 +178,9 @@ final class LevelSettings{
 		$out->putBool($this->commandsEnabled);
 		$out->putBool($this->isTexturePacksRequired);
 		$out->putGameRules($this->gameRules);
-		$this->experiments->write($out);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			$this->experiments->write($out);
+		}
 		$out->putBool($this->hasBonusChestEnabled);
 		$out->putBool($this->hasStartWithMapEnabled);
 		$out->putVarInt($this->defaultPlayerPermission);

@@ -195,8 +195,10 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		if($this->playMode === PlayMode::VR){
 			$this->vrGazeDirection = $in->getVector3();
 		}
-		$this->tick = $in->getUnsignedVarLong();
-		$this->delta = $in->getVector3();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			$this->tick = $in->getUnsignedVarLong();
+			$this->delta = $in->getVector3();
+		}
 
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
 			if($this->hasFlag(PlayerAuthInputFlags::PERFORM_ITEM_INTERACTION)){
@@ -237,8 +239,10 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 			assert($this->vrGazeDirection !== null);
 			$out->putVector3($this->vrGazeDirection);
 		}
-		$out->putUnsignedVarLong($this->tick);
-		$out->putVector3($this->delta);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			$out->putUnsignedVarLong($this->tick);
+			$out->putVector3($this->delta);
+		}
 
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
 			if($this->itemInteractionData !== null){

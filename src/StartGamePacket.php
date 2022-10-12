@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
@@ -60,6 +61,10 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	 * @phpstan-var list<BlockPaletteEntry>
 	 */
 	public array $blockPalette = [];
+	/**
+	 * @var CacheableNbt[]
+	 */
+	protected static array $oldBlockPalettes;
 
 	/**
 	 * Checksum of the full block palette. This is a hash of some weird stringified version of the NBT.
@@ -156,10 +161,27 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$this->enchantmentSeed = $in->getVarInt();
 
 		$this->blockPalette = [];
-		for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
-			$blockName = $in->getString();
-			$state = $in->getNbtCompoundRoot();
-			$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+				$blockName = $in->getString();
+				$state = $in->getNbtCompoundRoot();
+				$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+			}
+		}else{
+			$blockTable = $in->getNbtRoot()->getTag();
+			if($blockTable instanceof ListTag){
+				foreach($blockTable->getValue() as $tag) {
+					$state = $tag->getValue();
+					if($state instanceof CompoundTag){
+						$blockName = $state->getCompoundTag("block")->getString("name");
+						$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+						continue;
+					}
+					throw new PacketDecodeException("Expected TAG_Compound NBT state");
+				}
+
+			}
+			throw new PacketDecodeException("Expected TAG_List NBT root");
 		}
 
 		$this->itemTable = [];
@@ -209,10 +231,26 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 
 		$out->putVarInt($this->enchantmentSeed);
 
-		$out->putUnsignedVarInt(count($this->blockPalette));
-		foreach($this->blockPalette as $entry){
-			$out->putString($entry->getName());
-			$out->put($entry->getStates()->getEncodedNbt());
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100) {
+			$out->putUnsignedVarInt(count($this->blockPalette));
+			foreach($this->blockPalette as $entry){
+				$out->putString($entry->getName());
+				$out->put($entry->getStates()->getEncodedNbt());
+			}
+		}else{
+			if(!isset(self::$oldBlockPalettes[$out->getProtocolId()])) {
+				$root = new ListTag();
+				foreach($this->blockPalette as $entry){
+					$states = $entry->getStates()->getRoot()->safeClone();
+					if($states instanceof CompoundTag) {
+						$states->getCompoundTag("block")->setString("name", $entry->getName());
+					}
+					$root->push($states);
+				}
+				self::$oldBlockPalettes[$out->getProtocolId()] = new CacheableNbt($root);
+			}
+
+			$out->put(self::$oldBlockPalettes[$out->getProtocolId()]->getEncodedNbt());
 		}
 
 		$out->putUnsignedVarInt(count($this->itemTable));

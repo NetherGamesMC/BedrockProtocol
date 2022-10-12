@@ -122,7 +122,6 @@ class PacketSerializer extends BinaryStream{
 
 	public function getSkin() : SkinData{
 		$skinId = $this->getString();
-		$skinPlayFabId = "";
 		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210) {
 			$skinPlayFabId = $this->getString();
 		}
@@ -134,8 +133,10 @@ class PacketSerializer extends BinaryStream{
 			$skinImage = $this->getSkinImage();
 			$animationType = $this->getLInt();
 			$animationFrames = $this->getLFloat();
-			$expressionType = $this->getLInt();
-			$animations[] = new SkinAnimation($skinImage, $animationType, $animationFrames, $expressionType);
+			if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+				$expressionType = $this->getLInt();
+			}
+			$animations[] = new SkinAnimation($skinImage, $animationType, $animationFrames, $expressionType ?? 0);
 		}
 		$capeData = $this->getSkinImage();
 		$geometryData = $this->getString();
@@ -186,7 +187,7 @@ class PacketSerializer extends BinaryStream{
 
 		return new SkinData(
 			$skinId,
-			$skinPlayFabId,
+			$skinPlayFabId ?? "",
 			$skinResourcePatch,
 			$skinData,
 			$animations,
@@ -220,15 +221,17 @@ class PacketSerializer extends BinaryStream{
 			$this->putSkinImage($animation->getImage());
 			$this->putLInt($animation->getType());
 			$this->putLFloat($animation->getFrames());
-			$this->putLInt($animation->getExpressionType());
+			if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+				$this->putLInt($animation->getExpressionType());
+			}
 		}
 		$this->putSkinImage($skin->getCapeImage());
 		$this->putString($skin->getGeometryData());
-		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_30){
+		if($p_1_17_30 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_30)){
 			$this->putString($skin->getGeometryDataEngineVersion());
 		}
 		$this->putString($skin->getAnimationData());
-		if($this->getProtocolId() <= ProtocolInfo::PROTOCOL_1_17_10){
+		if(!$p_1_17_30){
 			$this->putBool($skin->isPremium());
 			$this->putBool($skin->isPersona());
 			$this->putBool($skin->isPersonaCapeOnClassic());
@@ -253,7 +256,7 @@ class PacketSerializer extends BinaryStream{
 				$this->putString($color);
 			}
 		}
-		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_30){
+		if($p_1_17_30){
 			$this->putBool($skin->isPremium());
 			$this->putBool($skin->isPersona());
 			$this->putBool($skin->isPersonaCapeOnClassic());
