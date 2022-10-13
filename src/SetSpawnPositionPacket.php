@@ -34,15 +34,18 @@ class SetSpawnPositionPacket extends DataPacket implements ClientboundPacket{
 	 */
 	public BlockPosition $causingBlockPosition;
 
+	public bool $spawnForced;
+
 	/**
 	 * @generate-create-func
 	 */
-	private static function create(int $spawnType, BlockPosition $spawnPosition, int $dimension, BlockPosition $causingBlockPosition) : self{
+	private static function create(int $spawnType, BlockPosition $spawnPosition, int $dimension, BlockPosition $causingBlockPosition, bool $spawnForced = false) : self{
 		$result = new self;
 		$result->spawnType = $spawnType;
 		$result->spawnPosition = $spawnPosition;
 		$result->dimension = $dimension;
 		$result->causingBlockPosition = $causingBlockPosition;
+		$result->spawnForced = $spawnForced;
 		return $result;
 	}
 
@@ -57,15 +60,23 @@ class SetSpawnPositionPacket extends DataPacket implements ClientboundPacket{
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->spawnType = $in->getVarInt();
 		$this->spawnPosition = $in->getBlockPosition();
-		$this->dimension = $in->getVarInt();
-		$this->causingBlockPosition = $in->getBlockPosition();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$this->dimension = $in->getVarInt();
+			$this->causingBlockPosition = $in->getBlockPosition();
+		}else{
+			$this->spawnForced = $in->getBool();
+		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putVarInt($this->spawnType);
 		$out->putBlockPosition($this->spawnPosition);
-		$out->putVarInt($this->dimension);
-		$out->putBlockPosition($this->causingBlockPosition);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$out->putVarInt($this->dimension);
+			$out->putBlockPosition($this->causingBlockPosition);
+		}else{
+			$out->putBool($this->spawnForced);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

@@ -41,17 +41,19 @@ class InventorySlotPacket extends DataPacket implements ClientboundPacket{
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
 			$this->item = ItemStackWrapper::read($in);
 		}else{
-			$stackId = $in->readGenericTypeNetworkId();
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+				$stackId = $in->readGenericTypeNetworkId();
+			}
 			$itemStack = $in->getItemStackWithoutStackId();
 
-			$this->item = new ItemStackWrapper($stackId, $itemStack);
+			$this->item = new ItemStackWrapper($stackId ?? ($itemStack->getId() === 0 ? 0 : 1), $itemStack);
 		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putUnsignedVarInt($this->windowId);
 		$out->putUnsignedVarInt($this->inventorySlot);
-		if($out->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0 && $out->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
 			$out->writeGenericTypeNetworkId($this->item->getStackId());
 		}
 		$this->item->write($out);

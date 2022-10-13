@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use Ramsey\Uuid\UuidInterface;
@@ -84,9 +85,11 @@ final class ShapelessRecipe extends RecipeWithTypeId{
 		$uuid = $in->getUUID();
 		$block = $in->getString();
 		$priority = $in->getVarInt();
-		$recipeNetId = $in->readGenericTypeNetworkId();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$recipeNetId = $in->readGenericTypeNetworkId();
+		}
 
-		return new self($recipeType, $recipeId, $input, $output, $uuid, $block, $priority, $recipeNetId);
+		return new self($recipeType, $recipeId, $input, $output, $uuid, $block, $priority, $recipeNetId ?? 0);
 	}
 
 	public function encode(PacketSerializer $out) : void{
@@ -104,6 +107,8 @@ final class ShapelessRecipe extends RecipeWithTypeId{
 		$out->putUUID($this->uuid);
 		$out->putString($this->blockName);
 		$out->putVarInt($this->priority);
-		$out->writeGenericTypeNetworkId($this->recipeNetId);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$out->writeGenericTypeNetworkId($this->recipeNetId);
+		}
 	}
 }

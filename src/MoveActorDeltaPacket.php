@@ -78,7 +78,7 @@ class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
 			if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
 				$out->putLFloat($val);
 			}else{
-				$out->putVarInt((int)$val);
+				$out->putVarInt((int) $val);
 			}
 		}
 	}

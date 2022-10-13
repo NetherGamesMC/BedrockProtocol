@@ -39,7 +39,7 @@ abstract class TransactionData{
 	 */
 	final public function decode(PacketSerializer $stream) : void{
 		$hasItemStackId = false;
-		if($stream->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
+		if($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0 && $stream->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
 			$hasItemStackId = $stream->getBool();
 		}
 
@@ -58,7 +58,7 @@ abstract class TransactionData{
 
 	final public function encode(PacketSerializer $stream) : void{
 		$hasItemStackId = false;
-		if($stream->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
+		if($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0 && $stream->getProtocolId() < ProtocolInfo::PROTOCOL_1_16_220){
 			$stream->putBool($hasItemStackId);
 		}
 

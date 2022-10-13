@@ -780,8 +780,10 @@ class PacketSerializer extends BinaryStream{
 		$toActorUniqueId = $this->getActorUniqueId();
 		$type = $this->getByte();
 		$immediate = $this->getBool();
-		$causedByRider = $this->getBool();
-		return new EntityLink($fromActorUniqueId, $toActorUniqueId, $type, $immediate, $causedByRider);
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$causedByRider = $this->getBool();
+		}
+		return new EntityLink($fromActorUniqueId, $toActorUniqueId, $type, $immediate, $causedByRider ?? false);
 	}
 
 	public function putEntityLink(EntityLink $link) : void{
@@ -789,7 +791,9 @@ class PacketSerializer extends BinaryStream{
 		$this->putActorUniqueId($link->toActorUniqueId);
 		$this->putByte($link->type);
 		$this->putBool($link->immediate);
-		$this->putBool($link->causedByRider);
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$this->putBool($link->causedByRider);
+		}
 	}
 
 	/**
