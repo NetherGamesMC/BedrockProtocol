@@ -194,7 +194,9 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		}
 
 		$this->multiplayerCorrelationId = $in->getString();
-		$this->enableNewInventorySystem = $in->getBool();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$this->enableNewInventorySystem = $in->getBool();
+		}
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_0){
 			$this->serverSoftwareVersion = $in->getString();
 		}
@@ -263,7 +265,9 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		}
 
 		$out->putString($this->multiplayerCorrelationId);
-		$out->putBool($this->enableNewInventorySystem);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
+			$out->putBool($this->enableNewInventorySystem);
+		}
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_0){
 			$out->putString($this->serverSoftwareVersion);
 		}
