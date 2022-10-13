@@ -51,7 +51,7 @@ final class ClientDataToSkinDataHelper{
 				),
 				$animation->Type,
 				$animation->Frames,
-				$animation->AnimationExpression
+				$animation->AnimationExpression ?? 0
 			);
 		}
 
