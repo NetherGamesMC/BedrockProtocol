@@ -55,12 +55,6 @@ final class ClientDataToSkinDataHelper{
 			);
 		}
 
-		if(isset($clientData->PlayFabId)){
-			$playFabId = $clientData->PlayFabId;
-		}else{
-			$playFabId = "";
-		}
-
 		if(isset($clientData->SkinGeometryDataEngineVersion)){
 			$geometryDataEngineVersion = self::safeB64Decode($clientData->SkinGeometryDataEngineVersion, "SkinGeometryDataEngineVersion"); //yes, they actually base64'd the version!
 		}else{
@@ -69,7 +63,7 @@ final class ClientDataToSkinDataHelper{
 
 		return new SkinData(
 			$clientData->SkinId,
-			$playFabId,
+			$clientData->PlayFabId ?? "",
 			self::safeB64Decode($clientData->SkinResourcePatch, "SkinResourcePatch"),
 			new SkinImage($clientData->SkinImageHeight, $clientData->SkinImageWidth, self::safeB64Decode($clientData->SkinData, "SkinData")),
 			$animations,
@@ -83,10 +77,10 @@ final class ClientDataToSkinDataHelper{
 			$clientData->SkinColor,
 			array_map(function(ClientDataPersonaSkinPiece $piece) : PersonaSkinPiece{
 				return new PersonaSkinPiece($piece->PieceId, $piece->PieceType, $piece->PackId, $piece->IsDefault, $piece->ProductId);
-			}, $clientData->PersonaPieces),
+			}, $clientData->PersonaPieces ?? []),
 			array_map(function(ClientDataPersonaPieceTintColor $tint) : PersonaPieceTintColor{
 				return new PersonaPieceTintColor($tint->PieceType, $tint->Colors);
-			}, $clientData->PieceTintColors),
+			}, $clientData->PieceTintColors ?? []),
 			true,
 			$clientData->PremiumSkin,
 			$clientData->PersonaSkin,

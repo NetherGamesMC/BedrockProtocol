@@ -75,7 +75,7 @@ final class ClientData{
 
 	/**
 	 * @var ClientDataPersonaSkinPiece[]
-	 * @required
+	 * >= PROTOCOL_1_14_60
 	 */
 	public array $PersonaPieces;
 
@@ -84,7 +84,7 @@ final class ClientData{
 
 	/**
 	 * @var ClientDataPersonaPieceTintColor[]
-	 * @required
+	 * >= PROTOCOL_1_14_60
 	 */
 	public array $PieceTintColors;
 

@@ -75,7 +75,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 
 			$this->entries[$i] = $entry;
 		}
-		if($this->type === self::TYPE_ADD){
+		if($this->type === self::TYPE_ADD && $in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
 			for($i = 0; $i < $count; ++$i){
 				$this->entries[$i]->skinData->setVerified($in->getBool());
 			}
@@ -100,7 +100,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				$out->putUUID($entry->uuid);
 			}
 		}
-		if($this->type === self::TYPE_ADD){
+		if($this->type === self::TYPE_ADD && $out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
 			foreach($this->entries as $entry){
 				$out->putBool($entry->skinData->isVerified());
 			}
