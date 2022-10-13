@@ -61,9 +61,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	 * @phpstan-var list<BlockPaletteEntry>
 	 */
 	public array $blockPalette = [];
-	/**
-	 * @var CacheableNbt[]
-	 */
+	/** @var CacheableNbt[] */
 	protected static array $oldBlockPalettes;
 
 	/**
