@@ -88,6 +88,8 @@ interface PacketHandlerInterface{
 
 	public function handlePlayerAction(PlayerActionPacket $packet) : bool;
 
+	public function handleActorFall(ActorFallPacket $packet) : bool;
+
 	public function handleHurtArmor(HurtArmorPacket $packet) : bool;
 
 	public function handleSetActorData(SetActorDataPacket $packet) : bool;

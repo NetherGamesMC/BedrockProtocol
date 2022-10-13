@@ -116,7 +116,7 @@ final class ProtocolInfo{
 	public const BLOCK_PICK_REQUEST_PACKET = 0x22;
 	public const ACTOR_PICK_REQUEST_PACKET = 0x23;
 	public const PLAYER_ACTION_PACKET = 0x24;
-
+	public const ACTOR_FALL_PACKET = 0x25;
 	public const HURT_ARMOR_PACKET = 0x26;
 	public const SET_ACTOR_DATA_PACKET = 0x27;
 	public const SET_ACTOR_MOTION_PACKET = 0x28;

@@ -68,6 +68,7 @@ class PacketPool{
 		$this->registerPacket(new BlockPickRequestPacket());
 		$this->registerPacket(new ActorPickRequestPacket());
 		$this->registerPacket(new PlayerActionPacket());
+		$this->registerPacket(new ActorFallPacket());
 		$this->registerPacket(new HurtArmorPacket());
 		$this->registerPacket(new SetActorDataPacket());
 		$this->registerPacket(new SetActorMotionPacket());
