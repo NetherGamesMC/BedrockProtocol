@@ -73,8 +73,8 @@ final class ClientDataToSkinDataHelper{
 			self::safeB64Decode($clientData->SkinAnimationData, "SkinAnimationData"),
 			$clientData->CapeId,
 			null,
-			$clientData->ArmSize,
-			$clientData->SkinColor,
+			$clientData->ArmSize ?? "",
+			$clientData->SkinColor ?? "",
 			array_map(function(ClientDataPersonaSkinPiece $piece) : PersonaSkinPiece{
 				return new PersonaSkinPiece($piece->PieceId, $piece->PieceType, $piece->PackId, $piece->IsDefault, $piece->ProductId);
 			}, $clientData->PersonaPieces ?? []),

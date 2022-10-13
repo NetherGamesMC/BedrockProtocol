@@ -25,7 +25,7 @@ final class ClientData{
 	 */
 	public array $AnimatedImageData;
 
-	/** @required */
+	/** >= PROTOCOL_1_14_60 */
 	public string $ArmSize;
 
 	/** @required */
@@ -111,7 +111,7 @@ final class ClientData{
 	/** @required */
 	public string $SkinAnimationData;
 
-	/** @required */
+	/** >= PROTOCOL_1_14_60 */
 	public string $SkinColor;
 
 	/** @required */
