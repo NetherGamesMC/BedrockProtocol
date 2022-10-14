@@ -18,7 +18,7 @@ use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use Ramsey\Uuid\Uuid;
 
 class SkinData{
-	private const DEFAULT_RESOURCE_PATCH = "ewogICAiZ2VvbWV0cnkiOnsKICAgICAgImRlZmF1bHQiOiJnZW9tZXRyeS5odW1hbm9pZC5jdXN0b20iCiAgIH0KfQ==";
+	private const DEFAULT_RESOURCE_PATCH = '{"geometry":{"default":"geometry.humanoid.custom"}}';
 
 	public const ARM_SIZE_SLIM = "slim";
 	public const ARM_SIZE_WIDE = "wide";

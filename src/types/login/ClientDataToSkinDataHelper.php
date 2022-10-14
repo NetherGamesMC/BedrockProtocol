@@ -61,17 +61,30 @@ final class ClientDataToSkinDataHelper{
 			$geometryDataEngineVersion = ProtocolInfo::MINECRAFT_VERSION_NETWORK;
 		}
 
+		$skinData = self::safeB64Decode($clientData->SkinData, "SkinData");
+		if(!isset($clientData->SkinImageHeight) || !isset($clientData->SkinImageWidth)) {
+			$skinImage = SkinImage::fromLegacy($skinData);
+		}else{
+			$skinImage = new SkinImage($clientData->SkinImageHeight, $clientData->SkinImageWidth, $skinData);
+		}
+
+		$capeData = self::safeB64Decode($clientData->CapeData, "CapeData");
+		if(!isset($clientData->CapeImageHeight) || !isset($clientData->CapeImageWidth)) {
+			$capeImage = SkinImage::fromLegacy($capeData);
+		}else{
+			$capeImage = new SkinImage($clientData->CapeImageHeight, $clientData->CapeImageWidth, $capeData);
+		}
 		return new SkinData(
 			$clientData->SkinId,
 			$clientData->PlayFabId ?? "",
-			self::safeB64Decode($clientData->SkinResourcePatch, "SkinResourcePatch"),
-			new SkinImage($clientData->SkinImageHeight, $clientData->SkinImageWidth, self::safeB64Decode($clientData->SkinData, "SkinData")),
+			isset($clientData->SkinResourcePatch) ? self::safeB64Decode($clientData->SkinResourcePatch, "SkinResourcePatch") : null,
+			$skinImage,
 			$animations,
-			new SkinImage($clientData->CapeImageHeight, $clientData->CapeImageWidth, self::safeB64Decode($clientData->CapeData, "CapeData")),
-			self::safeB64Decode($clientData->SkinGeometryData, "SkinGeometryData"),
+			$capeImage,
+			self::safeB64Decode($clientData->SkinGeometryData ?? $clientData->SkinGeometry, "SkinGeometryData"),
 			$geometryDataEngineVersion,
-			self::safeB64Decode($clientData->SkinAnimationData, "SkinAnimationData"),
-			$clientData->CapeId,
+			isset($clientData->SkinAnimationData) ? self::safeB64Decode($clientData->SkinAnimationData, "SkinAnimationData") : "",
+			$clientData->CapeId ?? "",
 			null,
 			$clientData->ArmSize ?? "",
 			$clientData->SkinColor ?? "",
@@ -83,8 +96,8 @@ final class ClientDataToSkinDataHelper{
 			}, $clientData->PieceTintColors ?? []),
 			true,
 			$clientData->PremiumSkin,
-			$clientData->PersonaSkin,
-			$clientData->CapeOnClassicSkin,
+			$clientData->PersonaSkin ?? false,
+			$clientData->CapeOnClassicSkin ?? false,
 			true, //assume this is true? there's no field for it ...
 		);
 	}
