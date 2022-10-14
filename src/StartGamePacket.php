@@ -17,10 +17,13 @@ namespace pocketmine\network\mcpe\protocol;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
+use pocketmine\nbt\TreeRoot;
+use pocketmine\network\mcpe\protocol\serializer\NetworkNbtSerializer;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
 use pocketmine\network\mcpe\protocol\types\ItemTypeEntry;
+use pocketmine\network\mcpe\protocol\types\LegacyBlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\LevelSettings;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use Ramsey\Uuid\UuidInterface;
@@ -61,8 +64,11 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	 * @phpstan-var list<BlockPaletteEntry>
 	 */
 	public array $blockPalette = [];
-	/** @var CacheableNbt[] */
-	protected static array $oldBlockPalettes;
+	/**
+	 * @var LegacyBlockPaletteEntry[]
+	 * @phpstan-var list<LegacyBlockPaletteEntry>
+	 */
+	public array $legacyBlockPalette = [];
 
 	/**
 	 * Checksum of the full block palette. This is a hash of some weird stringified version of the NBT.
@@ -79,11 +85,13 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 
 	/**
 	 * @generate-create-func
-	 * @param BlockPaletteEntry[] $blockPalette
-	 * @param ItemTypeEntry[]     $itemTable
-	 * @phpstan-param CacheableNbt<CompoundTag> $playerActorProperties
-	 * @phpstan-param list<BlockPaletteEntry>   $blockPalette
-	 * @phpstan-param list<ItemTypeEntry>       $itemTable
+	 * @param BlockPaletteEntry[]       $blockPalette
+	 * @param LegacyBlockPaletteEntry[] $legacyBlockPalette
+	 * @param ItemTypeEntry[]           $itemTable
+	 * @phpstan-param CacheableNbt<CompoundTag>     $playerActorProperties
+	 * @phpstan-param list<BlockPaletteEntry>       $blockPalette
+	 * @phpstan-param list<LegacyBlockPaletteEntry> $legacyBlockPalette
+	 * @phpstan-param list<ItemTypeEntry>           $itemTable
 	 */
 	public static function create(
 		int $actorUniqueId,
@@ -107,6 +115,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		UuidInterface $worldTemplateId,
 		bool $enableClientSideChunkGeneration,
 		array $blockPalette,
+		array $legacyBlockPalette,
 		int $blockPaletteChecksum,
 		array $itemTable,
 	) : self{
@@ -132,6 +141,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$result->worldTemplateId = $worldTemplateId;
 		$result->enableClientSideChunkGeneration = $enableClientSideChunkGeneration;
 		$result->blockPalette = $blockPalette;
+		$result->legacyBlockPalette = $legacyBlockPalette;
 		$result->blockPaletteChecksum = $blockPaletteChecksum;
 		$result->itemTable = $itemTable;
 		return $result;
@@ -153,33 +163,43 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$this->worldName = $in->getString();
 		$this->premiumWorldTemplateId = $in->getString();
 		$this->isTrial = $in->getBool();
-		$this->playerMovementSettings = PlayerMovementSettings::read($in);
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->playerMovementSettings = PlayerMovementSettings::read($in);
+		}
 		$this->currentTick = $in->getLLong();
 
 		$this->enchantmentSeed = $in->getVarInt();
 
 		$this->blockPalette = [];
-		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
-			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
-				$blockName = $in->getString();
-				$state = $in->getNbtCompoundRoot();
-				$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+				for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+					$blockName = $in->getString();
+					$state = $in->getNbtCompoundRoot();
+					$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+				}
+			}else{
+				$blockTable = $in->getNbtRoot()->getTag();
+				if($blockTable instanceof ListTag){
+					foreach($blockTable->getValue() as $tag){
+						$state = $tag->getValue();
+						if($state instanceof CompoundTag){
+							$blockName = $state->getCompoundTag("block")->getString("name");
+							$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+							continue;
+						}
+						throw new PacketDecodeException("Expected TAG_Compound NBT state");
+					}
+				}
+				throw new PacketDecodeException("Expected TAG_List NBT root");
 			}
 		}else{
-			$blockTable = $in->getNbtRoot()->getTag();
-			if($blockTable instanceof ListTag){
-				foreach($blockTable->getValue() as $tag) {
-					$state = $tag->getValue();
-					if($state instanceof CompoundTag){
-						$blockName = $state->getCompoundTag("block")->getString("name");
-						$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
-						continue;
-					}
-					throw new PacketDecodeException("Expected TAG_Compound NBT state");
-				}
-
+			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+				$name = $in->getString();
+				$metadata = $in->getLShort();
+				$id = $in->getLShort();
+				$this->legacyBlockPalette[] = new LegacyBlockPaletteEntry($name, $id, $metadata);
 			}
-			throw new PacketDecodeException("Expected TAG_List NBT root");
 		}
 
 		$this->itemTable = [];
@@ -228,31 +248,21 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$out->putString($this->worldName);
 		$out->putString($this->premiumWorldTemplateId);
 		$out->putBool($this->isTrial);
-		$this->playerMovementSettings->write($out);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->playerMovementSettings->write($out);
+		}
 		$out->putLLong($this->currentTick);
 
 		$out->putVarInt($this->enchantmentSeed);
 
-		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100) {
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
 			$out->putUnsignedVarInt(count($this->blockPalette));
 			foreach($this->blockPalette as $entry){
 				$out->putString($entry->getName());
 				$out->put($entry->getStates()->getEncodedNbt());
 			}
 		}else{
-			if(!isset(self::$oldBlockPalettes[$out->getProtocolId()])) {
-				$root = new ListTag();
-				foreach($this->blockPalette as $entry){
-					$states = $entry->getStates()->getRoot()->safeClone();
-					if($states instanceof CompoundTag) {
-						$states->getCompoundTag("block")->setString("name", $entry->getName());
-					}
-					$root->push($states);
-				}
-				self::$oldBlockPalettes[$out->getProtocolId()] = new CacheableNbt($root);
-			}
-
-			$out->put(self::$oldBlockPalettes[$out->getProtocolId()]->getEncodedNbt());
+			$this->createEncodedBlockPalette($out);
 		}
 
 		$out->putUnsignedVarInt(count($this->itemTable));
@@ -280,6 +290,27 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		}
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_20){
 			$out->putBool($this->enableClientSideChunkGeneration);
+		}
+	}
+
+	private function createEncodedBlockPalette(PacketSerializer $out) : void{
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$root = new ListTag();
+			foreach($this->blockPalette as $entry){
+				$states = $entry->getStates()->getRoot()->safeClone();
+				if($states instanceof CompoundTag) {
+					$states->getCompoundTag("block")->setString("name", $entry->getName());
+				}
+				$root->push($states);
+			}
+			$out->put((new NetworkNbtSerializer())->write(new TreeRoot($root)));
+		}else{
+			$out->putUnsignedVarInt(count($this->legacyBlockPalette));
+			foreach($this->legacyBlockPalette as $entry){
+				$out->putString($entry->getName());
+				$out->putLShort($entry->getMetadata());
+				$out->putLShort($entry->getId());
+			}
 		}
 	}
 

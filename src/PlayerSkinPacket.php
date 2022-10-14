@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\skin\SkinData;
+use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use Ramsey\Uuid\UuidInterface;
 
 class PlayerSkinPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
@@ -40,21 +41,52 @@ class PlayerSkinPacket extends DataPacket implements ClientboundPacket, Serverbo
 
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->uuid = $in->getUUID();
-		$this->skin = $in->getSkin();
-		$this->newSkinName = $in->getString();
-		$this->oldSkinName = $in->getString();
-		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
-			$this->skin->setVerified($in->getBool());
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->skin = $in->getSkin();
+			$this->newSkinName = $in->getString();
+			$this->oldSkinName = $in->getString();
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
+				$this->skin->setVerified($in->getBool());
+			}
+		}else{
+			$skinId = $in->getString();
+			$this->newSkinName = $in->getString();
+			$this->oldSkinName = $in->getString();
+			$skinData = $in->getString();
+			$capeData = $in->getString();
+			$geometryName = $in->getString();
+			$geometryData = $in->getString();
+			$isPremium = $in->getBool();
+			$this->skin = new SkinData(
+				$skinId,
+				"",
+				null,
+				SkinImage::fromLegacy($skinData),
+				capeImage: SkinImage::fromLegacy($capeData),
+				geometryData: $geometryData,
+				premium: $isPremium
+			);
 		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putUUID($this->uuid);
-		$out->putSkin($this->skin);
-		$out->putString($this->newSkinName);
-		$out->putString($this->oldSkinName);
-		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
-			$out->putBool($this->skin->isVerified());
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$out->putSkin($this->skin);
+			$out->putString($this->newSkinName);
+			$out->putString($this->oldSkinName);
+			if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
+				$out->putBool($this->skin->isVerified());
+			}
+		}else{
+			$out->putString($this->skin->getSkinId());
+			$out->putString($this->newSkinName);
+			$out->putString($this->oldSkinName);
+			$out->putString($this->skin->getSkinImage()->getData());
+			$out->putString($this->skin->getCapeImage()->getData());
+			$out->putString("geometry.humanoid.custom"); // geometryName
+			$out->putString($this->skin->getGeometryData());
+			$out->putBool($this->skin->isPremium());
 		}
 	}
 

@@ -16,6 +16,8 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
+use pocketmine\network\mcpe\protocol\types\skin\SkinData;
+use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use function count;
 
 class PlayerListPacket extends DataPacket implements ClientboundPacket{
@@ -63,12 +65,30 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				$entry->uuid = $in->getUUID();
 				$entry->actorUniqueId = $in->getActorUniqueId();
 				$entry->username = $in->getString();
-				$entry->xboxUserId = $in->getString();
-				$entry->platformChatId = $in->getString();
-				$entry->buildPlatform = $in->getLInt();
-				$entry->skinData = $in->getSkin();
-				$entry->isTeacher = $in->getBool();
-				$entry->isHost = $in->getBool();
+				if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+					$entry->xboxUserId = $in->getString();
+					$entry->platformChatId = $in->getString();
+					$entry->buildPlatform = $in->getLInt();
+					$entry->skinData = $in->getSkin();
+					$entry->isTeacher = $in->getBool();
+					$entry->isHost = $in->getBool();
+				}else{
+					$skinId = $in->getString();
+					$skinData = $in->getString();
+					$capeData = $in->getString();
+					$geometryName = $in->getString();
+					$geometryData = $in->getString();
+					$entry->skinData = new SkinData(
+						$skinId,
+						"",
+						null,
+						SkinImage::fromLegacy($skinData),
+						capeImage: SkinImage::fromLegacy($capeData),
+						geometryData: $geometryData,
+					);
+					$entry->xboxUserId = $in->getString();
+					$entry->platformChatId = $in->getString();
+				}
 			}else{
 				$entry->uuid = $in->getUUID();
 			}
@@ -90,12 +110,22 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				$out->putUUID($entry->uuid);
 				$out->putActorUniqueId($entry->actorUniqueId);
 				$out->putString($entry->username);
-				$out->putString($entry->xboxUserId);
-				$out->putString($entry->platformChatId);
-				$out->putLInt($entry->buildPlatform);
-				$out->putSkin($entry->skinData);
-				$out->putBool($entry->isTeacher);
-				$out->putBool($entry->isHost);
+				if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0) {
+					$out->putString($entry->xboxUserId);
+					$out->putString($entry->platformChatId);
+					$out->putLInt($entry->buildPlatform);
+					$out->putSkin($entry->skinData);
+					$out->putBool($entry->isTeacher);
+					$out->putBool($entry->isHost);
+				}else{
+					$out->putString($entry->skinData->getSkinId());
+					$out->putString($entry->skinData->getSkinImage()->getData());
+					$out->putString($entry->skinData->getCapeImage()->getData());
+					$out->putString("geometry.humanoid.custom"); // geometryName
+					$out->putString($entry->skinData->getGeometryData());
+					$out->putString($entry->xboxUserId);
+					$out->putString($entry->platformChatId);
+				}
 			}else{
 				$out->putUUID($entry->uuid);
 			}

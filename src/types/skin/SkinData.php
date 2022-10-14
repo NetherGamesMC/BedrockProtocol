@@ -18,10 +18,12 @@ use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use Ramsey\Uuid\Uuid;
 
 class SkinData{
+	private const DEFAULT_RESOURCE_PATCH = "ewogICAiZ2VvbWV0cnkiOnsKICAgICAgImRlZmF1bHQiOiJnZW9tZXRyeS5odW1hbm9pZC5jdXN0b20iCiAgIH0KfQ==";
 
 	public const ARM_SIZE_SLIM = "slim";
 	public const ARM_SIZE_WIDE = "wide";
 
+	private string $resourcePatch;
 	private SkinImage $capeImage;
 	private string $fullSkinId;
 
@@ -33,7 +35,7 @@ class SkinData{
 	public function __construct(
 		private string $skinId,
 		private string $playFabId,
-		private string $resourcePatch,
+		?string $resourcePatch,
 		private SkinImage $skinImage,
 		private array $animations = [],
 		SkinImage $capeImage = null,
@@ -52,6 +54,7 @@ class SkinData{
 		private bool $personaCapeOnClassic = false,
 		private bool $isPrimaryUser = true
 	){
+		$this->resourcePatch = $resourcePatch ?? self::DEFAULT_RESOURCE_PATCH;
 		$this->capeImage = $capeImage ?? new SkinImage(0, 0, "");
 		//this has to be unique or the client will do stupid things
 		$this->fullSkinId = $fullSkinId ?? Uuid::uuid4()->toString();

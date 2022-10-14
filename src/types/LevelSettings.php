@@ -141,7 +141,9 @@ final class LevelSettings{
 			$this->disablePersona = $in->getBool();
 			$this->disableCustomSkins = $in->getBool();
 		}
-		$this->vanillaVersion = $in->getString();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->vanillaVersion = $in->getString();
+		}
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
 			$this->limitedWorldWidth = $in->getLInt();
 			$this->limitedWorldLength = $in->getLInt();
@@ -210,7 +212,9 @@ final class LevelSettings{
 			$out->putBool($this->disablePersona);
 			$out->putBool($this->disableCustomSkins);
 		}
-		$out->putString($this->vanillaVersion);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$out->putString($this->vanillaVersion);
+		}
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_0){
 			$out->putLInt($this->limitedWorldWidth);
 			$out->putLInt($this->limitedWorldLength);

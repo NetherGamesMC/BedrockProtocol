@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
+use function strlen;
 
 class ResourcePackChunkDataPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::RESOURCE_PACK_CHUNK_DATA_PACKET;
@@ -40,14 +41,23 @@ class ResourcePackChunkDataPacket extends DataPacket implements ClientboundPacke
 		$this->packId = $in->getString();
 		$this->chunkIndex = $in->getLInt();
 		$this->offset = $in->getLLong();
-		$this->data = $in->getString();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->data = $in->getString();
+		}else{
+			$this->data = $in->get($in->getLInt());
+		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putString($this->packId);
 		$out->putLInt($this->chunkIndex);
 		$out->putLLong($this->offset);
-		$out->putString($this->data);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$out->putString($this->data);
+		}else{
+			$out->putLInt(strlen($this->data));
+			$out->put($this->data);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

@@ -41,14 +41,18 @@ class RespawnPacket extends DataPacket implements ClientboundPacket, Serverbound
 
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->position = $in->getVector3();
-		$this->respawnState = $in->getByte();
-		$this->actorRuntimeId = $in->getActorRuntimeId();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->respawnState = $in->getByte();
+			$this->actorRuntimeId = $in->getActorRuntimeId();
+		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putVector3($this->position);
-		$out->putByte($this->respawnState);
-		$out->putActorRuntimeId($this->actorRuntimeId);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$out->putByte($this->respawnState);
+			$out->putActorRuntimeId($this->actorRuntimeId);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{
