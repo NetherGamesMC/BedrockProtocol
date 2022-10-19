@@ -19,6 +19,7 @@ use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\skin\SkinData;
 use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use function count;
+use function json_decode;
 
 class PlayerListPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::PLAYER_LIST_PACKET;
@@ -85,6 +86,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 						SkinImage::fromLegacy($skinData),
 						capeImage: SkinImage::fromLegacy($capeData),
 						geometryData: $geometryData,
+						geometryName: $geometryName,
 					);
 					$entry->xboxUserId = $in->getString();
 					$entry->platformChatId = $in->getString();
@@ -121,7 +123,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 					$out->putString($entry->skinData->getSkinId());
 					$out->putString($entry->skinData->getSkinImage()->getData());
 					$out->putString($entry->skinData->getCapeImage()->getData());
-					$out->putString("geometry.humanoid.custom"); // geometryName
+					$out->putString(json_decode($entry->skinData->getResourcePatch(), true, JSON_THROW_ON_ERROR)["geometry"]["default"]); // geometryName
 					$out->putString($entry->skinData->getGeometryData());
 					$out->putString($entry->xboxUserId);
 					$out->putString($entry->platformChatId);

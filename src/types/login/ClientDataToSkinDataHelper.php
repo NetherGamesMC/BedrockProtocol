@@ -99,6 +99,7 @@ final class ClientDataToSkinDataHelper{
 			$clientData->PersonaSkin ?? false,
 			$clientData->CapeOnClassicSkin ?? false,
 			true, //assume this is true? there's no field for it ...
+			$clientData->SkinGeometryName ?? null,
 		);
 	}
 }

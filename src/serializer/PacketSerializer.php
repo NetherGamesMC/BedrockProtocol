@@ -847,7 +847,9 @@ class PacketSerializer extends BinaryStream{
 		}
 		$result->integrityValue = $this->getLFloat();
 		$result->integritySeed = $this->getLInt();
-		$result->pivot = $this->getVector3();
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$result->pivot = $this->getVector3();
+		}
 
 		return $result;
 	}
@@ -870,7 +872,9 @@ class PacketSerializer extends BinaryStream{
 		}
 		$this->putLFloat($structureSettings->integrityValue);
 		$this->putLInt($structureSettings->integritySeed);
-		$this->putVector3($structureSettings->pivot);
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->putVector3($structureSettings->pivot);
+		}
 	}
 
 	public function getStructureEditorData() : StructureEditorData{

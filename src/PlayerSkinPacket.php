@@ -18,6 +18,7 @@ use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\skin\SkinData;
 use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use Ramsey\Uuid\UuidInterface;
+use function json_decode;
 
 class PlayerSkinPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::PLAYER_SKIN_PACKET;
@@ -64,7 +65,8 @@ class PlayerSkinPacket extends DataPacket implements ClientboundPacket, Serverbo
 				SkinImage::fromLegacy($skinData),
 				capeImage: SkinImage::fromLegacy($capeData),
 				geometryData: $geometryData,
-				premium: $isPremium
+				premium: $isPremium,
+				geometryName: $geometryName,
 			);
 		}
 	}
@@ -84,7 +86,7 @@ class PlayerSkinPacket extends DataPacket implements ClientboundPacket, Serverbo
 			$out->putString($this->oldSkinName);
 			$out->putString($this->skin->getSkinImage()->getData());
 			$out->putString($this->skin->getCapeImage()->getData());
-			$out->putString("geometry.humanoid.custom"); // geometryName
+			$out->putString(json_decode($this->skin->getResourcePatch(), true, JSON_THROW_ON_ERROR)["geometry"]["default"]); // geometryName
 			$out->putString($this->skin->getGeometryData());
 			$out->putBool($this->skin->isPremium());
 		}

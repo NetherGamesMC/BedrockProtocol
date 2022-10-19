@@ -16,9 +16,10 @@ namespace pocketmine\network\mcpe\protocol\types\skin;
 
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use Ramsey\Uuid\Uuid;
+use function sprintf;
 
 class SkinData{
-	private const DEFAULT_RESOURCE_PATCH = '{"geometry":{"default":"geometry.humanoid.custom"}}';
+	private const DEFAULT_RESOURCE_PATCH = '{"geometry":{"default":"%s"}}';
 
 	public const ARM_SIZE_SLIM = "slim";
 	public const ARM_SIZE_WIDE = "wide";
@@ -52,9 +53,10 @@ class SkinData{
 		private bool $premium = false,
 		private bool $persona = false,
 		private bool $personaCapeOnClassic = false,
-		private bool $isPrimaryUser = true
+		private bool $isPrimaryUser = true,
+		?string $geometryName = null
 	){
-		$this->resourcePatch = $resourcePatch ?? self::DEFAULT_RESOURCE_PATCH;
+		$this->resourcePatch = $resourcePatch ?? sprintf(self::DEFAULT_RESOURCE_PATCH, $geometryName ?? "geometry.humanoid.custom");
 		$this->capeImage = $capeImage ?? new SkinImage(0, 0, "");
 		//this has to be unique or the client will do stupid things
 		$this->fullSkinId = $fullSkinId ?? Uuid::uuid4()->toString();
