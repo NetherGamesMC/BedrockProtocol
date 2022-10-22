@@ -240,7 +240,7 @@ class PacketSerializer extends BinaryStream{
 		}
 		$this->putString($skin->getCapeId());
 		$this->putString($skin->getFullSkinId());
-		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_14_60){
 			$this->putString($skin->getArmSize());
 			$this->putString($skin->getSkinColor());
 			$this->putLInt(count($skin->getPersonaPieces()));
