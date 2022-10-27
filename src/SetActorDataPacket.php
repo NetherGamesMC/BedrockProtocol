@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
+use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 
 class SetActorDataPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{ //TODO: check why this is serverbound
 	public const NETWORK_ID = ProtocolInfo::SET_ACTOR_DATA_PACKET;
@@ -26,6 +27,7 @@ class SetActorDataPacket extends DataPacket implements ClientboundPacket, Server
 	 * @phpstan-var array<int, MetadataProperty>
 	 */
 	public array $metadata;
+	public PropertySyncData $syncedProperties;
 	public int $tick = 0;
 
 	/**
@@ -33,10 +35,11 @@ class SetActorDataPacket extends DataPacket implements ClientboundPacket, Server
 	 * @param MetadataProperty[] $metadata
 	 * @phpstan-param array<int, MetadataProperty> $metadata
 	 */
-	public static function create(int $actorRuntimeId, array $metadata, int $tick) : self{
+	public static function create(int $actorRuntimeId, array $metadata, PropertySyncData $syncedProperties, int $tick) : self{
 		$result = new self;
 		$result->actorRuntimeId = $actorRuntimeId;
 		$result->metadata = $metadata;
+		$result->syncedProperties = $syncedProperties;
 		$result->tick = $tick;
 		return $result;
 	}
@@ -44,6 +47,9 @@ class SetActorDataPacket extends DataPacket implements ClientboundPacket, Server
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->actorRuntimeId = $in->getActorRuntimeId();
 		$this->metadata = $in->getEntityMetadata();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
+			$this->syncedProperties = PropertySyncData::read($in);
+		}
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
 			$this->tick = $in->getUnsignedVarLong();
 		}
@@ -52,6 +58,9 @@ class SetActorDataPacket extends DataPacket implements ClientboundPacket, Server
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putActorRuntimeId($this->actorRuntimeId);
 		$out->putEntityMetadata($this->metadata);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
+			$this->syncedProperties->write($out);
+		}
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
 			$out->putUnsignedVarLong($this->tick);
 		}
