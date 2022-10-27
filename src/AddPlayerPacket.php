@@ -19,6 +19,7 @@ use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
+use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use Ramsey\Uuid\UuidInterface;
 use function count;
@@ -42,6 +43,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 	 * @phpstan-var array<int, MetadataProperty>
 	 */
 	public array $metadata = [];
+	public PropertySyncData $syncedProperties;
 
 	public UpdateAbilitiesPacket $abilitiesPacket;
 
@@ -69,6 +71,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		ItemStackWrapper $item,
 		int $gameMode,
 		array $metadata,
+		PropertySyncData $syncedProperties,
 		UpdateAbilitiesPacket $abilitiesPacket,
 		array $links,
 		string $deviceId,
@@ -87,6 +90,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		$result->item = $item;
 		$result->gameMode = $gameMode;
 		$result->metadata = $metadata;
+		$result->syncedProperties = $syncedProperties;
 		$result->abilitiesPacket = $abilitiesPacket;
 		$result->links = $links;
 		$result->deviceId = $deviceId;
@@ -112,6 +116,9 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 			$this->gameMode = $in->getVarInt();
 		}
 		$this->metadata = $in->getEntityMetadata();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
+			$this->syncedProperties = PropertySyncData::read($in);
+		}
 
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_10){
 			$this->abilitiesPacket = new UpdateAbilitiesPacket();
@@ -155,6 +162,9 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 			$out->putVarInt($this->gameMode);
 		}
 		$out->putEntityMetadata($this->metadata);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
+			$this->syncedProperties->write($out);
+		}
 
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_10){
 			$this->abilitiesPacket->encodePayload($out);
