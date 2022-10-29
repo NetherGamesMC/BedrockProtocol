@@ -27,6 +27,7 @@ class SkinData{
 	private string $resourcePatch;
 	private SkinImage $capeImage;
 	private string $fullSkinId;
+	private string $geometryName;
 
 	/**
 	 * @param SkinAnimation[]         $animations
@@ -56,7 +57,8 @@ class SkinData{
 		private bool $isPrimaryUser = true,
 		?string $geometryName = null
 	){
-		$this->resourcePatch = $resourcePatch ?? sprintf(self::DEFAULT_RESOURCE_PATCH, $geometryName ?? "geometry.humanoid.custom");
+		$this->geometryName = $geometryName ?? "geometry.humanoid.custom";
+		$this->resourcePatch = $resourcePatch ?? sprintf(self::DEFAULT_RESOURCE_PATCH, $this->geometryName);
 		$this->capeImage = $capeImage ?? new SkinImage(0, 0, "");
 		//this has to be unique or the client will do stupid things
 		$this->fullSkinId = $fullSkinId ?? Uuid::uuid4()->toString();
@@ -143,6 +145,10 @@ class SkinData{
 
 	public function isVerified() : bool{
 		return $this->isVerified;
+	}
+
+	public function getGeometryName() : string{
+		return $this->geometryName;
 	}
 
 	/**

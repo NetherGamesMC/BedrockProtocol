@@ -86,7 +86,7 @@ class PlayerSkinPacket extends DataPacket implements ClientboundPacket, Serverbo
 			$out->putString($this->oldSkinName);
 			$out->putString($this->skin->getSkinImage()->getData());
 			$out->putString($this->skin->getCapeImage()->getData());
-			$out->putString(json_decode($this->skin->getResourcePatch(), true, flags: JSON_THROW_ON_ERROR)["geometry"]["default"]); // geometryName
+			$out->putString($this->skin->getGeometryName());
 			$out->putString($this->skin->getGeometryData());
 			$out->putBool($this->skin->isPremium());
 		}

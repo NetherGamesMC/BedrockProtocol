@@ -123,7 +123,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 					$out->putString($entry->skinData->getSkinId());
 					$out->putString($entry->skinData->getSkinImage()->getData());
 					$out->putString($entry->skinData->getCapeImage()->getData());
-					$out->putString(json_decode($entry->skinData->getResourcePatch(), true, flags: JSON_THROW_ON_ERROR)["geometry"]["default"]); // geometryName
+					$out->putString($entry->skinData->getGeometryName());
 					$out->putString($entry->skinData->getGeometryData());
 					$out->putString($entry->xboxUserId);
 					$out->putString($entry->platformChatId);
