@@ -39,7 +39,7 @@ class SetSpawnPositionPacket extends DataPacket implements ClientboundPacket{
 	/**
 	 * @generate-create-func
 	 */
-	private static function create(int $spawnType, BlockPosition $spawnPosition, int $dimension, BlockPosition $causingBlockPosition, bool $spawnForced = false) : self{
+	private static function create(int $spawnType, BlockPosition $spawnPosition, int $dimension, BlockPosition $causingBlockPosition, bool $spawnForced) : self{
 		$result = new self;
 		$result->spawnType = $spawnType;
 		$result->spawnPosition = $spawnPosition;
@@ -49,12 +49,12 @@ class SetSpawnPositionPacket extends DataPacket implements ClientboundPacket{
 		return $result;
 	}
 
-	public static function playerSpawn(BlockPosition $spawnPosition, int $dimension, BlockPosition $causingBlockPosition) : self{
-		return self::create(self::TYPE_PLAYER_SPAWN, $spawnPosition, $dimension, $causingBlockPosition);
+	public static function playerSpawn(BlockPosition $spawnPosition, int $dimension, BlockPosition $causingBlockPosition, bool $spawnForced = false) : self{
+		return self::create(self::TYPE_PLAYER_SPAWN, $spawnPosition, $dimension, $causingBlockPosition, $spawnForced);
 	}
 
-	public static function worldSpawn(BlockPosition $spawnPosition, int $dimension) : self{
-		return self::create(self::TYPE_WORLD_SPAWN, $spawnPosition, $dimension, new BlockPosition(Limits::INT32_MIN, Limits::INT32_MIN, Limits::INT32_MIN));
+	public static function worldSpawn(BlockPosition $spawnPosition, int $dimension, bool $spawnForced = false) : self{
+		return self::create(self::TYPE_WORLD_SPAWN, $spawnPosition, $dimension, new BlockPosition(Limits::INT32_MIN, Limits::INT32_MIN, Limits::INT32_MIN), $spawnForced);
 	}
 
 	protected function decodePayload(PacketSerializer $in) : void{
