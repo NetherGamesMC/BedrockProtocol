@@ -347,7 +347,7 @@ class PacketSerializer extends BinaryStream{
 			$getString = \Closure::fromCallable(function() use ($serializer) : string{
 				return $serializer->get($serializer->getLShort());
 			});
-			$getNBT = \Closure::fromCallable(function() use ($serializer) : CompoundTag|null{
+			$getNBT = \Closure::fromCallable(function() use ($serializer) : CompoundTag{
 				$offset = $serializer->getOffset();
 				try{
 					return (new LittleEndianNbtSerializer())->read($serializer->getBuffer(), $offset, 512)->mustGetCompoundTag();

@@ -180,18 +180,24 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 				}
 			}else{
 				$blockTable = $in->getNbtRoot()->getTag();
-				if($blockTable instanceof ListTag){
-					foreach($blockTable->getValue() as $tag){
-						$state = $tag->getValue();
-						if($state instanceof CompoundTag){
-							$blockName = $state->getCompoundTag("block")->getString("name");
-							$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
-							continue;
-						}
+				if(!($blockTable instanceof ListTag)){
+					throw new PacketDecodeException("Expected TAG_List NBT root");
+				}
+
+				foreach($blockTable->getValue() as $tag){
+					$state = $tag->getValue();
+					if(!($state instanceof CompoundTag)){
 						throw new PacketDecodeException("Expected TAG_Compound NBT state");
 					}
+
+					$blockName = $state->getCompoundTag("block");
+					if($blockName === null) {
+						throw new PacketDecodeException("Expected TAG_Compound NBT block");
+					}
+
+					$this->blockPalette[] = new BlockPaletteEntry($blockName->getString("name"), new CacheableNbt($state));
 				}
-				throw new PacketDecodeException("Expected TAG_List NBT root");
+
 			}
 		}else{
 			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
@@ -297,11 +303,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
 			$root = new ListTag();
 			foreach($this->blockPalette as $entry){
-				$states = $entry->getStates()->getRoot()->safeClone();
-				if($states instanceof CompoundTag) {
-					$states->getCompoundTag("block")->setString("name", $entry->getName());
-				}
-				$root->push($states);
+				$root->push($entry->getStates()->getRoot());
 			}
 			$out->put((new NetworkNbtSerializer())->write(new TreeRoot($root)));
 		}else{

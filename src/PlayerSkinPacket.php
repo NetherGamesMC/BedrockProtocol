@@ -18,7 +18,6 @@ use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\skin\SkinData;
 use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use Ramsey\Uuid\UuidInterface;
-use function json_decode;
 
 class PlayerSkinPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::PLAYER_SKIN_PACKET;
