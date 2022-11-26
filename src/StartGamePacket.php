@@ -171,42 +171,8 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$this->enchantmentSeed = $in->getVarInt();
 
 		$this->blockPalette = [];
-		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
-			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
-				for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
-					$blockName = $in->getString();
-					$state = $in->getNbtCompoundRoot();
-					$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
-				}
-			}else{
-				$blockTable = $in->getNbtRoot()->getTag();
-				if(!($blockTable instanceof ListTag)){
-					throw new PacketDecodeException("Expected TAG_List NBT root");
-				}
-
-				foreach($blockTable->getValue() as $tag){
-					$state = $tag->getValue();
-					if(!($state instanceof CompoundTag)){
-						throw new PacketDecodeException("Expected TAG_Compound NBT state");
-					}
-
-					$blockName = $state->getCompoundTag("block");
-					if($blockName === null) {
-						throw new PacketDecodeException("Expected TAG_Compound NBT block");
-					}
-
-					$this->blockPalette[] = new BlockPaletteEntry($blockName->getString("name"), new CacheableNbt($state));
-				}
-
-			}
-		}else{
-			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
-				$name = $in->getString();
-				$metadata = $in->getLShort();
-				$id = $in->getLShort();
-				$this->legacyBlockPalette[] = new LegacyBlockPaletteEntry($name, $id, $metadata);
-			}
-		}
+		$this->legacyBlockPalette = [];
+		$this->getEncodedBlockPalette($in);
 
 		$this->itemTable = [];
 		for($i = 0, $count = $in->getUnsignedVarInt(); $i < $count; ++$i){
@@ -268,7 +234,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 				$out->put($entry->getStates()->getEncodedNbt());
 			}
 		}else{
-			$this->createEncodedBlockPalette($out);
+			$this->putEncodedBlockPalette($out);
 		}
 
 		$out->putUnsignedVarInt(count($this->itemTable));
@@ -299,7 +265,45 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		}
 	}
 
-	private function createEncodedBlockPalette(PacketSerializer $out) : void{
+	private function getEncodedBlockPalette(PacketSerializer $in) : void{
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+				for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+					$blockName = $in->getString();
+					$state = $in->getNbtCompoundRoot();
+					$this->blockPalette[] = new BlockPaletteEntry($blockName, new CacheableNbt($state));
+				}
+			}else{
+				$blockTable = $in->getNbtRoot()->getTag();
+				if(!($blockTable instanceof ListTag)){
+					throw new PacketDecodeException("Expected TAG_List NBT root");
+				}
+
+				foreach($blockTable->getValue() as $tag){
+					$state = $tag->getValue();
+					if(!($state instanceof CompoundTag)){
+						throw new PacketDecodeException("Expected TAG_Compound NBT state");
+					}
+
+					$blockName = $state->getCompoundTag("block");
+					if($blockName === null) {
+						throw new PacketDecodeException("Expected TAG_Compound NBT block");
+					}
+
+					$this->blockPalette[] = new BlockPaletteEntry($blockName->getString("name"), new CacheableNbt($state));
+				}
+			}
+		}else{
+			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+				$name = $in->getString();
+				$metadata = $in->getLShort();
+				$id = $in->getLShort();
+				$this->legacyBlockPalette[] = new LegacyBlockPaletteEntry($name, $id, $metadata);
+			}
+		}
+	}
+
+	private function putEncodedBlockPalette(PacketSerializer $out) : void{
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
 			$root = new ListTag();
 			foreach($this->blockPalette as $entry){
