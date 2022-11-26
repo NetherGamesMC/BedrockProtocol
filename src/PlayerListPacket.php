@@ -16,8 +16,6 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
-use pocketmine\network\mcpe\protocol\types\skin\SkinData;
-use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use function count;
 
 class PlayerListPacket extends DataPacket implements ClientboundPacket{

@@ -16,7 +16,6 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\skin\SkinData;
-use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use Ramsey\Uuid\UuidInterface;
 
 class PlayerSkinPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
