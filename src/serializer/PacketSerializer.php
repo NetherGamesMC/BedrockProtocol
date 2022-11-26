@@ -123,6 +123,7 @@ class PacketSerializer extends BinaryStream{
 	public function getSkin() : SkinData{
 		$skinId = "";
 		$skinResourcePatch = null;
+		$geometryName = "";
 		if($p_1_13_0 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0)){
 			$skinId = $this->getString();
 			if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
