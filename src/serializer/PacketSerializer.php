@@ -121,25 +121,49 @@ class PacketSerializer extends BinaryStream{
 	}
 
 	public function getSkin() : SkinData{
-		$skinId = $this->getString();
-		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210) {
-			$skinPlayFabId = $this->getString();
-		}
-		$skinResourcePatch = $this->getString();
-		$skinData = $this->getSkinImage();
-		$animationCount = $this->getLInt();
-		$animations = [];
-		for($i = 0; $i < $animationCount; ++$i){
-			$skinImage = $this->getSkinImage();
-			$animationType = $this->getLInt();
-			$animationFrames = $this->getLFloat();
-			if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
-				$expressionType = $this->getLInt();
+		if($p_1_13_0 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0)){
+			$skinId = $this->getString();
+			if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
+				$skinPlayFabId = $this->getString();
 			}
-			$animations[] = new SkinAnimation($skinImage, $animationType, $animationFrames, $expressionType ?? 0);
+			$skinResourcePatch = $this->getString();
 		}
-		$capeData = $this->getSkinImage();
+		$skinData = $this->getSkinImage();
+		$animations = [];
+		if($p_1_13_0){
+			$animationCount = $this->getLInt();
+			for($i = 0; $i < $animationCount; ++$i){
+				$skinImage = $this->getSkinImage();
+				$animationType = $this->getLInt();
+				$animationFrames = $this->getLFloat();
+				if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+					$expressionType = $this->getLInt();
+				}
+				$animations[] = new SkinAnimation($skinImage, $animationType, $animationFrames, $expressionType ?? 0);
+			}
+			$capeData = $this->getSkinImage();
+		}else{
+			$capeRawData = $this->getString();
+			if(strlen($capeRawData) !== 0){
+				$capeData = $this->getSkinImage();
+			}
+			$geometryName = $this->getString();
+		}
 		$geometryData = $this->getString();
+		if(!$p_1_13_0){
+			$premium = $this->getBool();
+			return new SkinData(
+				$skinId,
+				"",
+				null,
+				$skinData,
+				capeImage: $capeData ?? new SkinImage(0, 0, ""),
+				geometryData: $geometryData,
+				premium: $premium,
+				geometryName: $geometryName,
+			);
+		}
+
 		if($p_1_17_30 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_30)){
 			$geometryDataVersion = $this->getString();
 		}
@@ -188,9 +212,9 @@ class PacketSerializer extends BinaryStream{
 		}
 
 		return new SkinData(
-			$skinId,
+			$skinId ?? "",
 			$skinPlayFabId ?? "",
-			$skinResourcePatch,
+			$skinResourcePatch ?? null,
 			$skinData,
 			$animations,
 			$capeData,
@@ -208,27 +232,39 @@ class PacketSerializer extends BinaryStream{
 			$persona,
 			$capeOnClassic,
 			$isPrimaryUser ?? true,
+			$geometryName ?? null
 		);
 	}
 
 	public function putSkin(SkinData $skin) : void{
-		$this->putString($skin->getSkinId());
-		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210) {
-			$this->putString($skin->getPlayFabId());
+		if($p_1_13_0 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0)){
+			$this->putString($skin->getSkinId());
+			if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
+				$this->putString($skin->getPlayFabId());
+			}
+			$this->putString($skin->getResourcePatch());
 		}
-		$this->putString($skin->getResourcePatch());
 		$this->putSkinImage($skin->getSkinImage());
-		$this->putLInt(count($skin->getAnimations()));
-		foreach($skin->getAnimations() as $animation){
-			$this->putSkinImage($animation->getImage());
-			$this->putLInt($animation->getType());
-			$this->putLFloat($animation->getFrames());
-			if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
-				$this->putLInt($animation->getExpressionType());
+		if($p_1_13_0){
+			$this->putLInt(count($skin->getAnimations()));
+			foreach($skin->getAnimations() as $animation){
+				$this->putSkinImage($animation->getImage());
+				$this->putLInt($animation->getType());
+				$this->putLFloat($animation->getFrames());
+				if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_100){
+					$this->putLInt($animation->getExpressionType());
+				}
 			}
 		}
 		$this->putSkinImage($skin->getCapeImage());
+		if(!$p_1_13_0){
+			$this->putString($skin->getGeometryName());
+		}
 		$this->putString($skin->getGeometryData());
+		if(!$p_1_13_0){
+			$this->putBool($skin->isPremium());
+			return;
+		}
 		if($p_1_17_30 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_30)){
 			$this->putString($skin->getGeometryDataEngineVersion());
 		}
@@ -269,19 +305,30 @@ class PacketSerializer extends BinaryStream{
 	}
 
 	private function getSkinImage() : SkinImage{
-		$width = $this->getLInt();
-		$height = $this->getLInt();
-		$data = $this->getString();
-		try{
-			return new SkinImage($height, $width, $data);
-		}catch(\InvalidArgumentException $e){
-			throw new PacketDecodeException($e->getMessage(), 0, $e);
+		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$width = $this->getLInt();
+			$height = $this->getLInt();
+			$data = $this->getString();
+			try{
+				return new SkinImage($height, $width, $data);
+			}catch(\InvalidArgumentException $e){
+				throw new PacketDecodeException($e->getMessage(), 0, $e);
+			}
+		}else{
+			$data = $this->getString();
+			try{
+				return SkinImage::fromLegacy($data);
+			}catch(\InvalidArgumentException $e){
+				throw new PacketDecodeException($e->getMessage(), 0, $e);
+			}
 		}
 	}
 
 	private function putSkinImage(SkinImage $image) : void{
-		$this->putLInt($image->getWidth());
-		$this->putLInt($image->getHeight());
+		if ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
+			$this->putLInt($image->getWidth());
+			$this->putLInt($image->getHeight());
+		}
 		$this->putString($image->getData());
 	}
 

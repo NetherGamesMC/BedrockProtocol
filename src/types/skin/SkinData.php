@@ -154,6 +154,13 @@ class SkinData{
 	/**
 	 * @internal
 	 */
+	public function setSkinId(string $skinId) : void{
+		$this->skinId = $skinId;
+	}
+
+	/**
+	 * @internal
+	 */
 	public function setVerified(bool $verified) : void{
 		$this->isVerified = $verified;
 	}
