@@ -33,6 +33,7 @@ final class ItemStackWrapper{
 
 	public static function read(PacketSerializer $in, bool $hasLegacyNetId = false) : self{
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_220){
+			$stackId = 0;
 			$stack = $in->getItemStack(function(PacketSerializer $in) use (&$stackId) : void{
 				$hasNetId = $in->getBool();
 				if($hasNetId){

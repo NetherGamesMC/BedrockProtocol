@@ -121,6 +121,8 @@ class PacketSerializer extends BinaryStream{
 	}
 
 	public function getSkin() : SkinData{
+		$skinId = "";
+		$skinResourcePatch = null;
 		if($p_1_13_0 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0)){
 			$skinId = $this->getString();
 			if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
@@ -212,12 +214,12 @@ class PacketSerializer extends BinaryStream{
 		}
 
 		return new SkinData(
-			$skinId ?? "",
+			$skinId,
 			$skinPlayFabId ?? "",
-			$skinResourcePatch ?? null,
+			$skinResourcePatch,
 			$skinData,
 			$animations,
-			$capeData,
+			$capeData ?? new SkinImage(0, 0, ""),
 			$geometryData,
 			$geometryDataVersion ?? ProtocolInfo::MINECRAFT_VERSION_NETWORK,
 			$animationData,
@@ -232,7 +234,6 @@ class PacketSerializer extends BinaryStream{
 			$persona,
 			$capeOnClassic,
 			$isPrimaryUser ?? true,
-			$geometryName ?? null
 		);
 	}
 
