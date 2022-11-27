@@ -18,7 +18,6 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\entity\Attribute;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
-use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use function count;
@@ -140,7 +139,7 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 			$out->putLFloat($attribute->getMax());
 		}
 
-		$out->putEntityMetadata(EntityMetadataProperties::convertProps($out->getProtocolId(), $this->metadata));
+		$out->putEntityMetadata($this->metadata);
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
 			$this->syncedProperties->write($out);
 		}

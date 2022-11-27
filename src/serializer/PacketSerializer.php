@@ -30,6 +30,7 @@ use pocketmine\network\mcpe\protocol\types\entity\BlockPosMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\ByteMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\CompoundTagMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\FloatMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\IntMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\LongMetadataProperty;
@@ -599,8 +600,10 @@ class PacketSerializer extends BinaryStream{
 	 * @phpstan-param array<int, MetadataProperty> $metadata
 	 */
 	public function putEntityMetadata(array $metadata) : void{
-		$this->putUnsignedVarInt(count($metadata));
-		foreach($metadata as $key => $d){
+		$data = EntityMetadataProperties::convertProps($this->getProtocolId(), $metadata);
+
+		$this->putUnsignedVarInt(count($data));
+		foreach($data as $key => $d){
 			$this->putUnsignedVarInt($key);
 			$this->putUnsignedVarInt($d->getTypeId());
 			$d->write($this);
