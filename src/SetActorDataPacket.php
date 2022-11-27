@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 
@@ -46,7 +47,7 @@ class SetActorDataPacket extends DataPacket implements ClientboundPacket, Server
 
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->actorRuntimeId = $in->getActorRuntimeId();
-		$this->metadata = $in->getEntityMetadata();
+		$this->metadata = $in->getEntityMetadata(); // TODO: convert back?
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
 			$this->syncedProperties = PropertySyncData::read($in);
 		}
@@ -57,7 +58,7 @@ class SetActorDataPacket extends DataPacket implements ClientboundPacket, Server
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putActorRuntimeId($this->actorRuntimeId);
-		$out->putEntityMetadata($this->metadata);
+		$out->putEntityMetadata(EntityMetadataProperties::convertProps($out->getProtocolId(), $this->metadata));
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
 			$this->syncedProperties->write($out);
 		}

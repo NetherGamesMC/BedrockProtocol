@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 
@@ -65,7 +66,7 @@ class AddItemActorPacket extends DataPacket implements ClientboundPacket{
 		$this->item = ItemStackWrapper::read($in);
 		$this->position = $in->getVector3();
 		$this->motion = $in->getVector3();
-		$this->metadata = $in->getEntityMetadata();
+		$this->metadata = $in->getEntityMetadata(); // TODO: convert back?
 		$this->isFromFishing = $in->getBool();
 	}
 
@@ -75,7 +76,7 @@ class AddItemActorPacket extends DataPacket implements ClientboundPacket{
 		$this->item->write($out);
 		$out->putVector3($this->position);
 		$out->putVector3Nullable($this->motion);
-		$out->putEntityMetadata($this->metadata);
+		$out->putEntityMetadata(EntityMetadataProperties::convertProps($out->getProtocolId(), $this->metadata));
 		$out->putBool($this->isFromFishing);
 	}
 

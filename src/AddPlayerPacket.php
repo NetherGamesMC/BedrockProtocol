@@ -18,6 +18,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
@@ -115,7 +116,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_18_30){
 			$this->gameMode = $in->getVarInt();
 		}
-		$this->metadata = $in->getEntityMetadata();
+		$this->metadata = $in->getEntityMetadata(); // TODO: convert back?
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
 			$this->syncedProperties = PropertySyncData::read($in);
 		}
@@ -161,7 +162,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_18_30){
 			$out->putVarInt($this->gameMode);
 		}
-		$out->putEntityMetadata($this->metadata);
+		$out->putEntityMetadata(EntityMetadataProperties::convertProps($out->getProtocolId(), $this->metadata));
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_40){
 			$this->syncedProperties->write($out);
 		}
