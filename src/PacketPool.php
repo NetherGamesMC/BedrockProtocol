@@ -224,6 +224,7 @@ class PacketPool{
 		$this->registerPacket(new RequestNetworkSettingsPacket());
 		$this->registerPacket(new GameTestRequestPacket());
 		$this->registerPacket(new GameTestResultsPacket());
+		$this->registerPacket(new UpdateClientInputLocksPacket());
 	}
 
 	public function registerPacket(Packet $packet) : void{

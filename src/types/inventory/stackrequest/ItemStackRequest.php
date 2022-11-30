@@ -30,7 +30,7 @@ final class ItemStackRequest{
 		private int $requestId,
 		private array $actions,
 		private array $filterStrings,
-		private int $origin
+		private int $filterStringCause
 	){}
 
 	public function getRequestId() : int{ return $this->requestId; }
@@ -44,7 +44,7 @@ final class ItemStackRequest{
 	 */
 	public function getFilterStrings() : array{ return $this->filterStrings; }
 
-	public function getOrigin() : int{ return $this->origin; }
+	public function getFilterStringCause() : int{ return $this->filterStringCause; }
 
 	/**
 	 * @throws BinaryDataException
@@ -86,16 +86,18 @@ final class ItemStackRequest{
 			}
 			$actions[] = self::readAction($in, $typeId);
 		}
+		$filterStrings = [];
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_200){
-			$filterStrings = [];
 			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
 				$filterStrings[] = $in->getString();
 			}
 		}
-		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_30) {
-			$origin = $in->getLInt();
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_50){
+			$filterStringCause = $in->getLInt();
+		}else{
+			$filterStringCause = 0;
 		}
-		return new self($requestId, $actions, $filterStrings ?? [], $origin ?? -1);
+		return new self($requestId, $actions, $filterStrings, $filterStringCause);
 	}
 
 	public function write(PacketSerializer $out) : void{
@@ -115,8 +117,8 @@ final class ItemStackRequest{
 				$out->putString($string);
 			}
 		}
-		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_30) {
-			$out->putLInt($this->origin);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_50){
+			$out->putLInt($this->filterStringCause);
 		}
 	}
 }
