@@ -30,6 +30,7 @@ use pocketmine\network\mcpe\protocol\types\entity\BlockPosMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\ByteMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\CompoundTagMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\FloatMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\IntMetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\LongMetadataProperty;
@@ -547,7 +548,7 @@ class PacketSerializer extends BinaryStream{
 	 */
 	public function putEntityMetadata(array $metadata) : void{
 		$this->putUnsignedVarInt(count($metadata));
-		foreach($metadata as $key => $d){
+		foreach(EntityMetadataFlags::encode($metadata, $this->getProtocolId()) as $key => $d){
 			$this->putUnsignedVarInt($key);
 			$this->putUnsignedVarInt($d->getTypeId());
 			$d->write($this);
@@ -819,13 +820,18 @@ class PacketSerializer extends BinaryStream{
 		}
 	}
 
-	public function getStructureSettings() : StructureSettings{
+	public function getStructureSettings(int $protocolId) : StructureSettings{
 		$result = new StructureSettings();
 
 		$result->paletteName = $this->getString();
 
 		$result->ignoreEntities = $this->getBool();
 		$result->ignoreBlocks = $this->getBool();
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_19_50){
+			$result->allowNonTickingChunks = $this->getBool();
+		}else{
+			$result->allowNonTickingChunks = false;
+		}
 
 		$result->dimensions = $this->getBlockPosition();
 		$result->offset = $this->getBlockPosition();
@@ -844,11 +850,14 @@ class PacketSerializer extends BinaryStream{
 		return $result;
 	}
 
-	public function putStructureSettings(StructureSettings $structureSettings) : void{
+	public function putStructureSettings(StructureSettings $structureSettings, int $protocolId) : void{
 		$this->putString($structureSettings->paletteName);
 
 		$this->putBool($structureSettings->ignoreEntities);
 		$this->putBool($structureSettings->ignoreBlocks);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_19_50){
+			$this->putBool($structureSettings->allowNonTickingChunks);
+		}
 
 		$this->putBlockPosition($structureSettings->dimensions);
 		$this->putBlockPosition($structureSettings->offset);
@@ -865,7 +874,7 @@ class PacketSerializer extends BinaryStream{
 		$this->putVector3($structureSettings->pivot);
 	}
 
-	public function getStructureEditorData() : StructureEditorData{
+	public function getStructureEditorData(int $protocolId) : StructureEditorData{
 		$result = new StructureEditorData();
 
 		$result->structureName = $this->getString();
@@ -875,13 +884,13 @@ class PacketSerializer extends BinaryStream{
 		$result->showBoundingBox = $this->getBool();
 
 		$result->structureBlockType = $this->getVarInt();
-		$result->structureSettings = $this->getStructureSettings();
+		$result->structureSettings = $this->getStructureSettings($protocolId);
 		$result->structureRedstoneSaveMove = $this->getVarInt();
 
 		return $result;
 	}
 
-	public function putStructureEditorData(StructureEditorData $structureEditorData) : void{
+	public function putStructureEditorData(StructureEditorData $structureEditorData, int $protocolId) : void{
 		$this->putString($structureEditorData->structureName);
 		$this->putString($structureEditorData->structureDataField);
 
@@ -889,7 +898,7 @@ class PacketSerializer extends BinaryStream{
 		$this->putBool($structureEditorData->showBoundingBox);
 
 		$this->putVarInt($structureEditorData->structureBlockType);
-		$this->putStructureSettings($structureEditorData->structureSettings);
+		$this->putStructureSettings($structureEditorData->structureSettings, $protocolId);
 		$this->putVarInt($structureEditorData->structureRedstoneSaveMove);
 	}
 
