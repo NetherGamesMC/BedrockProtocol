@@ -145,15 +145,15 @@ final class EntityMetadataProperties{
 	 * @param array<int, MetadataProperty> $types
 	 * @return array<int, MetadataProperty>
 	 */
-	public static function convertProps(int $protocolId, array $types) : array{
+	public static function encode(array $types, int $protocolId) : array{
 		$properties = [];
 		foreach($types as $type => $val) {
-			$properties[self::convertProp($protocolId, $type)] = $val;
+			$properties[self::convertProperty($protocolId, $type)] = $val;
 		}
 		return $properties;
 	}
 
-	public static function convertProp(int $protocolId, int $type) : int{
+	public static function convertProperty(int $protocolId, int $type) : int{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_16_210){
 			return $type;
 		}
