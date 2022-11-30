@@ -24,6 +24,7 @@ class StructureTemplateDataRequestPacket extends DataPacket implements Serverbou
 	public const TYPE_EXPORT_FROM_SAVE_MODE = 1;
 	public const TYPE_EXPORT_FROM_LOAD_MODE = 2;
 	public const TYPE_QUERY_SAVED_STRUCTURE = 3;
+	public const TYPE_IMPORT = 4;
 
 	public string $structureTemplateName;
 	public BlockPosition $structureBlockPosition;
@@ -45,14 +46,14 @@ class StructureTemplateDataRequestPacket extends DataPacket implements Serverbou
 	protected function decodePayload(PacketSerializer $in) : void{
 		$this->structureTemplateName = $in->getString();
 		$this->structureBlockPosition = $in->getBlockPosition();
-		$this->structureSettings = $in->getStructureSettings();
+		$this->structureSettings = $in->getStructureSettings($in->getProtocolId());
 		$this->requestType = $in->getByte();
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
 		$out->putString($this->structureTemplateName);
 		$out->putBlockPosition($this->structureBlockPosition);
-		$out->putStructureSettings($this->structureSettings);
+		$out->putStructureSettings($this->structureSettings, $out->getProtocolId());
 		$out->putByte($this->requestType);
 	}
 
