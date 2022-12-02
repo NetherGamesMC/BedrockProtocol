@@ -69,18 +69,21 @@ final class ClientDataToSkinDataHelper{
 		}
 
 		$capeData = self::safeB64Decode($clientData->CapeData, "CapeData");
-		if(!isset($clientData->CapeImageHeight) || !isset($clientData->CapeImageWidth)) {
-			$capeImage = SkinImage::fromLegacy($capeData);
-		}else{
-			$capeImage = new SkinImage($clientData->CapeImageHeight, $clientData->CapeImageWidth, $capeData);
+		if(!empty($capeData)) {
+			if(!isset($clientData->CapeImageHeight) || !isset($clientData->CapeImageWidth)) {
+				$capeImage = SkinImage::fromLegacy($capeData);
+			}else{
+				$capeImage = new SkinImage($clientData->CapeImageHeight, $clientData->CapeImageWidth, $capeData);
+			}
 		}
+
 		return new SkinData(
 			$clientData->SkinId,
 			$clientData->PlayFabId ?? "",
 			isset($clientData->SkinResourcePatch) ? self::safeB64Decode($clientData->SkinResourcePatch, "SkinResourcePatch") : null,
 			$skinImage,
 			$animations,
-			$capeImage,
+			$capeImage ?? new SkinImage(0, 0, ""),
 			self::safeB64Decode($clientData->SkinGeometryData ?? $clientData->SkinGeometry, "SkinGeometryData"),
 			$geometryDataEngineVersion,
 			isset($clientData->SkinAnimationData) ? self::safeB64Decode($clientData->SkinAnimationData, "SkinAnimationData") : "",
