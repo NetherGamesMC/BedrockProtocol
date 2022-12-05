@@ -23,6 +23,7 @@ class NetworkInventoryAction{
 
 	public const SOURCE_WORLD = 2; //drop/pickup item entity
 	public const SOURCE_CREATIVE = 3;
+	public const SOURCE_CRAFT_SLOT = 100;
 	public const SOURCE_TODO = 99999;
 
 	/**
@@ -81,6 +82,7 @@ class NetworkInventoryAction{
 				break;
 			case self::SOURCE_CREATIVE:
 				break;
+			case self::SOURCE_CRAFT_SLOT:
 			case self::SOURCE_TODO:
 				$this->windowId = $packet->getVarInt();
 				break;
@@ -113,6 +115,7 @@ class NetworkInventoryAction{
 				break;
 			case self::SOURCE_CREATIVE:
 				break;
+			case self::SOURCE_CRAFT_SLOT:
 			case self::SOURCE_TODO:
 				$packet->putVarInt($this->windowId);
 				break;
