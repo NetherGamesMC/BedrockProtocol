@@ -69,7 +69,7 @@ final class ClientDataToSkinDataHelper{
 		}
 
 		$capeData = self::safeB64Decode($clientData->CapeData, "CapeData");
-		if(!empty($capeData)) {
+		if($capeData !== "") {
 			if(!isset($clientData->CapeImageHeight) || !isset($clientData->CapeImageWidth)) {
 				$capeImage = SkinImage::fromLegacy($capeData);
 			}else{
