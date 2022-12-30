@@ -53,6 +53,7 @@ class PlayerSkinPacket extends DataPacket implements ClientboundPacket, Serverbo
 			$this->oldSkinName = $in->getString();
 			$this->skin = $in->getSkin();
 			$this->skin->setSkinId($skinId);
+			$this->skin->setPremium($in->getBool());
 		}
 	}
 
@@ -70,6 +71,7 @@ class PlayerSkinPacket extends DataPacket implements ClientboundPacket, Serverbo
 			$out->putString($this->newSkinName);
 			$out->putString($this->oldSkinName);
 			$out->putSkin($this->skin);
+			$out->putBool($this->skin->isPremium());
 		}
 	}
 

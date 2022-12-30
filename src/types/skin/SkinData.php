@@ -164,4 +164,11 @@ class SkinData{
 	public function setVerified(bool $verified) : void{
 		$this->isVerified = $verified;
 	}
+
+	/**
+	 * @internal
+	 */
+	public function setPremium(bool $premium) : void{
+		$this->premium = $premium;
+	}
 }

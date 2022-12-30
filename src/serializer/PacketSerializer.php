@@ -156,7 +156,6 @@ class PacketSerializer extends BinaryStream{
 		}
 		$geometryData = $this->getString();
 		if(!$p_1_13_0){
-			$premium = $this->getBool();
 			return new SkinData(
 				$skinId,
 				"",
@@ -164,7 +163,6 @@ class PacketSerializer extends BinaryStream{
 				$skinData,
 				capeImage: $capeData ?? new SkinImage(0, 0, ""),
 				geometryData: $geometryData,
-				premium: $premium,
 				geometryName: $geometryName,
 			);
 		}
@@ -266,7 +264,6 @@ class PacketSerializer extends BinaryStream{
 		}
 		$this->putString($skin->getGeometryData());
 		if(!$p_1_13_0){
-			$this->putBool($skin->isPremium());
 			return;
 		}
 		if($p_1_17_30 = ($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_17_30)){
