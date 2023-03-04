@@ -889,7 +889,7 @@ class PacketSerializer extends BinaryStream{
 
 		$result->ignoreEntities = $this->getBool();
 		$result->ignoreBlocks = $this->getBool();
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_19_50){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_18_30){
 			$result->allowNonTickingChunks = $this->getBool();
 		}else{
 			$result->allowNonTickingChunks = false;
@@ -919,7 +919,7 @@ class PacketSerializer extends BinaryStream{
 
 		$this->putBool($structureSettings->ignoreEntities);
 		$this->putBool($structureSettings->ignoreBlocks);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_19_50){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_18_30){
 			$this->putBool($structureSettings->allowNonTickingChunks);
 		}
 
