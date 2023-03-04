@@ -92,7 +92,7 @@ final class ItemStackRequest{
 				$filterStrings[] = $in->getString();
 			}
 		}
-		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_50){
+		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_30){
 			$filterStringCause = $in->getLInt();
 		}else{
 			$filterStringCause = 0;
@@ -117,7 +117,7 @@ final class ItemStackRequest{
 				$out->putString($string);
 			}
 		}
-		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_50){
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_19_30){
 			$out->putLInt($this->filterStringCause);
 		}
 	}
