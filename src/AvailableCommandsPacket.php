@@ -446,7 +446,7 @@ class AvailableCommandsPacket extends DataPacket implements ClientboundPacket{
 					}
 					$type = self::ARG_FLAG_POSTFIX | $postfixIndexes[$parameter->postfix];
 				}else{
-					$type = $parameter->paramType;
+					$type = self::ARG_FLAG_VALID | self::convertArg($out->getProtocolId(), $parameter->paramType ^ self::ARG_FLAG_VALID);
 				}
 
 				$out->putLInt($type);
