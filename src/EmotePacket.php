@@ -24,7 +24,7 @@ class EmotePacket extends DataPacket implements ClientboundPacket, ServerboundPa
 
 	private int $actorRuntimeId;
 	private string $emoteId;
-	private int $emoteLengthTicks;
+	private int $emoteLengthTicks = 0;
 	private string $xboxUserId;
 	private string $platformChatId;
 	private int $flags;
