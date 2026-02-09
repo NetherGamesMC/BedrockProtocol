@@ -67,7 +67,6 @@ final class ProtocolInfo{
 	public const MINECRAFT_VERSION_NETWORK = '1.26.0';
 
 	public const PROTOCOL_1_26_0 = 924;
-
 	public const PROTOCOL_1_21_130 = 898;
 	public const PROTOCOL_1_21_124 = 860;
 	public const PROTOCOL_1_21_120 = 859;

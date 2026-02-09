@@ -62,7 +62,7 @@ final class CameraSplineInstruction{
 	 */
 	public function getRotationOptions() : array{ return $this->rotationOptions; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$totalTime = LE::readFloat($in);
 		$easeType = Byte::readUnsigned($in);
 
@@ -75,7 +75,7 @@ final class CameraSplineInstruction{
 		$progressKeyFrames = [];
 		$progressKeyFrameCount = VarInt::readUnsignedInt($in);
 		for($i = 0; $i < $progressKeyFrameCount; ++$i){
-			$progressKeyFrames[] = CameraProgressOption::read($in);
+			$progressKeyFrames[] = CameraProgressOption::read($in, $protocolId);
 		}
 
 		$rotationOptions = [];
@@ -87,7 +87,7 @@ final class CameraSplineInstruction{
 		return new self($totalTime, $easeType, $curve, $progressKeyFrames, $rotationOptions);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		LE::writeFloat($out, $this->totalTime);
 		Byte::writeUnsigned($out, $this->easeType);
 
@@ -98,7 +98,7 @@ final class CameraSplineInstruction{
 
 		VarInt::writeUnsignedInt($out, count($this->progressKeyFrames));
 		foreach($this->progressKeyFrames as $keyFrame){
-			$keyFrame->write($out);
+			$keyFrame->write($out, $protocolId);
 		}
 
 		VarInt::writeUnsignedInt($out, count($this->rotationOptions));

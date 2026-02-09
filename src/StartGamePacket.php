@@ -166,7 +166,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$this->pitch = LE::readFloat($in);
 		$this->yaw = LE::readFloat($in);
 
-		$this->levelSettings = LevelSettings::read($in, $protocolId);
+		$this->levelSettings = LevelSettings::read($in, $this->serverTelemetryData, $protocolId);
 
 		$this->levelId = CommonTypes::getString($in);
 		$this->worldName = CommonTypes::getString($in);
@@ -207,8 +207,10 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 			$this->enableTickDeathSystems = CommonTypes::getBool($in);
 		}
 		$this->networkPermissions = NetworkPermissions::decode($in);
-		$this->serverJoinInformation = CommonTypes::readOptional($in, ServerJoinInformation::read(...));
-		$this->serverTelemetryData = ServerTelemetryData::read($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+			$this->serverJoinInformation = CommonTypes::readOptional($in, ServerJoinInformation::read(...));
+			$this->serverTelemetryData = ServerTelemetryData::read($in);
+		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
@@ -221,7 +223,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		LE::writeFloat($out, $this->pitch);
 		LE::writeFloat($out, $this->yaw);
 
-		$this->levelSettings->write($out, $protocolId);
+		$this->levelSettings->write($out, $this->serverTelemetryData, $protocolId);
 
 		CommonTypes::putString($out, $this->levelId);
 		CommonTypes::putString($out, $this->worldName);
@@ -259,8 +261,10 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 			CommonTypes::putBool($out, $this->enableTickDeathSystems);
 		}
 		$this->networkPermissions->encode($out);
-		CommonTypes::writeOptional($out, $this->serverJoinInformation, fn(ByteBufferWriter $out, ServerJoinInformation $info) => $info->write($out));
-		$this->serverTelemetryData->write($out);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+			CommonTypes::writeOptional($out, $this->serverJoinInformation, fn(ByteBufferWriter $out, ServerJoinInformation $info) => $info->write($out));
+			$this->serverTelemetryData->write($out);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

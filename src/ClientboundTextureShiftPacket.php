@@ -89,7 +89,7 @@ class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPac
 
 	public function isEnabled() : bool{ return $this->enabled; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->actionId = Byte::readUnsigned($in);
 		$this->collectionName = CommonTypes::getString($in);
 		$this->fromStep = CommonTypes::getString($in);
@@ -104,7 +104,7 @@ class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPac
 		$this->enabled = CommonTypes::getBool($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		Byte::writeUnsigned($out, $this->actionId);
 		CommonTypes::putString($out, $this->collectionName);
 		CommonTypes::putString($out, $this->fromStep);

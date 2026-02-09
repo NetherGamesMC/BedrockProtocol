@@ -34,11 +34,11 @@ class ClientboundDataDrivenUIShowScreenPacket extends DataPacket implements Clie
 
 	public function getScreenId() : string{ return $this->screenId; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->screenId = CommonTypes::getString($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->screenId);
 	}
 

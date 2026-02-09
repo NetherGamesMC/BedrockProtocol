@@ -23,5 +23,5 @@ abstract class DataStore{
 
 	abstract public function getTypeId() : int;
 
-	abstract public function write(ByteBufferWriter $out) : void;
+	abstract public function write(ByteBufferWriter $out, int $protocolId) : void;
 }

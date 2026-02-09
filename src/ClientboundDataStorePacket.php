@@ -48,9 +48,9 @@ class ClientboundDataStorePacket extends DataPacket{
 		$this->values = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
 			$this->values[] = match(VarInt::readUnsignedInt($in)){
-				DataStoreType::UPDATE => DataStoreUpdate::read($in),
-				DataStoreType::CHANGE => DataStoreChange::read($in),
-				DataStoreType::REMOVAL => DataStoreRemoval::read($in),
+				DataStoreType::UPDATE => DataStoreUpdate::read($in, $protocolId),
+				DataStoreType::CHANGE => DataStoreChange::read($in, $protocolId),
+				DataStoreType::REMOVAL => DataStoreRemoval::read($in, $protocolId),
 				default => throw new PacketDecodeException("Unknown DataStore type"),
 			};
 		}
@@ -60,7 +60,7 @@ class ClientboundDataStorePacket extends DataPacket{
 		VarInt::writeUnsignedInt($out, count($this->values));
 		foreach($this->values as $value){
 			VarInt::writeUnsignedInt($out, $value->getTypeId());
-			$value->write($out);
+			$value->write($out, $protocolId);
 		}
 	}
 

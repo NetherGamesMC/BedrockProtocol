@@ -46,14 +46,14 @@ class CameraAimAssistActorPriorityPacket extends DataPacket implements Clientbou
 	 */
 	public function getPriorityData() : array{ return $this->priorityData; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->priorityData = [];
 		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
 			$this->priorityData[] = CameraAimAssistActorPriorityData::read($in);
 		}
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, count($this->priorityData));
 		foreach($this->priorityData as $data){
 			$data->write($out);

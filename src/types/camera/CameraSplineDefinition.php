@@ -29,14 +29,14 @@ final class CameraSplineDefinition{
 
 	public function getInstruction() : CameraSplineInstruction { return $this->instruction; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
-		$instruction = CameraSplineInstruction::read($in);
+		$instruction = CameraSplineInstruction::read($in, $protocolId);
 		return new self($name, $instruction);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
-		$this->instruction->write($out);
+		$this->instruction->write($out, $protocolId);
 	}
 }

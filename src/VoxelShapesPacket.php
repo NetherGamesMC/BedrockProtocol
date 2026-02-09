@@ -62,7 +62,7 @@ class VoxelShapesPacket extends DataPacket implements ClientboundPacket{
 	 */
 	public function getNameMap() : array{ return $this->nameMap; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->shapes = [];
 		for($i = 0, $shapesCount = VarInt::readUnsignedInt($in); $i < $shapesCount; ++$i){
 			$this->shapes[] = SerializableVoxelShape::read($in);
@@ -76,7 +76,7 @@ class VoxelShapesPacket extends DataPacket implements ClientboundPacket{
 		}
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, count($this->shapes));
 		foreach($this->shapes as $shape){
 			$shape->write($out);
