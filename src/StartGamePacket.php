@@ -27,6 +27,8 @@ use pocketmine\network\mcpe\protocol\types\ItemTypeEntry;
 use pocketmine\network\mcpe\protocol\types\LevelSettings;
 use pocketmine\network\mcpe\protocol\types\NetworkPermissions;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
+use pocketmine\network\mcpe\protocol\types\ServerJoinInformation;
+use pocketmine\network\mcpe\protocol\types\ServerTelemetryData;
 use Ramsey\Uuid\UuidInterface;
 use function count;
 
@@ -62,6 +64,8 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	public bool $blockNetworkIdsAreHashes = false; //new in 1.19.80, possibly useful for multi version
 	public bool $enableTickDeathSystems = false;
 	public NetworkPermissions $networkPermissions;
+	public ?ServerJoinInformation $serverJoinInformation;
+	public ServerTelemetryData $serverTelemetryData;
 
 	/**
 	 * @var BlockPaletteEntry[]
@@ -114,6 +118,8 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		bool $blockNetworkIdsAreHashes,
 		bool $enableTickDeathSystems,
 		NetworkPermissions $networkPermissions,
+		?ServerJoinInformation $serverJoinInformation,
+		ServerTelemetryData $serverTelemetryData,
 		array $blockPalette,
 		int $blockPaletteChecksum,
 		array $itemTable,
@@ -142,6 +148,8 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 		$result->blockNetworkIdsAreHashes = $blockNetworkIdsAreHashes;
 		$result->enableTickDeathSystems = $enableTickDeathSystems;
 		$result->networkPermissions = $networkPermissions;
+		$result->serverJoinInformation = $serverJoinInformation;
+		$result->serverTelemetryData = $serverTelemetryData;
 		$result->blockPalette = $blockPalette;
 		$result->blockPaletteChecksum = $blockPaletteChecksum;
 		$result->itemTable = $itemTable;
@@ -199,6 +207,8 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 			$this->enableTickDeathSystems = CommonTypes::getBool($in);
 		}
 		$this->networkPermissions = NetworkPermissions::decode($in);
+		$this->serverJoinInformation = CommonTypes::readOptional($in, ServerJoinInformation::read(...));
+		$this->serverTelemetryData = ServerTelemetryData::read($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
@@ -249,6 +259,8 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 			CommonTypes::putBool($out, $this->enableTickDeathSystems);
 		}
 		$this->networkPermissions->encode($out);
+		CommonTypes::writeOptional($out, $this->serverJoinInformation, fn(ByteBufferWriter $out, ServerJoinInformation $info) => $info->write($out));
+		$this->serverTelemetryData->write($out);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

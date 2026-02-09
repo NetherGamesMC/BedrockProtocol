@@ -81,20 +81,15 @@ final class LevelSettings{
 	public int $chatRestrictionLevel = ChatRestrictionLevel::NONE;
 	public bool $disablePlayerInteractions = false;
 
-	public string $serverIdentifier = "";
-	public string $worldIdentifier = "";
-	public string $scenarioIdentifier = "";
-	public string $ownerIdentifier = "";
-
 	/**
 	 * @throws DataDecodeException
 	 * @throws PacketDecodeException
 	 */
-	public static function read(ByteBufferReader $in, int $protocolId) : self{
+	public static function read(ByteBufferReader $in, ServerTelemetryData &$serverTelemetryData, int $protocolId) : self{
 		//TODO: in the future we'll use promoted properties + named arguments for decoding, but for now we stick with
 		//this shitty way to limit BC breaks (needs more R&D)
 		$result = new self;
-		$result->internalRead($in, $protocolId);
+		$result->internalRead($in, $serverTelemetryData, $protocolId);
 		return $result;
 	}
 
@@ -102,7 +97,7 @@ final class LevelSettings{
 	 * @throws DataDecodeException
 	 * @throws PacketDecodeException
 	 */
-	private function internalRead(ByteBufferReader $in, int $protocolId) : void{
+	private function internalRead(ByteBufferReader $in, ServerTelemetryData &$serverTelemetryData, int $protocolId) : void{
 		$this->seed = LE::readUnsignedLong($in);
 		$this->spawnSettings = SpawnSettings::read($in);
 		$this->generator = VarInt::readSignedInt($in);
@@ -153,17 +148,17 @@ final class LevelSettings{
 		$this->experimentalGameplayOverride = CommonTypes::readOptional($in, CommonTypes::getBool(...));
 		$this->chatRestrictionLevel = Byte::readUnsigned($in);
 		$this->disablePlayerInteractions = CommonTypes::getBool($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_0){
-			$this->serverIdentifier = CommonTypes::getString($in);
-			$this->worldIdentifier = CommonTypes::getString($in);
-			$this->scenarioIdentifier = CommonTypes::getString($in);
-			if($protocolId >= ProtocolInfo::PROTOCOL_1_21_90){
-				$this->ownerIdentifier = CommonTypes::getString($in);
-			}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_0 && $protocolId <= ProtocolInfo::PROTOCOL_1_21_130){
+			$serverId = CommonTypes::getString($in);
+			$worldId = CommonTypes::getString($in);
+			$scenarioId = CommonTypes::getString($in);
+			$ownerId = $protocolId >= ProtocolInfo::PROTOCOL_1_21_90 ? CommonTypes::getString($in) : "";
+
+			$serverTelemetryData = new ServerTelemetryData($serverId, $scenarioId, $worldId, $ownerId);
 		}
 	}
 
-	public function write(ByteBufferWriter $out, int $protocolId) : void{
+	public function write(ByteBufferWriter $out, ServerTelemetryData $serverTelemetryData, int $protocolId) : void{
 		LE::writeUnsignedLong($out, $this->seed);
 		$this->spawnSettings->write($out);
 		VarInt::writeSignedInt($out, $this->generator);
@@ -218,12 +213,12 @@ final class LevelSettings{
 		CommonTypes::writeOptional($out, $this->experimentalGameplayOverride, CommonTypes::putBool(...));
 		Byte::writeUnsigned($out, $this->chatRestrictionLevel);
 		CommonTypes::putBool($out, $this->disablePlayerInteractions);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_0){
-			CommonTypes::putString($out, $this->serverIdentifier);
-			CommonTypes::putString($out, $this->worldIdentifier);
-			CommonTypes::putString($out, $this->scenarioIdentifier);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_0 && $protocolId <= ProtocolInfo::PROTOCOL_1_21_130){
+			CommonTypes::putString($out, $serverTelemetryData->getServerId());
+			CommonTypes::putString($out, $serverTelemetryData->getWorldId());
+			CommonTypes::putString($out, $serverTelemetryData->getScenarioId());
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_21_90){
-				CommonTypes::putString($out, $this->ownerIdentifier);
+				CommonTypes::putString($out, $serverTelemetryData->getOwnerId());
 			}
 		}
 	}

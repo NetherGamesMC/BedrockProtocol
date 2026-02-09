@@ -27,11 +27,13 @@ final class CameraAimAssistPresetExclusionDefinition{
 	 * @param string[] $blocks
 	 * @param string[] $entities
 	 * @param string[] $blockTags
+	 * @param string[] $entityTypeFamilies
 	 */
 	public function __construct(
 		private array $blocks,
 		private array $entities,
 		private array $blockTags,
+		private array $entityTypeFamilies
 	){}
 
 	/**
@@ -49,6 +51,11 @@ final class CameraAimAssistPresetExclusionDefinition{
 	 */
 	public function getBlockTags() : array{ return $this->blockTags; }
 
+	/**
+	 * @return string[]
+	 */
+	public function getEntityTypeFamilies() : array{ return $this->entityTypeFamilies; }
+
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$blocks = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
@@ -65,12 +72,20 @@ final class CameraAimAssistPresetExclusionDefinition{
 			for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
 				$blockTags[] = CommonTypes::getString($in);
 			}
+
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+				$entityTypeFamilies = [];
+				for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
+					$entityTypeFamilies[] = CommonTypes::getString($in);
+				}
+			}
 		}
 
 		return new self(
 			$blocks,
 			$entities ?? [],
 			$blockTags ?? [],
+			$entityTypeFamilies ?? []
 		);
 	}
 
@@ -89,6 +104,13 @@ final class CameraAimAssistPresetExclusionDefinition{
 			VarInt::writeUnsignedInt($out, count($this->blockTags));
 			foreach($this->blockTags as $blockTag){
 				CommonTypes::putString($out, $blockTag);
+			}
+
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+				VarInt::writeUnsignedInt($out, count($this->entityTypeFamilies));
+				foreach($this->entityTypeFamilies as $entityTypeFamily){
+					CommonTypes::putString($out, $entityTypeFamily);
+				}
 			}
 		}
 	}

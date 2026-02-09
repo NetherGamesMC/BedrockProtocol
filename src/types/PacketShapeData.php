@@ -45,14 +45,15 @@ final class PacketShapeData{
 		private ?float $arrowHeadLength,
 		private ?float $arrowHeadRadius,
 		private ?int $segments,
-		private int $dimensionId = DimensionIds::OVERWORLD,
+		private ?int $dimensionId,
+		private ?int $attachedToEntityId,
 	){}
 
-	public static function remove(int $networkId, int $dimensionId = DimensionIds::OVERWORLD) : self{
-		return new self($networkId, null, null, null, null, null, null, null, null, null, null, null, null, $dimensionId);
+	public static function remove(int $networkId, ?int $dimensionId = null) : self{
+		return new self($networkId, null, null, null, null, null, null, null, null, null, null, null, null, $dimensionId, null);
 	}
 
-	public static function line(int $networkId, Vector3 $location, Vector3 $lineEndLocation, ?Color $color = null, int $dimensionId = DimensionIds::OVERWORLD) : self{
+	public static function line(int $networkId, Vector3 $location, Vector3 $lineEndLocation, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::LINE,
@@ -67,11 +68,12 @@ final class PacketShapeData{
 			arrowHeadLength: null,
 			arrowHeadRadius: null,
 			segments: null,
-			dimensionId: $dimensionId
+			dimensionId: $dimensionId,
+			attachedToEntityId: $attachedToEntityId
 		);
 	}
 
-	public static function box(int $networkId, Vector3 $location, Vector3 $boxBound, ?float $scale = null, ?Color $color = null, int $dimensionId = DimensionIds::OVERWORLD) : self{
+	public static function box(int $networkId, Vector3 $location, Vector3 $boxBound, ?float $scale = null, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::BOX,
@@ -86,11 +88,12 @@ final class PacketShapeData{
 			arrowHeadLength: null,
 			arrowHeadRadius: null,
 			segments: null,
-			dimensionId: $dimensionId
+			dimensionId: $dimensionId,
+			attachedToEntityId: $attachedToEntityId
 		);
 	}
 
-	public static function sphere(int $networkId, Vector3 $location, ?float $scale = null, ?Color $color = null, ?int $segments = null, int $dimensionId = DimensionIds::OVERWORLD) : self{
+	public static function sphere(int $networkId, Vector3 $location, ?float $scale = null, ?Color $color = null, ?int $segments = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::SPHERE,
@@ -105,11 +108,12 @@ final class PacketShapeData{
 			arrowHeadLength: null,
 			arrowHeadRadius: null,
 			segments: $segments,
-			dimensionId: $dimensionId
+			dimensionId: $dimensionId,
+			attachedToEntityId: $attachedToEntityId
 		);
 	}
 
-	public static function circle(int $networkId, Vector3 $location, ?float $scale = null, ?Color $color = null, ?int $segments = null, int $dimensionId = DimensionIds::OVERWORLD) : self{
+	public static function circle(int $networkId, Vector3 $location, ?float $scale = null, ?Color $color = null, ?int $segments = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::CIRCLE,
@@ -124,11 +128,12 @@ final class PacketShapeData{
 			arrowHeadLength: null,
 			arrowHeadRadius: null,
 			segments: $segments,
-			dimensionId: $dimensionId
+			dimensionId: $dimensionId,
+			attachedToEntityId: $attachedToEntityId
 		);
 	}
 
-	public static function text(int $networkId, Vector3 $location, string $text, ?Color $color = null, int $dimensionId = DimensionIds::OVERWORLD) : self{
+	public static function text(int $networkId, Vector3 $location, string $text, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::TEXT,
@@ -143,11 +148,12 @@ final class PacketShapeData{
 			arrowHeadLength: null,
 			arrowHeadRadius: null,
 			segments: null,
-			dimensionId: $dimensionId
+			dimensionId: $dimensionId,
+			attachedToEntityId: $attachedToEntityId
 		);
 	}
 
-	public static function arrow(int $networkId, Vector3 $location, Vector3 $lineEndLocation, ?float $scale = null, ?Color $color = null, ?float $arrowHeadLength = null, ?float $arrowHeadRadius = null, ?int $segments = null, int $dimensionId = DimensionIds::OVERWORLD) : self{
+	public static function arrow(int $networkId, Vector3 $location, Vector3 $lineEndLocation, ?float $scale = null, ?Color $color = null, ?float $arrowHeadLength = null, ?float $arrowHeadRadius = null, ?int $segments = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::ARROW,
@@ -162,7 +168,8 @@ final class PacketShapeData{
 			arrowHeadLength: $arrowHeadLength,
 			arrowHeadRadius: $arrowHeadRadius,
 			segments: $segments,
-			dimensionId: $dimensionId
+			dimensionId: $dimensionId,
+			attachedToEntityId: $attachedToEntityId
 		);
 	}
 
@@ -180,7 +187,7 @@ final class PacketShapeData{
 
 	public function getColor() : ?Color{ return $this->color; }
 
-	public function getDimensionId() : int{ return $this->dimensionId; }
+	public function getDimensionId() : ?int{ return $this->dimensionId; }
 
 	public function getText() : ?string{ return $this->text; }
 
@@ -202,9 +209,14 @@ final class PacketShapeData{
 		$rotation = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		$totalTimeLeft = CommonTypes::readOptional($in, LE::readFloat(...));
 		$color = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+			$dimensionId = CommonTypes::readOptional($in, fn() => VarInt::readSignedInt($in));
+			$attachedToEntityId = CommonTypes::readOptional($in, fn() => CommonTypes::getActorRuntimeId($in));
+		}else{
 			$dimensionId = VarInt::readSignedInt($in);
+		}
 
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
 			$payloadType = VarInt::readUnsignedInt($in);
 			//WTF IS THIS HORROR SHOW
 			if(
@@ -266,7 +278,8 @@ final class PacketShapeData{
 			$arrowHeadLength,
 			$arrowHeadRadius,
 			$segments,
-			$dimensionId ?? DimensionIds::OVERWORLD
+			$dimensionId,
+			$attachedToEntityId ?? null
 		);
 	}
 
@@ -278,9 +291,14 @@ final class PacketShapeData{
 		CommonTypes::writeOptional($out, $this->rotation, CommonTypes::putVector3(...));
 		CommonTypes::writeOptional($out, $this->totalTimeLeft, LE::writeFloat(...));
 		CommonTypes::writeOptional($out, $this->color, fn(ByteBufferWriter $out, Color $color) => LE::writeUnsignedInt($out, $color->toARGB()));
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
-			VarInt::writeSignedInt($out, $this->dimensionId);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+			CommonTypes::writeOptional($out, $this->dimensionId, fn(ByteBufferWriter $out, int $dimensionId) => VarInt::writeSignedInt($out, $dimensionId));
+			CommonTypes::writeOptional($out, $this->attachedToEntityId, fn(ByteBufferWriter $out, int $entityId) => CommonTypes::putActorRuntimeId($out, $entityId));
+		}else{
+			VarInt::writeSignedInt($out, $this->dimensionId ?? DimensionIds::OVERWORLD);
+		}
 
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
 			//A godawful hack for a godawful packet
 			$payloadType = $this->type?->getPayloadType() ?? ScriptDebugShapeType::PAYLOAD_TYPE_NONE;
 			if($this->type === null){

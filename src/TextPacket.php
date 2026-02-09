@@ -134,11 +134,14 @@ class TextPacket extends DataPacket implements ClientboundPacket, ServerboundPac
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_130){
 			$category = Byte::readUnsigned($in);
-			$expectedDummyStrings = self::CATEGORY_DUMMY_STRINGS[$category] ?? throw new PacketDecodeException("Unknown category ID $category");
-			foreach($expectedDummyStrings as $k => $expectedDummyString){
-				$actual = CommonTypes::getString($in);
-				if($expectedDummyString !== $actual){
-					throw new PacketDecodeException("Dummy string mismatch for category $category at position $k: expected $expectedDummyString, got $actual");
+
+			if($protocolId === ProtocolInfo::PROTOCOL_1_21_130){
+				$expectedDummyStrings = self::CATEGORY_DUMMY_STRINGS[$category] ?? throw new PacketDecodeException("Unknown category ID $category");
+				foreach($expectedDummyStrings as $k => $expectedDummyString){
+					$actual = CommonTypes::getString($in);
+					if($expectedDummyString !== $actual){
+						throw new PacketDecodeException("Dummy string mismatch for category $category at position $k: expected $expectedDummyString, got $actual");
+					}
 				}
 			}
 
@@ -217,8 +220,11 @@ class TextPacket extends DataPacket implements ClientboundPacket, ServerboundPac
 				default => throw new \LogicException("Invalid TextPacket type: $this->type")
 			};
 			Byte::writeUnsigned($out, $category);
-			foreach(self::CATEGORY_DUMMY_STRINGS[$category] as $dummyString){
-				CommonTypes::putString($out, $dummyString);
+
+			if($protocolId === ProtocolInfo::PROTOCOL_1_21_130){
+				foreach(self::CATEGORY_DUMMY_STRINGS[$category] as $dummyString){
+					CommonTypes::putString($out, $dummyString);
+				}
 			}
 
 			Byte::writeUnsigned($out, $this->type);
