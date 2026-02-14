@@ -209,14 +209,13 @@ final class PacketShapeData{
 		$rotation = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		$totalTimeLeft = CommonTypes::readOptional($in, LE::readFloat(...));
 		$color = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			$dimensionId = CommonTypes::readOptional($in, fn() => VarInt::readSignedInt($in));
-			$attachedToEntityId = CommonTypes::readOptional($in, fn() => CommonTypes::getActorRuntimeId($in));
-		}else{
-			$dimensionId = VarInt::readSignedInt($in);
-		}
-
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+				$dimensionId = CommonTypes::readOptional($in, VarInt::readSignedInt(...));
+				$attachedToEntityId = CommonTypes::readOptional($in, CommonTypes::getActorRuntimeId(...));
+			}else{
+				$dimensionId = VarInt::readSignedInt($in);
+			}
 			$payloadType = VarInt::readUnsignedInt($in);
 			//WTF IS THIS HORROR SHOW
 			if(
@@ -278,7 +277,7 @@ final class PacketShapeData{
 			$arrowHeadLength,
 			$arrowHeadRadius,
 			$segments,
-			$dimensionId,
+			$dimensionId ?? null,
 			$attachedToEntityId ?? null
 		);
 	}
@@ -291,14 +290,13 @@ final class PacketShapeData{
 		CommonTypes::writeOptional($out, $this->rotation, CommonTypes::putVector3(...));
 		CommonTypes::writeOptional($out, $this->totalTimeLeft, LE::writeFloat(...));
 		CommonTypes::writeOptional($out, $this->color, fn(ByteBufferWriter $out, Color $color) => LE::writeUnsignedInt($out, $color->toARGB()));
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			CommonTypes::writeOptional($out, $this->dimensionId, fn(ByteBufferWriter $out, int $dimensionId) => VarInt::writeSignedInt($out, $dimensionId));
-			CommonTypes::writeOptional($out, $this->attachedToEntityId, fn(ByteBufferWriter $out, int $entityId) => CommonTypes::putActorRuntimeId($out, $entityId));
-		}else{
-			VarInt::writeSignedInt($out, $this->dimensionId ?? DimensionIds::OVERWORLD);
-		}
-
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+				CommonTypes::writeOptional($out, $this->dimensionId, VarInt::writeSignedInt(...));
+				CommonTypes::writeOptional($out, $this->attachedToEntityId, CommonTypes::putActorRuntimeId(...));
+			}else{
+				VarInt::writeSignedInt($out, $this->dimensionId ?? DimensionIds::OVERWORLD);
+			}
 			//A godawful hack for a godawful packet
 			$payloadType = $this->type?->getPayloadType() ?? ScriptDebugShapeType::PAYLOAD_TYPE_NONE;
 			if($this->type === null){
