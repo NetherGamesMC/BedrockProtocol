@@ -61,9 +61,9 @@ final class ProtocolInfo{
 		self::CURRENT_PROTOCOL,
 	];
 
-	/** Current Minecraft PE version reported by the server. This is usually the earliest currently supported version. */
-	public const MINECRAFT_VERSION = 'v1.26.0';
-	/** Version number sent to clients in ping responses. */
+	/** Display version shown in the server logs. This should match the version on the game's home screen. */
+	public const MINECRAFT_VERSION = 'v26.0';
+	/** Version sent on the network for client side compatibility checks. This may differ from the display version. */
 	public const MINECRAFT_VERSION_NETWORK = '1.26.0';
 
 	public const PROTOCOL_1_26_0 = 924;
@@ -241,8 +241,8 @@ final class ProtocolInfo{
 	public const CODE_BUILDER_PACKET = 0x96;
 	public const UPDATE_PLAYER_GAME_TYPE_PACKET = 0x97;
 	public const EMOTE_LIST_PACKET = 0x98;
-	public const POSITION_TRACKING_D_B_SERVER_BROADCAST_PACKET = 0x99;
-	public const POSITION_TRACKING_D_B_CLIENT_REQUEST_PACKET = 0x9a;
+	public const POSITION_TRACKING_DB_SERVER_BROADCAST_PACKET = 0x99;
+	public const POSITION_TRACKING_DB_CLIENT_REQUEST_PACKET = 0x9a;
 	public const DEBUG_INFO_PACKET = 0x9b;
 	public const PACKET_VIOLATION_WARNING_PACKET = 0x9c;
 	public const MOTION_PREDICTION_HINTS_PACKET = 0x9d;

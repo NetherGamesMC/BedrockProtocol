@@ -41,7 +41,7 @@ class BookEditPacket extends DataPacket implements ServerboundPacket{
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			$this->inventorySlot = VarInt::readUnsignedInt($in);
+			$this->inventorySlot = VarInt::readSignedInt($in);
 			$this->type = VarInt::readUnsignedInt($in);
 		}else{
 			$this->type = Byte::readUnsigned($in);
@@ -51,17 +51,17 @@ class BookEditPacket extends DataPacket implements ServerboundPacket{
 		switch($this->type){
 			case self::TYPE_REPLACE_PAGE:
 			case self::TYPE_ADD_PAGE:
-				$this->pageNumber = $protocolId >= ProtocolInfo::PROTOCOL_1_26_0 ? VarInt::readUnsignedInt($in) : Byte::readUnsigned($in);
+				$this->pageNumber = $protocolId >= ProtocolInfo::PROTOCOL_1_26_0 ? VarInt::readSignedInt($in) : Byte::readUnsigned($in);
 				$this->text = CommonTypes::getString($in);
 				$this->photoName = CommonTypes::getString($in);
 				break;
 			case self::TYPE_DELETE_PAGE:
-				$this->pageNumber = $protocolId >= ProtocolInfo::PROTOCOL_1_26_0 ? VarInt::readUnsignedInt($in) : Byte::readUnsigned($in);
+				$this->pageNumber = $protocolId >= ProtocolInfo::PROTOCOL_1_26_0 ? VarInt::readSignedInt($in) : Byte::readUnsigned($in);
 				break;
 			case self::TYPE_SWAP_PAGES:
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-					$this->pageNumber = VarInt::readUnsignedInt($in);
-					$this->secondaryPageNumber = VarInt::readUnsignedInt($in);
+					$this->pageNumber = VarInt::readSignedInt($in);
+					$this->secondaryPageNumber = VarInt::readSignedInt($in);
 				}else{
 					$this->pageNumber = Byte::readUnsigned($in);
 					$this->secondaryPageNumber = Byte::readUnsigned($in);
@@ -79,7 +79,7 @@ class BookEditPacket extends DataPacket implements ServerboundPacket{
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			VarInt::writeUnsignedInt($out, $this->inventorySlot);
+			VarInt::readSignedInt($out, $this->inventorySlot);
 			VarInt::writeUnsignedInt($out, $this->type);
 		}else{
 			Byte::writeUnsigned($out, $this->type);
@@ -99,15 +99,15 @@ class BookEditPacket extends DataPacket implements ServerboundPacket{
 				break;
 			case self::TYPE_DELETE_PAGE:
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-					VarInt::writeUnsignedInt($out, $this->pageNumber);
+					VarInt::writeSignedInt($out, $this->pageNumber);
 				}else{
 					Byte::writeUnsigned($out, $this->pageNumber);
 				}
 				break;
 			case self::TYPE_SWAP_PAGES:
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-					VarInt::writeUnsignedInt($out, $this->pageNumber);
-					VarInt::writeUnsignedInt($out, $this->secondaryPageNumber);
+					VarInt::writeSignedInt($out, $this->pageNumber);
+					VarInt::writeSignedInt($out, $this->secondaryPageNumber);
 				}else{
 					Byte::writeUnsigned($out, $this->pageNumber);
 					Byte::writeUnsigned($out, $this->secondaryPageNumber);
