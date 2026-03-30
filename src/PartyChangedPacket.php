@@ -18,7 +18,11 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
+<<<<<<< HEAD
 class PartyChangedPacket extends DataPacket{
+=======
+class PartyChangedPacket extends DataPacket implements ServerboundPacket{
+>>>>>>> upstream/master
 	public const NETWORK_ID = ProtocolInfo::PARTY_CHANGED_PACKET;
 
 	private string $partyId;
@@ -32,11 +36,19 @@ class PartyChangedPacket extends DataPacket{
 		return $result;
 	}
 
+<<<<<<< HEAD
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->partyId = CommonTypes::getString($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
+=======
+	protected function decodePayload(ByteBufferReader $in) : void{
+		$this->partyId = CommonTypes::getString($in);
+	}
+
+	protected function encodePayload(ByteBufferWriter $out) : void{
+>>>>>>> upstream/master
 		CommonTypes::putString($out, $this->partyId);
 	}
 

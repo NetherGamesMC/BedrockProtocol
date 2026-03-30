@@ -71,10 +71,15 @@ class GraphicsOverrideParameterPacket extends DataPacket implements ClientboundP
 		for($i = 0; $i < $count; ++$i){
 			$this->values[] = ParameterKeyframeValue::read($in);
 		}
+<<<<<<< HEAD
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
 			$this->unknownFloat = CommonTypes::readOptional($in, LE::readFloat(...));
 			$this->unknownVector3 = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		}
+=======
+		$this->unknownFloat = CommonTypes::readOptional($in, LE::readFloat(...));
+		$this->unknownVector3 = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
+>>>>>>> upstream/master
 		$this->biomeIdentifier = CommonTypes::getString($in);
 		$this->parameterType = GraphicsOverrideParameterType::fromPacket(Byte::readUnsigned($in));
 		$this->reset = CommonTypes::getBool($in);
@@ -85,10 +90,15 @@ class GraphicsOverrideParameterPacket extends DataPacket implements ClientboundP
 		foreach($this->values as $value){
 			$value->write($out);
 		}
+<<<<<<< HEAD
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
 			CommonTypes::writeOptional($out, $this->unknownFloat, LE::writeFloat(...));
 			CommonTypes::writeOptional($out, $this->unknownVector3, CommonTypes::putVector3(...));
 		}
+=======
+		CommonTypes::writeOptional($out, $this->unknownFloat, LE::writeFloat(...));
+		CommonTypes::writeOptional($out, $this->unknownVector3, CommonTypes::putVector3(...));
+>>>>>>> upstream/master
 		CommonTypes::putString($out, $this->biomeIdentifier);
 		Byte::writeUnsigned($out, $this->parameterType->value);
 		CommonTypes::putBool($out, $this->reset);

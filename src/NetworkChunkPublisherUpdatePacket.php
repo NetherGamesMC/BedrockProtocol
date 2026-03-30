@@ -45,7 +45,11 @@ class NetworkChunkPublisherUpdatePacket extends DataPacket implements Clientboun
 		return $result;
 	}
 
+<<<<<<< HEAD
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
+=======
+	protected function decodePayload(ByteBufferReader $in) : void{
+>>>>>>> upstream/master
 		$this->blockPosition = CommonTypes::getBlockPosition($in);
 		$this->radius = VarInt::readUnsignedInt($in);
 
@@ -58,7 +62,11 @@ class NetworkChunkPublisherUpdatePacket extends DataPacket implements Clientboun
 		}
 	}
 
+<<<<<<< HEAD
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
+=======
+	protected function encodePayload(ByteBufferWriter $out) : void{
+>>>>>>> upstream/master
 		CommonTypes::putBlockPosition($out, $this->blockPosition);
 		VarInt::writeUnsignedInt($out, $this->radius);
 

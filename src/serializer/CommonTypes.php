@@ -60,7 +60,6 @@ use pocketmine\network\mcpe\protocol\types\skin\SkinData;
 use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
 use pocketmine\network\mcpe\protocol\types\StructureEditorData;
 use pocketmine\network\mcpe\protocol\types\StructureSettings;
-use pocketmine\utils\Binary;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use function count;
@@ -439,7 +438,11 @@ final class CommonTypes{
 	 */
 	public static function getBlockPosition(ByteBufferReader $in, bool $signedY = true) : BlockPosition{
 		$x = VarInt::readSignedInt($in);
+<<<<<<< HEAD
 		$y = $signedY ? VarInt::readSignedInt($in) : Binary::signInt(VarInt::readUnsignedInt($in));
+=======
+		$y = VarInt::readSignedInt($in);
+>>>>>>> upstream/master
 		$z = VarInt::readSignedInt($in);
 		return new BlockPosition($x, $y, $z);
 	}
@@ -447,6 +450,7 @@ final class CommonTypes{
 	/**
 	 * Writes a block position
 	 */
+<<<<<<< HEAD
 	public static function putBlockPosition(ByteBufferWriter $out, BlockPosition $blockPosition, bool $signedY = true) : void{
 		VarInt::writeSignedInt($out, $blockPosition->getX());
 		if($signedY){
@@ -454,6 +458,11 @@ final class CommonTypes{
 		}else{
 			VarInt::writeUnsignedInt($out, Binary::unsignInt($blockPosition->getY()));
 		}
+=======
+	public static function putBlockPosition(ByteBufferWriter $out, BlockPosition $blockPosition) : void{
+		VarInt::writeSignedInt($out, $blockPosition->getX());
+		VarInt::writeSignedInt($out, $blockPosition->getY());
+>>>>>>> upstream/master
 		VarInt::writeSignedInt($out, $blockPosition->getZ());
 	}
 

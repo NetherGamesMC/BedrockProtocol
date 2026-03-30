@@ -17,27 +17,24 @@ namespace pocketmine\network\mcpe\protocol;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
-use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 class UpdateClientInputLocksPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::UPDATE_CLIENT_INPUT_LOCKS_PACKET;
 
 	private int $flags;
-	private Vector3 $position;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(int $flags, Vector3 $position) : self{
+	public static function create(int $flags) : self{
 		$result = new self;
 		$result->flags = $flags;
-		$result->position = $position;
 		return $result;
 	}
 
 	public function getFlags() : int{ return $this->flags; }
 
+<<<<<<< HEAD
 	public function getPosition() : Vector3{ return $this->position; }
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
@@ -45,13 +42,20 @@ class UpdateClientInputLocksPacket extends DataPacket implements ClientboundPack
 		if($protocolId <= ProtocolInfo::PROTOCOL_1_26_0){
 			$this->position = CommonTypes::getVector3($in);
 		}
+=======
+	protected function decodePayload(ByteBufferReader $in) : void{
+		$this->flags = VarInt::readUnsignedInt($in);
+>>>>>>> upstream/master
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, $this->flags);
+<<<<<<< HEAD
 		if($protocolId <= ProtocolInfo::PROTOCOL_1_26_0){
 			CommonTypes::putVector3($out, $this->position);
 		}
+=======
+>>>>>>> upstream/master
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

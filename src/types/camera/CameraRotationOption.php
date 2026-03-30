@@ -44,25 +44,40 @@ final class CameraRotationOption{
 	 */
 	public function getEaseType() : string{ return $this->easeType; }
 
+<<<<<<< HEAD
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$value = CommonTypes::getVector3($in);
 		$time = LE::readFloat($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
 			$ease = CommonTypes::getString($in);
 		}
+=======
+	public static function read(ByteBufferReader $in) : self{
+		$value = CommonTypes::getVector3($in);
+		$time = LE::readFloat($in);
+		$ease = CommonTypes::getString($in);
+>>>>>>> upstream/master
 
 		return new self(
 			$value,
 			$time,
+<<<<<<< HEAD
 			$ease ?? ""
+=======
+			$ease
+>>>>>>> upstream/master
 		);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putVector3($out, $this->value);
 		LE::writeFloat($out, $this->time);
+<<<<<<< HEAD
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
 			CommonTypes::putString($out, $this->easeType);
 		}
+=======
+		CommonTypes::putString($out, $this->easeType);
+>>>>>>> upstream/master
 	}
 }

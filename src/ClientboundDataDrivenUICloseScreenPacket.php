@@ -35,6 +35,7 @@ class ClientboundDataDrivenUICloseScreenPacket extends DataPacket implements Cli
 
 	public function getFormId() : ?int{ return $this->formId; }
 
+<<<<<<< HEAD
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
 			$this->formId = CommonTypes::readOptional($in, LE::readUnsignedInt(...));
@@ -45,6 +46,14 @@ class ClientboundDataDrivenUICloseScreenPacket extends DataPacket implements Cli
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
 			CommonTypes::writeOptional($out, $this->formId, LE::writeUnsignedInt(...));
 		}
+=======
+	protected function decodePayload(ByteBufferReader $in) : void{
+		$this->formId = CommonTypes::readOptional($in, LE::readUnsignedInt(...));
+	}
+
+	protected function encodePayload(ByteBufferWriter $out) : void{
+		CommonTypes::writeOptional($out, $this->formId, LE::writeUnsignedInt(...));
+>>>>>>> upstream/master
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

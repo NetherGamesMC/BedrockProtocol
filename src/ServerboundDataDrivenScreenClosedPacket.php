@@ -19,7 +19,11 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
+<<<<<<< HEAD
 class ServerboundDataDrivenScreenClosedPacket extends DataPacket{
+=======
+class ServerboundDataDrivenScreenClosedPacket extends DataPacket implements ServerboundPacket{
+>>>>>>> upstream/master
 	public const NETWORK_ID = ProtocolInfo::SERVERBOUND_DATA_DRIVEN_SCREEN_CLOSED_PACKET;
 
 	private int $formId;
@@ -35,12 +39,20 @@ class ServerboundDataDrivenScreenClosedPacket extends DataPacket{
 		return $result;
 	}
 
+<<<<<<< HEAD
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
+=======
+	protected function decodePayload(ByteBufferReader $in) : void{
+>>>>>>> upstream/master
 		$this->formId = LE::readUnsignedInt($in);
 		$this->closeReason = CommonTypes::getString($in);
 	}
 
+<<<<<<< HEAD
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
+=======
+	protected function encodePayload(ByteBufferWriter $out) : void{
+>>>>>>> upstream/master
 		LE::writeUnsignedInt($out, $this->formId);
 		CommonTypes::putString($out, $this->closeReason);
 	}

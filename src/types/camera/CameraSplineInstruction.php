@@ -68,7 +68,11 @@ final class CameraSplineInstruction{
 
 	public function isLoadFromJson() : bool{ return $this->loadFromJson; }
 
+<<<<<<< HEAD
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
+=======
+	public static function read(ByteBufferReader $in) : self{
+>>>>>>> upstream/master
 		$totalTime = LE::readFloat($in);
 		$easeType = Byte::readUnsigned($in);
 

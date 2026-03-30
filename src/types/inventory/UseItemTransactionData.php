@@ -85,7 +85,11 @@ class UseItemTransactionData extends TransactionData{
 
 	public function getClientCooldownState() : int{ return $this->clientCooldownState; }
 
+<<<<<<< HEAD
 	protected function decodeData(ByteBufferReader $in, int $protocolId) : void{
+=======
+	protected function decodeData(ByteBufferReader $in) : void{
+>>>>>>> upstream/master
 		$this->actionType = VarInt::readUnsignedInt($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
 			$this->triggerType = TriggerType::fromPacket(VarInt::readUnsignedInt($in));
@@ -97,12 +101,17 @@ class UseItemTransactionData extends TransactionData{
 		$this->playerPosition = CommonTypes::getVector3($in);
 		$this->clickPosition = CommonTypes::getVector3($in);
 		$this->blockRuntimeId = VarInt::readUnsignedInt($in);
+<<<<<<< HEAD
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
 			$this->clientInteractPrediction = PredictedResult::fromPacket(VarInt::readUnsignedInt($in));
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
 				$this->clientCooldownState = Byte::readUnsigned($in);
 			}
 		}
+=======
+		$this->clientInteractPrediction = PredictedResult::fromPacket(VarInt::readUnsignedInt($in));
+		$this->clientCooldownState = Byte::readUnsigned($in);
+>>>>>>> upstream/master
 	}
 
 	protected function encodeData(ByteBufferWriter $out, int $protocolId) : void{
@@ -117,12 +126,17 @@ class UseItemTransactionData extends TransactionData{
 		CommonTypes::putVector3($out, $this->playerPosition);
 		CommonTypes::putVector3($out, $this->clickPosition);
 		VarInt::writeUnsignedInt($out, $this->blockRuntimeId);
+<<<<<<< HEAD
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
 			VarInt::writeUnsignedInt($out, $this->clientInteractPrediction->value);
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
 				Byte::writeUnsigned($out, $this->clientCooldownState);
 			}
 		}
+=======
+		VarInt::writeUnsignedInt($out, $this->clientInteractPrediction->value);
+		Byte::writeUnsigned($out, $this->clientCooldownState);
+>>>>>>> upstream/master
 	}
 
 	/**

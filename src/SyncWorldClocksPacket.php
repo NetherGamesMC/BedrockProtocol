@@ -23,7 +23,11 @@ use pocketmine\network\mcpe\protocol\types\SyncWorldClocksPayload;
 use pocketmine\network\mcpe\protocol\types\SyncWorldClocksRemoveTimeMarker;
 use pocketmine\network\mcpe\protocol\types\SyncWorldClocksSyncState;
 
+<<<<<<< HEAD
 class SyncWorldClocksPacket extends DataPacket{
+=======
+class SyncWorldClocksPacket extends DataPacket implements ClientboundPacket{
+>>>>>>> upstream/master
 	public const NETWORK_ID = ProtocolInfo::SYNC_WORLD_CLOCKS_PACKET;
 
 	private SyncWorldClocksPayload $payload;
@@ -37,7 +41,11 @@ class SyncWorldClocksPacket extends DataPacket{
 		return $result;
 	}
 
+<<<<<<< HEAD
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
+=======
+	protected function decodePayload(ByteBufferReader $in) : void{
+>>>>>>> upstream/master
 		$this->payload = match(VarInt::readUnsignedInt($in)){
 			SyncWorldClocksSyncState::ID => SyncWorldClocksSyncState::read($in),
 			SyncWorldClocksInitializeRegistry::ID => SyncWorldClocksInitializeRegistry::read($in),
@@ -47,7 +55,11 @@ class SyncWorldClocksPacket extends DataPacket{
 		};
 	}
 
+<<<<<<< HEAD
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
+=======
+	protected function encodePayload(ByteBufferWriter $out) : void{
+>>>>>>> upstream/master
 		VarInt::writeUnsignedInt($out, $this->payload->getTypeId());
 		$this->payload->write($out);
 	}
