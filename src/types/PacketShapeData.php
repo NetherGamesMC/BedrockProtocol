@@ -21,13 +21,13 @@ use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\color\Color;
 use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\DebugDrawerPacket;
 use pocketmine\network\mcpe\protocol\PacketDecodeException;
+use pocketmine\network\mcpe\protocol\PrimitiveShapesPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 /**
- * @see DebugDrawerPacket
+ * @see PrimitiveShapesPacket
  */
 final class PacketShapeData{
 
@@ -38,8 +38,14 @@ final class PacketShapeData{
 		private ?float $scale,
 		private ?Vector3 $rotation,
 		private ?float $totalTimeLeft,
+		private ?float $maximumRenderDistance,
 		private ?Color $color,
 		private ?string $text,
+		private ?bool $useRotation,
+		private ?Color $backgroundColor,
+		private ?bool $depthTest,
+		private ?bool $showBackface,
+		private ?bool $showTextBackface,
 		private ?Vector3 $boxBound,
 		private ?Vector3 $lineEndLocation,
 		private ?float $arrowHeadLength,
@@ -50,7 +56,7 @@ final class PacketShapeData{
 	){}
 
 	public static function remove(int $networkId, ?int $dimensionId = null) : self{
-		return new self($networkId, null, null, null, null, null, null, null, null, null, null, null, null, $dimensionId, null);
+		return new self($networkId, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, $dimensionId, null);
 	}
 
 	public static function line(int $networkId, Vector3 $location, Vector3 $lineEndLocation, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
@@ -61,8 +67,14 @@ final class PacketShapeData{
 			scale: null,
 			rotation: null,
 			totalTimeLeft: null,
+			maximumRenderDistance: null,
 			color: $color,
 			text: null,
+			useRotation: null,
+			backgroundColor: null,
+			depthTest: null,
+			showBackface: null,
+			showTextBackface: null,
 			boxBound: null,
 			lineEndLocation: $lineEndLocation,
 			arrowHeadLength: null,
@@ -81,8 +93,14 @@ final class PacketShapeData{
 			scale: $scale,
 			rotation: null,
 			totalTimeLeft: null,
+			maximumRenderDistance: null,
 			color: $color,
 			text: null,
+			useRotation: null,
+			backgroundColor: null,
+			depthTest: null,
+			showBackface: null,
+			showTextBackface: null,
 			boxBound: $boxBound,
 			lineEndLocation: null,
 			arrowHeadLength: null,
@@ -101,8 +119,14 @@ final class PacketShapeData{
 			scale: $scale,
 			rotation: null,
 			totalTimeLeft: null,
+			maximumRenderDistance: null,
 			color: $color,
 			text: null,
+			useRotation: null,
+			backgroundColor: null,
+			depthTest: null,
+			showBackface: null,
+			showTextBackface: null,
 			boxBound: null,
 			lineEndLocation: null,
 			arrowHeadLength: null,
@@ -121,8 +145,14 @@ final class PacketShapeData{
 			scale: $scale,
 			rotation: null,
 			totalTimeLeft: null,
+			maximumRenderDistance: null,
 			color: $color,
 			text: null,
+			useRotation: null,
+			backgroundColor: null,
+			depthTest: null,
+			showBackface: null,
+			showTextBackface: null,
 			boxBound: null,
 			lineEndLocation: null,
 			arrowHeadLength: null,
@@ -133,7 +163,7 @@ final class PacketShapeData{
 		);
 	}
 
-	public static function text(int $networkId, Vector3 $location, string $text, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
+	public static function text(int $networkId, Vector3 $location, string $text, bool $useRotation = false, ?Color $backgroundColor = null, bool $depthTest = true, bool $showBackface = true, bool $showTextBackface = true, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: ScriptDebugShapeType::TEXT,
@@ -141,8 +171,14 @@ final class PacketShapeData{
 			scale: null,
 			rotation: null,
 			totalTimeLeft: null,
+			maximumRenderDistance: null,
 			color: $color,
 			text: $text,
+			useRotation: $useRotation,
+			backgroundColor: $backgroundColor,
+			depthTest: $depthTest,
+			showBackface: $showBackface,
+			showTextBackface: $showTextBackface,
 			boxBound: null,
 			lineEndLocation: null,
 			arrowHeadLength: null,
@@ -161,8 +197,14 @@ final class PacketShapeData{
 			scale: $scale,
 			rotation: null,
 			totalTimeLeft: null,
+			maximumRenderDistance: null,
 			color: $color,
 			text: null,
+			useRotation: null,
+			backgroundColor: null,
+			depthTest: null,
+			showBackface: null,
+			showTextBackface: null,
 			boxBound: null,
 			lineEndLocation: $lineEndLocation,
 			arrowHeadLength: $arrowHeadLength,
@@ -185,11 +227,25 @@ final class PacketShapeData{
 
 	public function getTotalTimeLeft() : ?float{ return $this->totalTimeLeft; }
 
+	public function getMaximumRenderDistance() : ?float{ return $this->maximumRenderDistance; }
+
 	public function getColor() : ?Color{ return $this->color; }
 
 	public function getDimensionId() : ?int{ return $this->dimensionId; }
 
+	public function getAttachedToEntityId() : ?int{ return $this->attachedToEntityId; }
+
 	public function getText() : ?string{ return $this->text; }
+
+	public function getUseRotation() : ?bool{ return $this->useRotation; }
+
+	public function getBackgroundColor() : ?Color{ return $this->backgroundColor; }
+
+	public function getDepthTest() : ?bool{ return $this->depthTest; }
+
+	public function getShowBackface() : ?bool{ return $this->showBackface; }
+
+	public function getShowTextBackface() : ?bool{ return $this->showTextBackface; }
 
 	public function getBoxBound() : ?Vector3{ return $this->boxBound; }
 
@@ -208,6 +264,9 @@ final class PacketShapeData{
 		$scale = CommonTypes::readOptional($in, LE::readFloat(...));
 		$rotation = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		$totalTimeLeft = CommonTypes::readOptional($in, LE::readFloat(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			$maximumRenderDistance = CommonTypes::readOptional($in, LE::readFloat(...));
+		}
 		$color = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
@@ -225,6 +284,11 @@ final class PacketShapeData{
 				throw new PacketDecodeException("Unexpected payload type $payloadType for provided shape type " . ($shapeType->name ?? "(not set)"));
 			}
 			$text = null;
+			$useRotation = null;
+			$backgroundColor = null;
+			$depthTest = null;
+			$showBackface = null;
+			$showTextBackface = null;
 			$boxBound = null;
 			$lineEndLocation = null;
 			$arrowHeadLength = null;
@@ -241,6 +305,13 @@ final class PacketShapeData{
 					break;
 				case ScriptDebugShapeType::PAYLOAD_TYPE_TEXT:
 					$text = CommonTypes::getString($in);
+					if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+						$useRotation = CommonTypes::getBool($in);
+						$backgroundColor = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
+						$depthTest = CommonTypes::getBool($in);
+						$showBackface = CommonTypes::getBool($in);
+						$showTextBackface = CommonTypes::getBool($in);
+					}
 					break;
 				case ScriptDebugShapeType::PAYLOAD_TYPE_BOX:
 					$boxBound = CommonTypes::getVector3($in);
@@ -270,8 +341,14 @@ final class PacketShapeData{
 			$scale,
 			$rotation,
 			$totalTimeLeft,
+			$maximumRenderDistance ?? null,
 			$color,
 			$text,
+			$useRotation ?? false,
+			$backgroundColor ?? null,
+			$depthTest ?? true,
+			$showBackface ?? true,
+			$showTextBackface ?? true,
 			$boxBound,
 			$lineEndLocation,
 			$arrowHeadLength,
@@ -288,7 +365,10 @@ final class PacketShapeData{
 		CommonTypes::writeOptional($out, $this->location, CommonTypes::putVector3(...));
 		CommonTypes::writeOptional($out, $this->scale, LE::writeFloat(...));
 		CommonTypes::writeOptional($out, $this->rotation, CommonTypes::putVector3(...));
-		CommonTypes::writeOptional($out, $this->totalTimeLeft, LE::writeFloat(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			CommonTypes::writeOptional($out, $this->totalTimeLeft, LE::writeFloat(...));
+		}
+		CommonTypes::writeOptional($out, $this->maximumRenderDistance, LE::writeFloat(...));
 		CommonTypes::writeOptional($out, $this->color, fn(ByteBufferWriter $out, Color $color) => LE::writeUnsignedInt($out, $color->toARGB()));
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
@@ -314,6 +394,13 @@ final class PacketShapeData{
 						if($this->text !== null){
 							VarInt::writeUnsignedInt($out, $this->type->getPayloadType());
 							CommonTypes::putString($out, $this->text);
+							if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+								CommonTypes::putBool($out, $this->useRotation ?? false);
+								CommonTypes::writeOptional($out, $this->backgroundColor, fn(ByteBufferWriter $out, Color $color) => LE::writeUnsignedInt($out, $color->toARGB()));
+								CommonTypes::putBool($out, $this->depthTest ?? true);
+								CommonTypes::putBool($out, $this->showBackface ?? true);
+								CommonTypes::putBool($out, $this->showTextBackface ?? true);
+							}
 						}else{
 							VarInt::writeUnsignedInt($out, ScriptDebugShapeType::PAYLOAD_TYPE_NONE);
 						}

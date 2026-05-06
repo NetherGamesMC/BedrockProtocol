@@ -33,6 +33,7 @@ class LevelSoundEventPacket extends DataPacket implements ClientboundPacket, Ser
 	public bool $isBabyMob = false; //...
 	public bool $disableRelativeVolume = false;
 	public int $actorUniqueId = -1;
+	public ?Vector3 $firePosition = null;
 
 	/**
 	 * @generate-create-func
@@ -45,6 +46,7 @@ class LevelSoundEventPacket extends DataPacket implements ClientboundPacket, Ser
 		bool $isBabyMob,
 		bool $disableRelativeVolume,
 		int $actorUniqueId,
+		?Vector3 $firePosition,
 	) : self{
 		$result = new self;
 		$result->sound = $sound;
@@ -54,11 +56,12 @@ class LevelSoundEventPacket extends DataPacket implements ClientboundPacket, Ser
 		$result->isBabyMob = $isBabyMob;
 		$result->disableRelativeVolume = $disableRelativeVolume;
 		$result->actorUniqueId = $actorUniqueId;
+		$result->firePosition = $firePosition;
 		return $result;
 	}
 
 	public static function nonActorSound(int $sound, Vector3 $position, bool $disableRelativeVolume, int $extraData = -1) : self{
-		return self::create($sound, $position, $extraData, ":", false, $disableRelativeVolume, -1);
+		return self::create($sound, $position, $extraData, ":", false, $disableRelativeVolume, -1, null);
 	}
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
@@ -70,6 +73,9 @@ class LevelSoundEventPacket extends DataPacket implements ClientboundPacket, Ser
 		$this->disableRelativeVolume = CommonTypes::getBool($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_70){
 			$this->actorUniqueId = LE::readSignedLong($in); //WHY IS THIS NON-STANDARD?
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+				$this->firePosition = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
+			}
 		}
 	}
 
@@ -82,6 +88,9 @@ class LevelSoundEventPacket extends DataPacket implements ClientboundPacket, Ser
 		CommonTypes::putBool($out, $this->disableRelativeVolume);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_70){
 			LE::writeSignedLong($out, $this->actorUniqueId);
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+				CommonTypes::writeOptional($out, $this->firePosition, CommonTypes::putVector3(...));
+			}
 		}
 	}
 

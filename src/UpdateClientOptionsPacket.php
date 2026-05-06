@@ -24,24 +24,34 @@ class UpdateClientOptionsPacket extends DataPacket implements ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::UPDATE_CLIENT_OPTIONS_PACKET;
 
 	private ?GraphicsMode $graphicsMode;
+	private ?bool $filterProfanityChange;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(?GraphicsMode $graphicsMode) : self{
+	public static function create(?GraphicsMode $graphicsMode, ?bool $filterProfanityChange) : self{
 		$result = new self;
 		$result->graphicsMode = $graphicsMode;
+		$result->filterProfanityChange = $filterProfanityChange;
 		return $result;
 	}
 
 	public function getGraphicsMode() : ?GraphicsMode{ return $this->graphicsMode; }
 
+	public function getFilterProfanityChange() : ?bool{ return $this->filterProfanityChange; }
+
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->graphicsMode = CommonTypes::readOptional($in, fn() => GraphicsMode::fromPacket(Byte::readUnsigned($in)));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			$this->filterProfanityChange = CommonTypes::readOptional($in, CommonTypes::getBool(...));
+		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeOptional($out, $this->graphicsMode, fn(ByteBufferWriter $out, GraphicsMode $v) => Byte::writeUnsigned($out, $v->value));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			CommonTypes::writeOptional($out, $this->filterProfanityChange, CommonTypes::putBool(...));
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

@@ -45,10 +45,16 @@ class DisconnectPacket extends DataPacket implements ClientboundPacket, Serverbo
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_20_40){
 			$this->reason = VarInt::readSignedInt($in);
 		}
-		$skipMessage = CommonTypes::getBool($in);
-		$this->message = $skipMessage ? null : CommonTypes::getString($in);
+
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			$type = VarInt::readUnsignedInt($in);
+		}else{
+			$type = CommonTypes::getBool($in) ? 1 : 0;
+		}
+
+		$this->message = $type === 0 ? CommonTypes::getString($in) : null;
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
-			$this->filteredMessage = $skipMessage ? null : CommonTypes::getString($in);
+			$this->filteredMessage = $type === 0 ? CommonTypes::getString($in) : null;
 		}
 	}
 
@@ -56,7 +62,14 @@ class DisconnectPacket extends DataPacket implements ClientboundPacket, Serverbo
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_20_40){
 			VarInt::writeSignedInt($out, $this->reason);
 		}
-		CommonTypes::putBool($out, $skipMessage = $this->message === null && $this->filteredMessage === null);
+
+		$skipMessage = $this->message === null && $this->filteredMessage === null;
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			VarInt::writeUnsignedInt($out, $skipMessage ? 1 : 0);
+		}else{
+			CommonTypes::putBool($out, $skipMessage);
+		}
+
 		if(!$skipMessage){
 			CommonTypes::putString($out, $this->message ?? "");
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
