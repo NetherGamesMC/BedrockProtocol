@@ -19,6 +19,7 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use function count;
 
@@ -58,10 +59,10 @@ final class EnchantOption{
 	/**
 	 * @return Enchant[]
 	 */
-	private static function readEnchantList(ByteBufferReader $in) : array{
+	private static function readEnchantList(ByteBufferReader $in, int $protocolId) : array{
 		$result = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$result[] = Enchant::read($in);
+			$result[] = Enchant::read($in, $protocolId);
 		}
 		return $result;
 	}
@@ -69,20 +70,24 @@ final class EnchantOption{
 	/**
 	 * @param Enchant[] $list
 	 */
-	private static function writeEnchantList(ByteBufferWriter $out, array $list) : void{
+	private static function writeEnchantList(ByteBufferWriter $out, array $list, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, count($list));
 		foreach($list as $item){
-			$item->write($out);
+			$item->write($out, $protocolId);
 		}
 	}
 
-	public static function read(ByteBufferReader $in) : self{
-		$cost = Byte::readUnsigned($in);
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			$cost = Byte::readUnsigned($in);
+		}else{
+			$cost = VarInt::readUnsignedInt($in);
+		}
 
 		$slotFlags = LE::readUnsignedInt($in);
-		$equipActivatedEnchants = self::readEnchantList($in);
-		$heldActivatedEnchants = self::readEnchantList($in);
-		$selfActivatedEnchants = self::readEnchantList($in);
+		$equipActivatedEnchants = self::readEnchantList($in, $protocolId);
+		$heldActivatedEnchants = self::readEnchantList($in, $protocolId);
+		$selfActivatedEnchants = self::readEnchantList($in, $protocolId);
 
 		$name = CommonTypes::getString($in);
 		$optionId = CommonTypes::readRecipeNetId($in);
@@ -90,13 +95,17 @@ final class EnchantOption{
 		return new self($cost, $slotFlags, $equipActivatedEnchants, $heldActivatedEnchants, $selfActivatedEnchants, $name, $optionId);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
-		Byte::writeUnsigned($out, $this->cost);
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			Byte::writeUnsigned($out, $this->cost);
+		}else{
+			VarInt::writeUnsignedInt($out, $this->cost);
+		}
 
 		LE::writeUnsignedInt($out, $this->slotFlags);
-		self::writeEnchantList($out, $this->equipActivatedEnchantments);
-		self::writeEnchantList($out, $this->heldActivatedEnchantments);
-		self::writeEnchantList($out, $this->selfActivatedEnchantments);
+		self::writeEnchantList($out, $this->equipActivatedEnchantments, $protocolId);
+		self::writeEnchantList($out, $this->heldActivatedEnchantments, $protocolId);
+		self::writeEnchantList($out, $this->selfActivatedEnchantments, $protocolId);
 
 		CommonTypes::putString($out, $this->name);
 		CommonTypes::writeRecipeNetId($out, $this->optionId);

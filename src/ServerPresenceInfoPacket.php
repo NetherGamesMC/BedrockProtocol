@@ -35,11 +35,11 @@ class ServerPresenceInfoPacket extends DataPacket implements ClientboundPacket{
 
 	public function getPresenceConfig() : ?PresenceConfig{ return $this->presenceConfig; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->presenceConfig = CommonTypes::readOptional($in, PresenceConfig::read(...));
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeOptional($out, $this->presenceConfig, fn(ByteBufferWriter $out, PresenceConfig $v) => $v->write($out));
 	}
 

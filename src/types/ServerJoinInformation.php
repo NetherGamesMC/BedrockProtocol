@@ -26,15 +26,15 @@ final class ServerJoinInformation{
 
 	public function getGatheringJoinInfo() : ?GatheringJoinInfo{ return $this->gatheringJoinInfo; }
 
-	public static function read(ByteBufferReader $in) : self{
-		$gatheringJoinInfo = CommonTypes::readOptional($in, GatheringJoinInfo::read(...));
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
+		$gatheringJoinInfo = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => GatheringJoinInfo::read($in, $protocolId));
 
 		return new self(
 			$gatheringJoinInfo
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
-		CommonTypes::writeOptional($out, $this->gatheringJoinInfo, fn(ByteBufferWriter $out, GatheringJoinInfo $info) => $info->write($out));
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
+		CommonTypes::writeOptional($out, $this->gatheringJoinInfo, fn(ByteBufferWriter $out, GatheringJoinInfo $info) => $info->write($out, $protocolId));
 	}
 }

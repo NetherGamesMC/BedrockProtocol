@@ -36,9 +36,9 @@ final class LocatorBarWaypointPayload{
 
 	public function getAction() : int{ return $this->action; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$group = CommonTypes::getUUID($in);
-		$waypoint = LocatorBarWaypoint::read($in);
+		$waypoint = LocatorBarWaypoint::read($in, $protocolId);
 		$action = Byte::readUnsigned($in);
 
 		return new self(
@@ -48,9 +48,9 @@ final class LocatorBarWaypointPayload{
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putUUID($out, $this->group);
-		$this->waypoint->write($out);
+		$this->waypoint->write($out, $protocolId);
 		Byte::writeUnsigned($out, $this->action);
 	}
 }

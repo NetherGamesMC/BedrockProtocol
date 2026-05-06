@@ -140,7 +140,8 @@ class ClientMovementPredictionSyncPacket extends DataPacket implements Serverbou
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->flags = BitSet::read($in, match(true) {
-			$protocolId >= ProtocolInfo::PROTOCOL_1_21_130 => self::FLAG_LENGTH,
+			$protocolId >= ProtocolInfo::PROTOCOL_1_26_20 => self::FLAG_LENGTH,
+			$protocolId >= ProtocolInfo::PROTOCOL_1_21_130 => 127,
 			$protocolId >= ProtocolInfo::PROTOCOL_1_21_111 => 126,
 			$protocolId >= ProtocolInfo::PROTOCOL_1_21_90 => 125,
 			$protocolId >= ProtocolInfo::PROTOCOL_1_21_80 => 124,
@@ -156,9 +157,11 @@ class ClientMovementPredictionSyncPacket extends DataPacket implements Serverbou
 		$this->jumpStrength = LE::readFloat($in);
 		$this->health = LE::readFloat($in);
 		$this->hunger = LE::readFloat($in);
-		$this->frictionModifier = LE::readFloat($in);
-		$this->bounciness = LE::readFloat($in);
-		$this->airDragModifier = LE::readFloat($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			$this->frictionModifier = LE::readFloat($in);
+			$this->bounciness = LE::readFloat($in);
+			$this->airDragModifier = LE::readFloat($in);
+		}
 		$this->actorUniqueId = CommonTypes::getActorUniqueId($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_70){
 			$this->actorFlyingState = CommonTypes::getBool($in);
@@ -167,7 +170,8 @@ class ClientMovementPredictionSyncPacket extends DataPacket implements Serverbou
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		$this->flags->write($out, match(true) {
-			$protocolId >= ProtocolInfo::PROTOCOL_1_21_130 => self::FLAG_LENGTH,
+			$protocolId >= ProtocolInfo::PROTOCOL_1_26_20 => self::FLAG_LENGTH,
+			$protocolId >= ProtocolInfo::PROTOCOL_1_21_130 => 127,
 			$protocolId >= ProtocolInfo::PROTOCOL_1_21_111 => 126,
 			$protocolId >= ProtocolInfo::PROTOCOL_1_21_90 => 125,
 			$protocolId >= ProtocolInfo::PROTOCOL_1_21_80 => 124,
@@ -183,9 +187,11 @@ class ClientMovementPredictionSyncPacket extends DataPacket implements Serverbou
 		LE::writeFloat($out, $this->jumpStrength);
 		LE::writeFloat($out, $this->health);
 		LE::writeFloat($out, $this->hunger);
-		LE::writeFloat($out, $this->frictionModifier);
-		LE::writeFloat($out, $this->bounciness);
-		LE::writeFloat($out, $this->airDragModifier);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			LE::writeFloat($out, $this->frictionModifier);
+			LE::writeFloat($out, $this->bounciness);
+			LE::writeFloat($out, $this->airDragModifier);
+		}
 		CommonTypes::putActorUniqueId($out, $this->actorUniqueId);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_70){
 			CommonTypes::putBool($out, $this->actorFlyingState);

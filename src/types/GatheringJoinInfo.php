@@ -16,7 +16,9 @@ namespace pocketmine\network\mcpe\protocol\types;
 
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 final class GatheringJoinInfo{
@@ -57,47 +59,51 @@ final class GatheringJoinInfo{
 
 	public function isPresenceConfiguration() : bool{ return $this->presenceConfiguration; }
 
-	public static function read(ByteBufferReader $in) : self{
-		$experienceId = CommonTypes::getString($in);
-		$experienceName = CommonTypes::getString($in);
-		$experienceWorldId = CommonTypes::getString($in);
-		$experienceWorldName = CommonTypes::getString($in);
-		$creatorId = CommonTypes::getString($in);
-		$targetId = CommonTypes::getUUID($in);
-		$scenarioId = CommonTypes::getString($in);
-		$serverId = CommonTypes::getString($in);
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
+			$experienceId = CommonTypes::getString($in);
+			$experienceName = CommonTypes::getString($in);
+			$experienceWorldId = CommonTypes::getString($in);
+			$experienceWorldName = CommonTypes::getString($in);
+			$creatorId = CommonTypes::getString($in);
+			$targetId = CommonTypes::getUUID($in);
+			$scenarioId = CommonTypes::getString($in);
+			$serverId = CommonTypes::getString($in);
+			$storeId = CommonTypes::getString($in);
+			$storeName = CommonTypes::getString($in);
+		}
 
-		$storeId = CommonTypes::getString($in);
-		$storeName = CommonTypes::getString($in);
 		$presenceConfiguration = CommonTypes::getBool($in);
 
 		return new self(
-			$experienceId,
-			$experienceName,
-			$experienceWorldId,
-			$experienceWorldName,
-			$creatorId,
-			$targetId,
-			$scenarioId,
-			$serverId,
-			$storeId,
-			$storeName,
+			$experienceId ?? "",
+			$experienceName ?? "",
+			$experienceWorldId ?? "",
+			$experienceWorldName ?? "",
+			$creatorId ?? "",
+			$targetId ?? Uuid::uuid4(),
+			$scenarioId ?? "",
+			$serverId ?? "",
+			$storeId ?? "",
+			$storeName ?? "",
 			$presenceConfiguration
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
-		CommonTypes::putString($out, $this->experienceId);
-		CommonTypes::putString($out, $this->experienceName);
-		CommonTypes::putString($out, $this->experienceWorldId);
-		CommonTypes::putString($out, $this->experienceWorldName);
-		CommonTypes::putString($out, $this->creatorId);
-		CommonTypes::putUUID($out, $this->targetId);
-		CommonTypes::putString($out, $this->scenarioId);
-		CommonTypes::putString($out, $this->serverId);
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
+			CommonTypes::putString($out, $this->experienceId);
+			CommonTypes::putString($out, $this->experienceName);
+			CommonTypes::putString($out, $this->experienceWorldId);
+			CommonTypes::putString($out, $this->experienceWorldName);
+			CommonTypes::putString($out, $this->creatorId);
+			CommonTypes::putUUID($out, $this->targetId);
+			CommonTypes::putString($out, $this->scenarioId);
+			CommonTypes::putString($out, $this->serverId);
+			CommonTypes::putString($out, $this->storeId);
+			CommonTypes::putString($out, $this->storeName);
+		}
 
-		CommonTypes::putString($out, $this->storeId);
-		CommonTypes::putString($out, $this->storeName);
 		CommonTypes::putBool($out, $this->presenceConfiguration);
 	}
 }

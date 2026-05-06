@@ -35,11 +35,11 @@ class ServerStoreInfoPacket extends DataPacket implements ClientboundPacket{
 
 	public function getClientStoreEntrypointConfig() : ?ClientStoreEntrypointConfig{ return $this->clientStoreEntrypointConfig; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->clientStoreEntrypointConfig = CommonTypes::readOptional($in, ClientStoreEntrypointConfig::read(...));
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeOptional($out, $this->clientStoreEntrypointConfig, fn(ByteBufferWriter $out, ClientStoreEntrypointConfig $v) => $v->write($out));
 	}
 
