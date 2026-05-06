@@ -64,7 +64,7 @@ final class ClientData{
 	/** @required */
 	public int $DeviceOS;
 
-	/** @required */
+	/** >= ProtocolInfo::PROTOCOL_1_26_20 */
 	public bool $FilterProfanity;
 
 	/** @required */
@@ -91,6 +91,7 @@ final class ClientData{
 	public bool $OverrideSkin;
 
 	public string $PartyId;
+	/** >= ProtocolInfo::PROTOCOL_1_26_20 */
 	public bool $IsPartyLeader;
 
 	/**
