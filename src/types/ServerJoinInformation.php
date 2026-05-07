@@ -36,7 +36,7 @@ final class ServerJoinInformation{
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$storeEntryPointInfo = null;
 
-		$gatheringJoinInfo = CommonTypes::readOptional($in, function(ByteBufferReader $in) use ($protocolId, &$storeEntryPointInfo): GatheringJoinInfo{
+		$gatheringJoinInfo = CommonTypes::readOptional($in, function(ByteBufferReader $in) use ($protocolId, &$storeEntryPointInfo) : GatheringJoinInfo{
 			$gatheringJoinInfo = GatheringJoinInfo::read($in, $protocolId);
 			if($protocolId <= ProtocolInfo::PROTOCOL_1_26_0){
 				$storeId = CommonTypes::getString($in);
@@ -59,7 +59,7 @@ final class ServerJoinInformation{
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
-		CommonTypes::writeOptional($out, $this->gatheringJoinInfo, function(ByteBufferWriter $out, GatheringJoinInfo $info) use ($protocolId): void{
+		CommonTypes::writeOptional($out, $this->gatheringJoinInfo, function(ByteBufferWriter $out, GatheringJoinInfo $info) use ($protocolId) : void{
 			$info->write($out, $protocolId);
 			if($protocolId <= ProtocolInfo::PROTOCOL_1_26_0){
 				CommonTypes::putString($out, $this->storeEntryPointInfo?->getId() ?? "");
