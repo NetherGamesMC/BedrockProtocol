@@ -98,8 +98,8 @@ final class BiomeDefinitionChunkGenData{
 				$villageType = CommonTypes::readOptional($in, fn() => Byte::readUnsigned($in));
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
-					$surfaceBuilderData = CommonTypes::readOptional($in, fn() => BiomeSurfaceBuilderData::read($in));
-					$subSurfaceBuilderData = CommonTypes::readOptional($in, fn() => BiomeSurfaceBuilderData::read($in));
+					$surfaceBuilderData = CommonTypes::readOptional($in, fn() => BiomeSurfaceBuilderData::read($in, $protocolId));
+					$subSurfaceBuilderData = CommonTypes::readOptional($in, fn() => BiomeSurfaceBuilderData::read($in, $protocolId));
 				}
 			}
 		}
@@ -148,8 +148,8 @@ final class BiomeDefinitionChunkGenData{
 				CommonTypes::writeOptional($out, $this->villageType, fn(ByteBufferWriter $out, int $v) => Byte::writeUnsigned($out, $v));
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
-					CommonTypes::writeOptional($out, $this->surfaceBuilderData, fn(ByteBufferWriter $out, BiomeSurfaceBuilderData $v) => $v->write($out));
-					CommonTypes::writeOptional($out, $this->subSurfaceBuilderData, fn(ByteBufferWriter $out, BiomeSurfaceBuilderData $v) => $v->write($out));
+					CommonTypes::writeOptional($out, $this->surfaceBuilderData, fn(ByteBufferWriter $out, BiomeSurfaceBuilderData $v) => $v->write($out, $protocolId));
+					CommonTypes::writeOptional($out, $this->subSurfaceBuilderData, fn(ByteBufferWriter $out, BiomeSurfaceBuilderData $v) => $v->write($out, $protocolId));
 				}
 			}
 		}

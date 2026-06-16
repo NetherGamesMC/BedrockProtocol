@@ -38,12 +38,12 @@ class PartyDestinationCookieResponsePacket extends DataPacket implements Serverb
 
 	public function isAccepted() : bool{ return $this->accepted; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->cookie = CommonTypes::getString($in);
 		$this->accepted = CommonTypes::getBool($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->cookie);
 		CommonTypes::putBool($out, $this->accepted);
 	}

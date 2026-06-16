@@ -41,9 +41,9 @@ class ClientboundAttributeLayerSyncPacket extends DataPacket implements Clientbo
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->payload = match(VarInt::readUnsignedInt($in)){
-			AttributeUpdateLayers::ID => AttributeUpdateLayers::read($in),
+			AttributeUpdateLayers::ID => AttributeUpdateLayers::read($in, $protocolId),
 			AttributeUpdateLayerSettings::ID => AttributeUpdateLayerSettings::read($in),
-			AttributesUpdateEnvironment::ID => AttributesUpdateEnvironment::read($in),
+			AttributesUpdateEnvironment::ID => AttributesUpdateEnvironment::read($in, $protocolId),
 			AttributesRemoveEnvironment::ID => AttributesRemoveEnvironment::read($in),
 			default => throw new PacketDecodeException("Unknown ClientboundAttributeLayerSync type"),
 		};
@@ -51,7 +51,7 @@ class ClientboundAttributeLayerSyncPacket extends DataPacket implements Clientbo
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, $this->payload->getTypeId());
-		$this->payload->write($out);
+		$this->payload->write($out, $protocolId);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

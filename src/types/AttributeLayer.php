@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use function count;
 
@@ -51,35 +52,39 @@ final class AttributeLayer{
 	 */
 	public function getAttributes() : array{ return $this->attributes; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
-		$noiseName = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$noiseName = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		}
 		$dimension = VarInt::readUnsignedInt($in);
 		$settings = AttributeLayerSettings::read($in);
 
 		$attributes = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$attributes[] = AttributeEnvironment::read($in);
+			$attributes[] = AttributeEnvironment::read($in, $protocolId);
 		}
 
 		return new self(
 			$name,
-			$noiseName,
+			$noiseName ?? null,
 			$dimension,
 			$settings,
 			$attributes,
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
-		CommonTypes::writeOptional($out, $this->name, CommonTypes::putString(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::writeOptional($out, $this->name, CommonTypes::putString(...));
+		}
 		VarInt::writeUnsignedInt($out, $this->dimension);
 		$this->settings->write($out);
 
 		VarInt::writeUnsignedInt($out, count($this->attributes));
 		foreach($this->attributes as $attribute){
-			$attribute->write($out);
+			$attribute->write($out, $protocolId);
 		}
 	}
 }

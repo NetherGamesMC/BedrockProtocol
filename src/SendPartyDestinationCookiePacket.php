@@ -42,13 +42,13 @@ class SendPartyDestinationCookiePacket extends DataPacket implements Clientbound
 
 	public function getDestinationName() : string{ return $this->destinationName; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->cookie = CommonTypes::getString($in);
 		$this->intent = CommonTypes::getString($in);
 		$this->destinationName = CommonTypes::getString($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->cookie);
 		CommonTypes::putString($out, $this->intent);
 		CommonTypes::putString($out, $this->destinationName);

@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 /**
@@ -57,7 +58,7 @@ final class AttributeEnvironment{
 
 	public function isNoiseTransition() : bool{ return $this->noiseTransition; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
 		$fromAttribute = CommonTypes::readOptional($in, AttributeValue::read(...));
 		$attribute = AttributeValue::read($in);
@@ -65,8 +66,10 @@ final class AttributeEnvironment{
 		$currentTransitionTicks = LE::readUnsignedInt($in);
 		$totalTransitionTicks = LE::readUnsignedInt($in);
 		$easeType = CommonTypes::getString($in);
-		$localTransitionTicks = LE::readUnsignedInt($in);
-		$noiseTransition = CommonTypes::getBool($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$localTransitionTicks = LE::readUnsignedInt($in);
+			$noiseTransition = CommonTypes::getBool($in);
+		}
 
 		return new self(
 			$name,
@@ -76,12 +79,12 @@ final class AttributeEnvironment{
 			$currentTransitionTicks,
 			$totalTransitionTicks,
 			$easeType,
-			$localTransitionTicks,
-			$noiseTransition
+			$localTransitionTicks ?? 0,
+			$noiseTransition ?? false
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
 		CommonTypes::writeOptional($out, $this->fromAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->write($out));
 		$this->attribute->write($out);
@@ -89,7 +92,9 @@ final class AttributeEnvironment{
 		LE::writeUnsignedInt($out, $this->currentTransitionTicks);
 		LE::writeUnsignedInt($out, $this->totalTransitionTicks);
 		CommonTypes::putString($out, $this->easeType);
-		LE::writeUnsignedInt($out, $this->localTransitionTicks);
-		CommonTypes::putBool($out, $this->noiseTransition);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			LE::writeUnsignedInt($out, $this->localTransitionTicks);
+			CommonTypes::putBool($out, $this->noiseTransition);
+		}
 	}
 }

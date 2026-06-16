@@ -48,7 +48,7 @@ final class ServerJoinInformation{
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
 			$storeEntryPointInfo = CommonTypes::readOptional($in, StoreEntryPointInfo::read(...));
-			$presenceInfo = CommonTypes::readOptional($in, PresenceInfo::read(...));
+			$presenceInfo = CommonTypes::readOptional($in, fn(ByteBufferReader $in) => PresenceInfo::read($in, $protocolId));
 		}
 
 		return new self(
@@ -68,7 +68,7 @@ final class ServerJoinInformation{
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_10){
 			CommonTypes::writeOptional($out, $this->storeEntryPointInfo, fn(ByteBufferWriter $out, StoreEntryPointInfo $info) => $info->write($out));
-			CommonTypes::writeOptional($out, $this->presenceInfo, fn(ByteBufferWriter $out, PresenceInfo $info) => $info->write($out));
+			CommonTypes::writeOptional($out, $this->presenceInfo, fn(ByteBufferWriter $out, PresenceInfo $info) => $info->write($out, $protocolId));
 		}
 	}
 }

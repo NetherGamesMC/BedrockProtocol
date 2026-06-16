@@ -50,13 +50,13 @@ final class AttributesUpdateEnvironment extends AttributeLayerSyncPayload{
 	 */
 	public function getAttributes() : array{ return $this->attributes; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
 		$dimension = VarInt::readUnsignedInt($in);
 
 		$attributes = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$attributes[] = AttributeEnvironment::read($in);
+			$attributes[] = AttributeEnvironment::read($in, $protocolId);
 		}
 
 		return new self(
@@ -66,13 +66,13 @@ final class AttributesUpdateEnvironment extends AttributeLayerSyncPayload{
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
 		VarInt::writeUnsignedInt($out, $this->dimension);
 
 		VarInt::writeUnsignedInt($out, count($this->attributes));
 		foreach($this->attributes as $attribute){
-			$attribute->write($out);
+			$attribute->write($out, $protocolId);
 		}
 	}
 }

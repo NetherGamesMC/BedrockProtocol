@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\types\SubChunkPosition;
 use pocketmine\network\mcpe\protocol\types\SubChunkPositionOffset;
@@ -57,24 +58,38 @@ class SubChunkRequestPacket extends DataPacket implements ServerboundPacket{
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->dimension = VarInt::readSignedInt($in);
+		if($protocolId <= ProtocolInfo::PROTOCOL_1_26_20){
+			$this->basePosition = SubChunkPosition::read($in);
+		}
 
 		$this->entries = [];
-		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; $i++){
+		for($i = 0, $count = $protocolId >= ProtocolInfo::PROTOCOL_1_26_30 ? VarInt::readUnsignedInt($in) : LE::readUnsignedInt($in); $i < $count; $i++){
 			$this->entries[] = SubChunkPositionOffset::read($in);
 		}
 
-		$this->basePosition = SubChunkPosition::read($in, true);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$this->basePosition = SubChunkPosition::read($in, true);
+		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeSignedInt($out, $this->dimension);
+		if($protocolId <= ProtocolInfo::PROTOCOL_1_26_20){
+			$this->basePosition->write($out);
+		}
 
-		VarInt::writeUnsignedInt($out, count($this->entries));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			LE::writeUnsignedInt($out, count($this->entries));
+		}else{
+			VarInt::writeUnsignedInt($out, count($this->entries));
+		}
 		foreach($this->entries as $entry){
 			$entry->write($out);
 		}
 
-		$this->basePosition->write($out, true);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$this->basePosition->write($out, true);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

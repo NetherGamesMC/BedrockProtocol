@@ -39,12 +39,12 @@ class ClientboundUpdateSoundDataPacket extends DataPacket implements Clientbound
 
 	public function getSoundEvent() : string{ return $this->soundEvent; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->serverSoundHandle = LE::readUnsignedLong($in);
 		$this->soundEvent = CommonTypes::getString($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		LE::writeUnsignedLong($out, $this->serverSoundHandle);
 		CommonTypes::putString($out, $this->soundEvent);
 	}

@@ -43,10 +43,10 @@ final class AttributeUpdateLayers extends AttributeLayerSyncPayload{
 	 */
 	public function getLayers() : array{ return $this->layers; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$layers = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$layers[] = AttributeLayer::read($in);
+			$layers[] = AttributeLayer::read($in, $protocolId);
 		}
 
 		return new self(
@@ -54,10 +54,10 @@ final class AttributeUpdateLayers extends AttributeLayerSyncPayload{
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, count($this->layers));
 		foreach($this->layers as $layer){
-			$layer->write($out);
+			$layer->write($out, $protocolId);
 		}
 	}
 }

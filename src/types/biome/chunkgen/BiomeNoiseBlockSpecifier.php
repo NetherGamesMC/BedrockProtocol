@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types\biome\chunkgen;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 final class BiomeNoiseBlockSpecifier{
@@ -39,27 +40,31 @@ final class BiomeNoiseBlockSpecifier{
 
 	public function getBlock() : int{ return $this->block; }
 
-	public static function read(ByteBufferReader $in) : self{
-		$noise = CommonTypes::getString($in);
-		$threshold = LE::readFloat($in);
-		$min = LE::readFloat($in);
-		$max = LE::readFloat($in);
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$noise = CommonTypes::getString($in);
+			$threshold = LE::readFloat($in);
+			$min = LE::readFloat($in);
+			$max = LE::readFloat($in);
+		}
 		$block = LE::readUnsignedInt($in);
 
 		return new self(
-			$noise,
-			$threshold,
-			$min,
-			$max,
+			$noise ?? "",
+			$threshold ?? 0.0,
+			$min ?? 0.0,
+			$max ?? 0.0,
 			$block
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
-		CommonTypes::putString($out, $this->noise);
-		LE::writeFloat($out, $this->threshold);
-		LE::writeFloat($out, $this->min);
-		LE::writeFloat($out, $this->max);
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::putString($out, $this->noise);
+			LE::writeFloat($out, $this->threshold);
+			LE::writeFloat($out, $this->min);
+			LE::writeFloat($out, $this->max);
+		}
 		LE::writeUnsignedInt($out, $this->block);
 	}
 }

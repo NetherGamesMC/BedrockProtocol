@@ -55,7 +55,7 @@ final class BiomeNoiseGradientSurfaceData{
 	 */
 	public function getAmplitudes() : array{ return $this->amplitudes; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$nonReplaceableBlocks = [];
 		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
 			$nonReplaceableBlocks[] = LE::readUnsignedInt($in);
@@ -63,7 +63,7 @@ final class BiomeNoiseGradientSurfaceData{
 
 		$gradientBlocks = [];
 		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
-			$gradientBlocks[] = BiomeNoiseBlockSpecifier::read($in);
+			$gradientBlocks[] = BiomeNoiseBlockSpecifier::read($in, $protocolId);
 		}
 
 		$noiseSeed = CommonTypes::getString($in);
@@ -83,7 +83,7 @@ final class BiomeNoiseGradientSurfaceData{
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedInt($out, count($this->nonReplaceableBlocks));
 		foreach($this->nonReplaceableBlocks as $value){
 			LE::writeUnsignedInt($out, $value);
@@ -91,7 +91,7 @@ final class BiomeNoiseGradientSurfaceData{
 
 		VarInt::writeUnsignedInt($out, count($this->gradientBlocks));
 		foreach($this->gradientBlocks as $value){
-			$value->write($out);
+			$value->write($out, $protocolId);
 		}
 
 		CommonTypes::putString($out, $this->noiseSeed);

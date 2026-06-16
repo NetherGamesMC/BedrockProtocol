@@ -88,7 +88,9 @@ class GraphicsOverrideParameterPacket extends DataPacket implements ClientboundP
 			$this->unknownVector3 = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		}
 		$this->biomeIdentifier = CommonTypes::getString($in);
-		$this->playerIdentifier = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$this->playerIdentifier = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		}
 		$this->parameterType = GraphicsOverrideParameterType::fromPacket(Byte::readUnsigned($in));
 		$this->reset = CommonTypes::getBool($in);
 	}
@@ -103,7 +105,9 @@ class GraphicsOverrideParameterPacket extends DataPacket implements ClientboundP
 			CommonTypes::writeOptional($out, $this->unknownVector3, CommonTypes::putVector3(...));
 		}
 		CommonTypes::putString($out, $this->biomeIdentifier);
-		CommonTypes::writeOptional($out, $this->playerIdentifier, CommonTypes::putString(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::writeOptional($out, $this->playerIdentifier, CommonTypes::putString(...));
+		}
 		Byte::writeUnsigned($out, $this->parameterType->value);
 		CommonTypes::putBool($out, $this->reset);
 	}

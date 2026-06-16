@@ -76,7 +76,10 @@ final class ClientData{
 	/** @required */
 	public int $GuiScale;
 
-	/** @required */
+	/** <= ProtocolInfo::PROTOCOL_1_26_20 */
+	public bool $IsEditorMode;
+
+	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
 	public bool $ClientIsEditorCapable;
 
 	/** @required */
@@ -171,6 +174,6 @@ final class ClientData{
 	/** @required */
 	public int $UIProfile;
 
-	/** @required */
+	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
 	public int $ClientEditorConnectionIntent;
 }

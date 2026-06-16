@@ -16,6 +16,7 @@ namespace pocketmine\network\mcpe\protocol\types;
 
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 /**
@@ -34,17 +35,27 @@ final class PresenceInfo{
 
 	public function getRichPresenceId() : string{ return $this->richPresenceId; }
 
-	public static function read(ByteBufferReader $in) : self{
-		$experienceName = CommonTypes::readOptional($in, CommonTypes::getString(...));
-		$worldName = CommonTypes::readOptional($in, CommonTypes::getString(...));
-		$richPresenceId = CommonTypes::getString($in);
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$experienceName = CommonTypes::readOptional($in, CommonTypes::getString(...));
+			$worldName = CommonTypes::readOptional($in, CommonTypes::getString(...));
+			$richPresenceId = CommonTypes::getString($in);
+		}else{
+			$experienceName = CommonTypes::getString($in);
+			$worldName = CommonTypes::getString($in);
+		}
 
-		return new self($experienceName, $worldName, $richPresenceId);
+		return new self($experienceName, $worldName, $richPresenceId ?? "");
 	}
 
-	public function write(ByteBufferWriter $out) : void{
-		CommonTypes::writeOptional($out, $this->experienceName, CommonTypes::putString(...));
-		CommonTypes::writeOptional($out, $this->worldName, CommonTypes::putString(...));
-		CommonTypes::putString($out, $this->richPresenceId);
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::writeOptional($out, $this->experienceName, CommonTypes::putString(...));
+			CommonTypes::writeOptional($out, $this->worldName, CommonTypes::putString(...));
+			CommonTypes::putString($out, $this->richPresenceId);
+		}else{
+			CommonTypes::putString($out, $this->experienceName ?? throw new \InvalidArgumentException("experienceName must be set"));
+			CommonTypes::putString($out, $this->worldName ?? throw new \InvalidArgumentException("worldName must be set"));
+		}
 	}
 }

@@ -47,7 +47,7 @@ final class BiomeSurfaceBuilderData{
 
 	public function getNoiseGradientSurface() : ?BiomeNoiseGradientSurfaceData{ return $this->noiseGradientSurface; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$surfaceMaterial = CommonTypes::readOptional($in, fn() => BiomeSurfaceMaterialData::read($in));
 		$defaultOverworldSurface = CommonTypes::getBool($in);
 		$swampSurface = CommonTypes::getBool($in);
@@ -55,7 +55,7 @@ final class BiomeSurfaceBuilderData{
 		$theEndSurface = CommonTypes::getBool($in);
 		$mesaSurface = CommonTypes::readOptional($in, fn() => BiomeMesaSurfaceData::read($in));
 		$cappedSurface = CommonTypes::readOptional($in, fn() => BiomeCappedSurfaceData::read($in));
-		$noiseGradientSurface = CommonTypes::readOptional($in, fn() => BiomeNoiseGradientSurfaceData::read($in));
+		$noiseGradientSurface = CommonTypes::readOptional($in, fn() => BiomeNoiseGradientSurfaceData::read($in, $protocolId));
 
 		return new self(
 			$surfaceMaterial,
@@ -69,7 +69,7 @@ final class BiomeSurfaceBuilderData{
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeOptional($out, $this->surfaceMaterial, fn(ByteBufferWriter $out, BiomeSurfaceMaterialData $v) => $v->write($out));
 		CommonTypes::putBool($out, $this->defaultOverworldSurface);
 		CommonTypes::putBool($out, $this->swampSurface);
@@ -77,6 +77,6 @@ final class BiomeSurfaceBuilderData{
 		CommonTypes::putBool($out, $this->theEndSurface);
 		CommonTypes::writeOptional($out, $this->mesaSurface, fn(ByteBufferWriter $out, BiomeMesaSurfaceData $v) => $v->write($out));
 		CommonTypes::writeOptional($out, $this->cappedSurface, fn(ByteBufferWriter $out, BiomeCappedSurfaceData $v) => $v->write($out));
-		CommonTypes::writeOptional($out, $this->noiseGradientSurface, fn(ByteBufferWriter $out, BiomeNoiseGradientSurfaceData $v) => $v->write($out));
+		CommonTypes::writeOptional($out, $this->noiseGradientSurface, fn(ByteBufferWriter $out, BiomeNoiseGradientSurfaceData $v) => $v->write($out, $protocolId));
 	}
 }
