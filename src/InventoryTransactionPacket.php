@@ -42,13 +42,13 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 	public int $requestId;
 	/** @var InventoryTransactionChangedSlotsHack[] */
 	public array $requestChangedSlots;
-	public TransactionData $trData;
+	public ?TransactionData $trData;
 
 	/**
 	 * @generate-create-func
 	 * @param InventoryTransactionChangedSlotsHack[] $requestChangedSlots
 	 */
-	public static function create(int $requestId, array $requestChangedSlots, TransactionData $trData) : self{
+	public static function create(int $requestId, array $requestChangedSlots, ?TransactionData $trData) : self{
 		$result = new self;
 		$result->requestId = $requestId;
 		$result->requestChangedSlots = $requestChangedSlots;
@@ -58,16 +58,22 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->requestId = CommonTypes::readLegacyItemStackRequestId($in);
+		$hasChangedSlots = $protocolId >= ProtocolInfo::PROTOCOL_1_26_30 ? CommonTypes::getBool($in) : $this->requestId !== 0;
+
 		$this->requestChangedSlots = [];
-		if($this->requestId !== 0){
+		if($hasChangedSlots){
 			for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
 				$this->requestChangedSlots[] = InventoryTransactionChangedSlotsHack::read($in);
 			}
 		}
 
-		$transactionType = VarInt::readUnsignedInt($in);
-
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$transactionType = CommonTypes::readOptional($in, VarInt::readUnsignedInt(...));
+		}else{
+			$transactionType = VarInt::readUnsignedInt($in);
+		}
 		$this->trData = match($transactionType){
+			null => null,
 			NormalTransactionData::ID => new NormalTransactionData(),
 			MismatchTransactionData::ID => new MismatchTransactionData(),
 			UseItemTransactionData::ID => new UseItemTransactionData(),
@@ -76,21 +82,30 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 			default => throw new PacketDecodeException("Unknown transaction type $transactionType"),
 		};
 
-		$this->trData->decode($in, $protocolId);
+		$this->trData?->decode($in, $protocolId);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeLegacyItemStackRequestId($out, $this->requestId);
-		if($this->requestId !== 0){
+		$hasChangedSlots = $this->requestId !== 0;
+
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::putBool($out, $hasChangedSlots);
+		}
+		if($hasChangedSlots){
 			VarInt::writeUnsignedInt($out, count($this->requestChangedSlots));
 			foreach($this->requestChangedSlots as $changedSlots){
 				$changedSlots->write($out);
 			}
 		}
 
-		VarInt::writeUnsignedInt($out, $this->trData->getTypeId());
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::writeOptional($out, $this->trData?->getTypeId(), VarInt::writeUnsignedInt(...));
+		}else{
+			VarInt::writeUnsignedInt($out, $this->trData?->getTypeId() ?? self::TYPE_NORMAL);
+		}
 
-		$this->trData->encode($out, $protocolId);
+		$this->trData?->encode($out, $protocolId);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

@@ -19,6 +19,8 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\DataDecodeException;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\PacketDecodeException;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use function count;
 
 abstract class TransactionData{
@@ -39,11 +41,14 @@ abstract class TransactionData{
 	 * @throws PacketDecodeException
 	 */
 	final public function decode(ByteBufferReader $in, int $protocolId) : void{
-		$actionCount = VarInt::readUnsignedInt($in);
-		for($i = 0; $i < $actionCount; ++$i){
-			$this->actions[] = (new NetworkInventoryAction())->read($in);
+		$hasValue = $protocolId <= ProtocolInfo::PROTOCOL_1_26_20 || CommonTypes::getBool($in);
+		if($hasValue){
+			$actionCount = VarInt::readUnsignedInt($in);
+			for($i = 0; $i < $actionCount; ++$i){
+				$this->actions[] = (new NetworkInventoryAction())->read($in, $protocolId);
+			}
+			$this->decodeData($in, $protocolId);
 		}
-		$this->decodeData($in, $protocolId);
 	}
 
 	/**
@@ -53,11 +58,18 @@ abstract class TransactionData{
 	abstract protected function decodeData(ByteBufferReader $in, int $protocolId) : void;
 
 	final public function encode(ByteBufferWriter $out, int $protocolId) : void{
-		VarInt::writeUnsignedInt($out, count($this->actions));
-		foreach($this->actions as $action){
-			$action->write($out);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::putBool($out, $hasValue = count($this->actions) > 0);
+		}else{
+			$hasValue = true;
 		}
-		$this->encodeData($out, $protocolId);
+		if($hasValue){
+			VarInt::writeUnsignedInt($out, count($this->actions));
+			foreach($this->actions as $action){
+				$action->write($out, $protocolId);
+			}
+			$this->encodeData($out, $protocolId);
+		}
 	}
 
 	abstract protected function encodeData(ByteBufferWriter $out, int $protocolId) : void;

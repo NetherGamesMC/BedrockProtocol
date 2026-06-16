@@ -50,11 +50,17 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		$this->windowId = VarInt::readUnsignedInt($in);
 		$count = VarInt::readUnsignedInt($in);
 		for($i = 0; $i < $count; ++$i){
-			$this->items[] = CommonTypes::getItemStackWrapper($in);
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+				$this->items[] = CommonTypes::getNetworkItemStackDescriptor($in);
+			}else{
+				$this->items[] = CommonTypes::getItemStackWrapper($in);
+			}
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_30){
 			$this->containerName = FullContainerName::read($in, $protocolId);
-			if($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+				$this->storage = CommonTypes::getNetworkItemStackDescriptor($in);
+			}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
 				$this->storage = CommonTypes::getItemStackWrapper($in);
 			}else{
 				$this->dynamicContainerSize = VarInt::readUnsignedInt($in);
@@ -68,11 +74,17 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		VarInt::writeUnsignedInt($out, $this->windowId);
 		VarInt::writeUnsignedInt($out, count($this->items));
 		foreach($this->items as $item){
-			CommonTypes::putItemStackWrapper($out, $item);
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+				CommonTypes::putNetworkItemStackDescriptor($out, $item);
+			}else{
+				CommonTypes::putItemStackWrapper($out, $item);
+			}
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_30){
 			$this->containerName->write($out, $protocolId);
-			if($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+				CommonTypes::putNetworkItemStackDescriptor($out, $this->storage);
+			}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
 				CommonTypes::putItemStackWrapper($out, $this->storage);
 			}else{
 				VarInt::writeUnsignedInt($out, $this->dynamicContainerSize);

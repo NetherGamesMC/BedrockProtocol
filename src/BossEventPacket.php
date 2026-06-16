@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol;
 
+use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
@@ -117,79 +118,91 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->bossActorUniqueId = CommonTypes::getActorUniqueId($in);
-		$this->eventType = VarInt::readUnsignedInt($in);
-		switch($this->eventType){
-			case self::TYPE_REGISTER_PLAYER:
-			case self::TYPE_UNREGISTER_PLAYER:
-			case self::TYPE_QUERY:
-				$this->playerActorUniqueId = CommonTypes::getActorUniqueId($in);
-				break;
-			/** @noinspection PhpMissingBreakStatementInspection */
-			case self::TYPE_SHOW:
-				$this->title = CommonTypes::getString($in);
-				if($protocolId >= ProtocolInfo::PROTOCOL_1_21_60){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$this->playerActorUniqueId = CommonTypes::getActorUniqueId($in);
+			$this->eventType = Byte::readUnsigned($in);
+			$this->title = CommonTypes::getString($in);
+			$this->filteredTitle = CommonTypes::getString($in);
+			$this->healthPercent = LE::readFloat($in);
+			$this->color = Byte::readUnsigned($in);
+			$this->overlay = Byte::readUnsigned($in);
+		}else{
+			$this->eventType = VarInt::readUnsignedInt($in);
+			switch($this->eventType){
+				case self::TYPE_REGISTER_PLAYER:
+				case self::TYPE_UNREGISTER_PLAYER:
+				case self::TYPE_QUERY:
+					$this->playerActorUniqueId = CommonTypes::getActorUniqueId($in);
+					break;
+				/** @noinspection PhpMissingBreakStatementInspection */
+				case self::TYPE_SHOW:
+					$this->title = CommonTypes::getString($in);
 					$this->filteredTitle = CommonTypes::getString($in);
-				}
-				$this->healthPercent = LE::readFloat($in);
-			/** @noinspection PhpMissingBreakStatementInspection */
-			case self::TYPE_PROPERTIES:
-				$this->darkenScreen = match($raw = LE::readUnsignedShort($in)){
-					0 => false,
-					1 => true,
-					default => throw new PacketDecodeException("Invalid darkenScreen value $raw"),
-				};
-			case self::TYPE_TEXTURE:
-				$this->color = VarInt::readUnsignedInt($in);
-				$this->overlay = VarInt::readUnsignedInt($in);
-				break;
-			case self::TYPE_HEALTH_PERCENT:
-				$this->healthPercent = LE::readFloat($in);
-				break;
-			case self::TYPE_TITLE:
-				$this->title = CommonTypes::getString($in);
-				if($protocolId >= ProtocolInfo::PROTOCOL_1_21_60){
+					$this->healthPercent = LE::readFloat($in);
+				/** @noinspection PhpMissingBreakStatementInspection */
+				case self::TYPE_PROPERTIES:
+					$this->darkenScreen = match($raw = LE::readUnsignedShort($in)){
+						0 => false,
+						1 => true,
+						default => throw new PacketDecodeException("Invalid darkenScreen value $raw"),
+					};
+				case self::TYPE_TEXTURE:
+					$this->color = VarInt::readUnsignedInt($in);
+					$this->overlay = VarInt::readUnsignedInt($in);
+					break;
+				case self::TYPE_HEALTH_PERCENT:
+					$this->healthPercent = LE::readFloat($in);
+					break;
+				case self::TYPE_TITLE:
+					$this->title = CommonTypes::getString($in);
 					$this->filteredTitle = CommonTypes::getString($in);
-				}
-				break;
-			default:
-				break;
+					break;
+				default:
+					break;
+			}
 		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putActorUniqueId($out, $this->bossActorUniqueId);
-		VarInt::writeUnsignedInt($out, $this->eventType);
-		switch($this->eventType){
-			case self::TYPE_REGISTER_PLAYER:
-			case self::TYPE_UNREGISTER_PLAYER:
-			case self::TYPE_QUERY:
-				CommonTypes::putActorUniqueId($out, $this->playerActorUniqueId);
-				break;
-			/** @noinspection PhpMissingBreakStatementInspection */
-			case self::TYPE_SHOW:
-				CommonTypes::putString($out, $this->title);
-				if($protocolId >= ProtocolInfo::PROTOCOL_1_21_60){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			CommonTypes::putActorUniqueId($out, $this->playerActorUniqueId);
+			Byte::writeUnsigned($out, $this->eventType);
+			CommonTypes::putString($out, $this->title);
+			CommonTypes::putString($out, $this->filteredTitle);
+			LE::writeFloat($out, $this->healthPercent);
+			Byte::writeUnsigned($out, $this->color);
+			Byte::writeUnsigned($out, $this->overlay);
+		}else{
+			VarInt::writeUnsignedInt($out, $this->eventType);
+			switch($this->eventType){
+				case self::TYPE_REGISTER_PLAYER:
+				case self::TYPE_UNREGISTER_PLAYER:
+				case self::TYPE_QUERY:
+					CommonTypes::putActorUniqueId($out, $this->playerActorUniqueId);
+					break;
+				/** @noinspection PhpMissingBreakStatementInspection */
+				case self::TYPE_SHOW:
+					CommonTypes::putString($out, $this->title);
 					CommonTypes::putString($out, $this->filteredTitle);
-				}
-				LE::writeFloat($out, $this->healthPercent);
-			/** @noinspection PhpMissingBreakStatementInspection */
-			case self::TYPE_PROPERTIES:
-				LE::writeUnsignedShort($out, $this->darkenScreen ? 1 : 0);
-			case self::TYPE_TEXTURE:
-				VarInt::writeUnsignedInt($out, $this->color);
-				VarInt::writeUnsignedInt($out, $this->overlay);
-				break;
-			case self::TYPE_HEALTH_PERCENT:
-				LE::writeFloat($out, $this->healthPercent);
-				break;
-			case self::TYPE_TITLE:
-				CommonTypes::putString($out, $this->title);
-				if($protocolId >= ProtocolInfo::PROTOCOL_1_21_60){
+					LE::writeFloat($out, $this->healthPercent);
+				/** @noinspection PhpMissingBreakStatementInspection */
+				case self::TYPE_PROPERTIES:
+					LE::writeUnsignedShort($out, $this->darkenScreen ? 1 : 0);
+				case self::TYPE_TEXTURE:
+					VarInt::writeUnsignedInt($out, $this->color);
+					VarInt::writeUnsignedInt($out, $this->overlay);
+					break;
+				case self::TYPE_HEALTH_PERCENT:
+					LE::writeFloat($out, $this->healthPercent);
+					break;
+				case self::TYPE_TITLE:
+					CommonTypes::putString($out, $this->title);
 					CommonTypes::putString($out, $this->filteredTitle);
-				}
-				break;
-			default:
-				break;
+					break;
+				default:
+					break;
+			}
 		}
 	}
 
