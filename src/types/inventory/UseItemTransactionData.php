@@ -86,7 +86,11 @@ class UseItemTransactionData extends TransactionData{
 	public function getClientCooldownState() : int{ return $this->clientCooldownState; }
 
 	protected function decodeData(ByteBufferReader $in, int $protocolId) : void{
-		$this->actionType = VarInt::readUnsignedInt($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$this->actionType = VarInt::readSignedInt($in);
+		}else{
+			$this->actionType = VarInt::readUnsignedInt($in);
+		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
 			$this->triggerType = TriggerType::fromPacket($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 ? Byte::readUnsigned($in) : VarInt::readUnsignedInt($in));
 		}
@@ -114,7 +118,11 @@ class UseItemTransactionData extends TransactionData{
 	}
 
 	protected function encodeData(ByteBufferWriter $out, int $protocolId) : void{
-		VarInt::writeUnsignedInt($out, $this->actionType);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			VarInt::writeSignedInt($out, $this->actionType);
+		}else{
+			VarInt::writeUnsignedInt($out, $this->actionType);
+		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_20){
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 				Byte::writeUnsigned($out, $this->triggerType->value);

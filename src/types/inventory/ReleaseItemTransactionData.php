@@ -53,7 +53,11 @@ class ReleaseItemTransactionData extends TransactionData{
 	}
 
 	protected function decodeData(ByteBufferReader $in, int $protocolId) : void{
-		$this->actionType = VarInt::readUnsignedInt($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			$this->actionType = VarInt::readSignedInt($in);
+		}else{
+			$this->actionType = VarInt::readUnsignedInt($in);
+		}
 		$this->hotbarSlot = VarInt::readSignedInt($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$this->itemInHand = CommonTypes::getNetworkItemStackDescriptor($in);
@@ -64,7 +68,11 @@ class ReleaseItemTransactionData extends TransactionData{
 	}
 
 	protected function encodeData(ByteBufferWriter $out, int $protocolId) : void{
-		VarInt::writeUnsignedInt($out, $this->actionType);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+			VarInt::writeSignedInt($out, $this->actionType);
+		}else{
+			VarInt::writeUnsignedInt($out, $this->actionType);
+		}
 		VarInt::writeSignedInt($out, $this->hotbarSlot);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			CommonTypes::putNetworkItemStackDescriptor($out, $this->itemInHand);
