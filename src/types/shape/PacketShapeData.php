@@ -24,7 +24,9 @@ use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\PacketDecodeException;
 use pocketmine\network\mcpe\protocol\PrimitiveShapesPacket;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 
 /**
  * @see PrimitiveShapesPacket
@@ -231,40 +233,65 @@ final class PacketShapeData{
 
 	public function getPayload() : ?PrimitiveShapePayload{ return $this->payload; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$networkId = VarInt::readUnsignedLong($in);
 		$shapeType = CommonTypes::readOptional($in, fn() => PrimitiveShapeType::fromPacket(Byte::readUnsigned($in)));
 		$location = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		$scale = CommonTypes::readOptional($in, LE::readFloat(...));
 		$rotation = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
 		$totalTimeLeft = CommonTypes::readOptional($in, LE::readFloat(...));
-		$maximumRenderDistance = CommonTypes::readOptional($in, LE::readFloat(...));
-		$color = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
-		$dimensionId = CommonTypes::readOptional($in, fn() => VarInt::readSignedInt($in));
-		$attachedToEntityId = CommonTypes::readOptional($in, fn() => CommonTypes::getActorRuntimeId($in));
-
-		$payloadType = VarInt::readUnsignedInt($in);
-		//WTF IS THIS HORROR SHOW
-		if(
-			($shapeType !== null && $payloadType !== $shapeType->getPayloadType() && $payloadType !== PrimitiveShapeType::PAYLOAD_TYPE_NONE) ||
-			($shapeType === null && $payloadType !== PrimitiveShapeType::PAYLOAD_TYPE_NONE)
-		){
-			throw new PacketDecodeException("Unexpected payload type $payloadType for provided shape type " . ($shapeType->name ?? "(not set)"));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			$maximumRenderDistance = CommonTypes::readOptional($in, LE::readFloat(...));
 		}
+		$color = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+				$dimensionId = CommonTypes::readOptional($in, VarInt::readSignedInt(...));
+				$attachedToEntityId = CommonTypes::readOptional($in, CommonTypes::getActorRuntimeId(...));
+			}else{
+				$dimensionId = VarInt::readSignedInt($in);
+			}
 
-		$payload = match($payloadType){
-			PrimitiveShapeType::PAYLOAD_TYPE_NONE => null,
-			PrimitiveShapeType::PAYLOAD_TYPE_ARROW => PrimitiveShapeArrowPayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_TEXT => PrimitiveShapeTextPayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_BOX => PrimitiveShapeBoxPayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_LINE => PrimitiveShapeLinePayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_CIRCLE_OR_SPHERE => PrimitiveShapeCircleOrSpherePayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_CYLINDER => PrimitiveShapeCylinderPayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_PYRAMID => PrimitiveShapePyramidPayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_ELLIPSOID => PrimitiveShapeEllipsoidPayload::read($in),
-			PrimitiveShapeType::PAYLOAD_TYPE_CONE => PrimitiveShapeConePayload::read($in),
-			default => throw new PacketDecodeException("Unknown payload type $payloadType")
-		};
+			$payloadType = VarInt::readUnsignedInt($in);
+			//WTF IS THIS HORROR SHOW
+			if(
+				($shapeType !== null && $payloadType !== $shapeType->getPayloadType() && $payloadType !== PrimitiveShapeType::PAYLOAD_TYPE_NONE) ||
+				($shapeType === null && $payloadType !== PrimitiveShapeType::PAYLOAD_TYPE_NONE)
+			){
+				throw new PacketDecodeException("Unexpected payload type $payloadType for provided shape type " . ($shapeType->name ?? "(not set)"));
+			}
+
+			$payload = match($payloadType){
+				PrimitiveShapeType::PAYLOAD_TYPE_NONE => null,
+				PrimitiveShapeType::PAYLOAD_TYPE_ARROW => PrimitiveShapeArrowPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_TEXT => PrimitiveShapeTextPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_BOX => PrimitiveShapeBoxPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_LINE => PrimitiveShapeLinePayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_CIRCLE_OR_SPHERE => PrimitiveShapeCircleOrSpherePayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_CYLINDER => PrimitiveShapeCylinderPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_PYRAMID => PrimitiveShapePyramidPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_ELLIPSOID => PrimitiveShapeEllipsoidPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_CONE => PrimitiveShapeConePayload::read($in),
+				default => throw new PacketDecodeException("Unknown payload type $payloadType")
+			};
+		}else{
+			$text = CommonTypes::readOptional($in, CommonTypes::getString(...));
+			$boxBound = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
+			$lineEndLocation = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
+			$arrowHeadLength = CommonTypes::readOptional($in, LE::readFloat(...));
+			$arrowHeadRadius = CommonTypes::readOptional($in, LE::readFloat(...));
+			$segments = CommonTypes::readOptional($in, Byte::readUnsigned(...));
+
+			$payload = match($shapeType){
+				null => null,
+				PrimitiveShapeType::LINE => $lineEndLocation !== null ? new PrimitiveShapeLinePayload($lineEndLocation) : null,
+				PrimitiveShapeType::BOX => $boxBound !== null ? new PrimitiveShapeBoxPayload($boxBound) : null,
+				PrimitiveShapeType::SPHERE, PrimitiveShapeType::CIRCLE => $segments !== null ? new PrimitiveShapeCircleOrSpherePayload($segments) : null,
+				PrimitiveShapeType::TEXT => $text !== null ? new PrimitiveShapeTextPayload($text, false, null, true, true, true) : null,
+				PrimitiveShapeType::ARROW => new PrimitiveShapeArrowPayload($lineEndLocation, $arrowHeadLength, $arrowHeadRadius, $segments),
+				default => throw new PacketDecodeException("Unknown shape type " . $shapeType->name)
+			};
+		}
 
 		return new self(
 			$networkId,
@@ -273,27 +300,42 @@ final class PacketShapeData{
 			$scale,
 			$rotation,
 			$totalTimeLeft,
-			$maximumRenderDistance,
+			$maximumRenderDistance ?? null,
 			$color,
-			$dimensionId,
-			$attachedToEntityId,
+			$dimensionId ?? null,
+			$attachedToEntityId ?? null,
 			$payload
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeUnsignedLong($out, $this->networkId);
 		CommonTypes::writeOptional($out, $this->type, fn(ByteBufferWriter $out, PrimitiveShapeType $type) => Byte::writeUnsigned($out, $type->value));
 		CommonTypes::writeOptional($out, $this->location, CommonTypes::putVector3(...));
 		CommonTypes::writeOptional($out, $this->scale, LE::writeFloat(...));
 		CommonTypes::writeOptional($out, $this->rotation, CommonTypes::putVector3(...));
-		CommonTypes::writeOptional($out, $this->totalTimeLeft, LE::writeFloat(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			CommonTypes::writeOptional($out, $this->totalTimeLeft, LE::writeFloat(...));
+		}
 		CommonTypes::writeOptional($out, $this->maximumRenderDistance, LE::writeFloat(...));
 		CommonTypes::writeOptional($out, $this->color, fn(ByteBufferWriter $out, Color $color) => LE::writeUnsignedInt($out, $color->toARGB()));
-		CommonTypes::writeOptional($out, $this->dimensionId, fn(ByteBufferWriter $out, int $dimensionId) => VarInt::writeSignedInt($out, $dimensionId));
-		CommonTypes::writeOptional($out, $this->attachedToEntityId, fn(ByteBufferWriter $out, int $entityId) => CommonTypes::putActorRuntimeId($out, $entityId));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_120){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+				CommonTypes::writeOptional($out, $this->dimensionId, VarInt::writeSignedInt(...));
+				CommonTypes::writeOptional($out, $this->attachedToEntityId, CommonTypes::putActorRuntimeId(...));
+			}else{
+				VarInt::writeSignedInt($out, $this->dimensionId ?? DimensionIds::OVERWORLD);
+			}
 
-		VarInt::writeUnsignedInt($out, $this->payload?->getTypeId() ?? PrimitiveShapeType::PAYLOAD_TYPE_NONE);
-		$this->payload?->write($out);
+			VarInt::writeUnsignedInt($out, $this->payload?->getTypeId() ?? PrimitiveShapeType::PAYLOAD_TYPE_NONE);
+			$this->payload?->write($out);
+		}else{
+			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeTextPayload ? $this->payload->getText() : null, CommonTypes::putString(...));
+			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeBoxPayload ? $this->payload->getBoxBound() : null, CommonTypes::putVector3(...));
+			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeLinePayload ? $this->payload->getLineEndLocation() : null, CommonTypes::putVector3(...));
+			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeArrowPayload ? $this->payload->getArrowHeadLength() : null, LE::writeFloat(...));
+			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeArrowPayload ? $this->payload->getArrowHeadRadius() : null, LE::writeFloat(...));
+			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeArrowPayload || $this->payload instanceof PrimitiveShapeCircleOrSpherePayload ? $this->payload->getSegments() : null, Byte::writeUnsigned(...));
+		}
 	}
 }

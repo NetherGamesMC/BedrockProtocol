@@ -46,7 +46,6 @@ final class ClientData{
 	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
 	public int $ClientEditorConnectionIntent;
 
-
 	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
 	public bool $ClientIsEditorCapable;
 

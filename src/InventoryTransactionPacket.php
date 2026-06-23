@@ -42,7 +42,7 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 
 	public int $requestId;
 	/** @var InventoryTransactionChangedSlotsHack[] */
-	public ?array $requestChangedSlots;
+	public ?array $requestChangedSlots = null;
 	public TransactionData $trData;
 
 	/**
@@ -105,8 +105,8 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 
 			Byte::writeUnsigned($out, 1);
 		}elseif($this->requestId !== 0){
-			VarInt::writeUnsignedInt($out, count($this->requestChangedSlots));
-			foreach($this->requestChangedSlots as $changedSlots){
+			VarInt::writeUnsignedInt($out, count($this->requestChangedSlots ?? []));
+			foreach(($this->requestChangedSlots ?? []) as $changedSlots){
 				$changedSlots->write($out);
 			}
 		}

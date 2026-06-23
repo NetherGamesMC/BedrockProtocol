@@ -23,5 +23,5 @@ abstract class PrimitiveShapePayload{
 
 	abstract public function getTypeId() : int;
 
-	abstract public function write(ByteBufferWriter $out, int $protocolId) : void;
+	abstract public function write(ByteBufferWriter $out) : void;
 }

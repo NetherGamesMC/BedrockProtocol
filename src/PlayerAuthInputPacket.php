@@ -298,7 +298,7 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		$this->tick = VarInt::readUnsignedLong($in);
 		$this->delta = CommonTypes::getVector3($in);
 		if($this->inputFlags->get(PlayerAuthInputFlags::PERFORM_ITEM_INTERACTION)){
-			$this->itemInteractionData = ItemInteractionData::read($in, $protocolId);
+			$this->itemInteractionData = ItemInteractionData::read($in);
 		}
 		if($this->inputFlags->get(PlayerAuthInputFlags::PERFORM_ITEM_STACK_REQUEST)){
 			$this->itemStackRequest = ItemStackRequest::read($in, $protocolId);
@@ -354,7 +354,7 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		VarInt::writeUnsignedLong($out, $this->tick);
 		CommonTypes::putVector3($out, $this->delta);
 		if($this->itemInteractionData !== null){
-			$this->itemInteractionData->write($out, $protocolId);
+			$this->itemInteractionData->write($out);
 		}
 		if($this->itemStackRequest !== null){
 			$this->itemStackRequest->write($out, $protocolId);
