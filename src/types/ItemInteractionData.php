@@ -46,7 +46,7 @@ final class ItemInteractionData{
 		return $this->transactionData;
 	}
 
-	public static function read(ByteBufferReader $in, int $protocolId) : self{
+	public static function read(ByteBufferReader $in) : self{
 		$requestId = VarInt::readSignedInt($in);
 		$requestChangedSlots = [];
 		if($requestId !== 0){
@@ -56,11 +56,11 @@ final class ItemInteractionData{
 			}
 		}
 		$transactionData = new UseItemTransactionData();
-		$transactionData->decode($in, $protocolId);
+		$transactionData->decodeAuthInput($in);
 		return new ItemInteractionData($requestId, $requestChangedSlots, $transactionData);
 	}
 
-	public function write(ByteBufferWriter $out, int $protocolId) : void{
+	public function write(ByteBufferWriter $out) : void{
 		VarInt::writeSignedInt($out, $this->requestId);
 		if($this->requestId !== 0){
 			VarInt::writeUnsignedInt($out, count($this->requestChangedSlots));
@@ -68,6 +68,6 @@ final class ItemInteractionData{
 				$changedSlot->write($out);
 			}
 		}
-		$this->transactionData->encode($out, $protocolId);
+		$this->transactionData->encodeAuthInput($out);
 	}
 }

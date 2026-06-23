@@ -12,10 +12,16 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\protocol\types;
+namespace pocketmine\network\mcpe\protocol\types\ddui;
 
-final class DataStoreValueType{
-	public const DOUBLE = 0;
-	public const BOOL = 1;
-	public const STRING = 2;
+use pmmp\encoding\ByteBufferWriter;
+
+/**
+ * @see ServerboundDataStorePacket
+ * @see ClientboundDataStorePacket
+ */
+interface DataStoreOperation{
+	public function getTypeId() : int;
+
+	public function write(ByteBufferWriter $out) : void;
 }

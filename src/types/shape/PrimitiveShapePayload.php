@@ -12,14 +12,14 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\protocol\types;
+namespace pocketmine\network\mcpe\protocol\types\shape;
 
 use pmmp\encoding\ByteBufferWriter;
 
 /**
- * @see ServerboundDataStorePacket&ClientboundDataStorePacket
+ * @see PacketShapeData
  */
-abstract class DataStore{
+abstract class PrimitiveShapePayload{
 
 	abstract public function getTypeId() : int;
 

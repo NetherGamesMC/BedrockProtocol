@@ -40,14 +40,24 @@ abstract class TransactionData{
 	 * @throws DataDecodeException
 	 * @throws PacketDecodeException
 	 */
-	final public function decode(ByteBufferReader $in, int $protocolId) : void{
-		$hasValue = $protocolId <= ProtocolInfo::PROTOCOL_1_26_20 || CommonTypes::getBool($in);
-		if($hasValue){
-			$actionCount = VarInt::readUnsignedInt($in);
-			for($i = 0; $i < $actionCount; ++$i){
-				$this->actions[] = (new NetworkInventoryAction())->read($in, $protocolId);
-			}
-			$this->decodeData($in, $protocolId);
+	final public function decodeTransaction(ByteBufferReader $in, int $protocolId) : void{
+		$actionCount = VarInt::readUnsignedInt($in);
+		$this->actions = [];
+		for($i = 0; $i < $actionCount; ++$i){
+			$this->actions[] = (new NetworkInventoryAction())->readTransaction($in, $protocolId);
+		}
+		$this->decodeData($in, $protocolId);
+	}
+
+	/**
+	 * @throws DataDecodeException
+	 * @throws PacketDecodeException
+	 */
+	final public function decodeAuthInput(ByteBufferReader $in) : void{
+		$actionCount = VarInt::readUnsignedInt($in);
+		$this->actions = [];
+		for($i = 0; $i < $actionCount; ++$i){
+			$this->actions[] = (new NetworkInventoryAction())->readAuthInput($in);
 		}
 	}
 
@@ -57,18 +67,18 @@ abstract class TransactionData{
 	 */
 	abstract protected function decodeData(ByteBufferReader $in, int $protocolId) : void;
 
-	final public function encode(ByteBufferWriter $out, int $protocolId) : void{
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			CommonTypes::putBool($out, $hasValue = count($this->actions) > 0);
-		}else{
-			$hasValue = true;
+	final public function encodeTransaction(ByteBufferWriter $out, int $protocolId) : void{
+		VarInt::writeUnsignedInt($out, count($this->actions));
+		foreach($this->actions as $action){
+			$action->writeTransaction($out, $protocolId);
 		}
-		if($hasValue){
-			VarInt::writeUnsignedInt($out, count($this->actions));
-			foreach($this->actions as $action){
-				$action->write($out, $protocolId);
-			}
-			$this->encodeData($out, $protocolId);
+		$this->encodeData($out, $protocolId);
+	}
+
+	final public function encodeAuthInput(ByteBufferWriter $out) : void{
+		VarInt::writeUnsignedInt($out, count($this->actions));
+		foreach($this->actions as $action){
+			$action->writeAuthInput($out);
 		}
 	}
 

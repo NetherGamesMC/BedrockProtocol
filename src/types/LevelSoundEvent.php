@@ -24,7 +24,6 @@ final class LevelSoundEvent{
 	private function __construct(){
 		//NOOP
 	}
-
 	public const ITEM_USE_ON = "item.use.on";
 	public const HIT = "hit";
 	public const STEP = "step";
@@ -180,7 +179,6 @@ final class LevelSoundEvent{
 	public const IMITATE_EVOCATION_ILLAGER = "imitate.evocation_illager";
 	public const IMITATE_GHAST = "imitate.ghast";
 	public const IMITATE_HUSK = "imitate.husk";
-
 	public const IMITATE_MAGMA_CUBE = "imitate.magma_cube";
 	public const IMITATE_POLAR_BEAR = "imitate.polar_bear";
 	public const IMITATE_SHULKER = "imitate.shulker";
@@ -403,7 +401,6 @@ final class LevelSoundEvent{
 	public const LISTENING = "listening";
 	public const HEARTBEAT = "heartbeat";
 	public const HORN_BREAK = "horn_break";
-
 	public const BLOCK_SCULK_SPREAD = "block.sculk.spread";
 	public const CHARGE_SCULK = "charge.sculk";
 	public const BLOCK_SCULK_SENSOR_PLACE = "block.sculk_sensor.place";
@@ -416,7 +413,6 @@ final class LevelSoundEvent{
 	public const HORN_CALL5 = "horn_call5";
 	public const HORN_CALL6 = "horn_call6";
 	public const HORN_CALL7 = "horn_call7";
-
 	public const IMITATE_WARDEN = "imitate.warden";
 	public const LISTENING_ANGRY = "listening_angry";
 	public const ITEM_GIVEN = "item_given";
@@ -432,7 +428,6 @@ final class LevelSoundEvent{
 	public const ITEM_THROWN = "item_thrown";
 	public const RECORD_5 = "record.5";
 	public const CONVERT_TO_FROG = "convert_to_frog";
-
 	public const BLOCK_ENCHANTING_TABLE_USE = "block.enchanting_table.use";
 	public const STEP_SAND = "step_sand";
 	public const DASH_READY = "dash_ready";
@@ -513,7 +508,6 @@ final class LevelSoundEvent{
 	public const OMINOUS_BOTTLE_END_USE = "ominous_bottle.end_use";
 	public const MACE_HEAVY_SMASH_GROUND = "mace.heavy_smash_ground";
 	public const OMINOUS_ITEM_SPAWNER_SPAWN_ITEM_BEGIN = "ominous_item_spawner.spawn_item_begin";
-
 	public const APPLY_EFFECT_BAD_OMEN = "apply_effect.bad_omen";
 	public const APPLY_EFFECT_RAID_OMEN = "apply_effect.raid_omen";
 	public const APPLY_EFFECT_TRIAL_OMEN = "apply_effect.trial_omen";
@@ -526,7 +520,6 @@ final class LevelSoundEvent{
 	public const IMITATE_CREAKING = "imitate.creaking";
 	public const BUNDLE_INSERT_FAIL = "bundle.insert_fail";
 	public const SPONGE_ABSORB = "sponge.absorb";
-
 	public const BLOCK_CREAKING_HEART_TRAIL = "block.creaking_heart.trail";
 	public const CREAKING_HEART_SPAWN = "creaking_heart_spawn";
 	public const ACTIVATE = "activate";

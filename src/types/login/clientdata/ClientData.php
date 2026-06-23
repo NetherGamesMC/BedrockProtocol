@@ -43,6 +43,13 @@ final class ClientData{
 	/** @required */
 	public bool $CapeOnClassicSkin;
 
+	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
+	public int $ClientEditorConnectionIntent;
+
+
+	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
+	public bool $ClientIsEditorCapable;
+
 	/** @required */
 	public int $ClientRandomId;
 
@@ -78,9 +85,6 @@ final class ClientData{
 
 	/** <= ProtocolInfo::PROTOCOL_1_26_20 */
 	public bool $IsEditorMode;
-
-	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
-	public bool $ClientIsEditorCapable;
 
 	/** @required */
 	public string $LanguageCode;
@@ -173,7 +177,4 @@ final class ClientData{
 
 	/** @required */
 	public int $UIProfile;
-
-	/** >= ProtocolInfo::PROTOCOL_1_26_30 */
-	public int $ClientEditorConnectionIntent;
 }
