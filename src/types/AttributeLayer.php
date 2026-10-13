@@ -73,7 +73,7 @@ final class AttributeLayer{
 
 	public function write(ByteBufferWriter $out) : void{
 		CommonTypes::putString($out, $this->name);
-		CommonTypes::writeOptional($out, $this->name, CommonTypes::putString(...));
+		CommonTypes::writeOptional($out, $this->noiseName, CommonTypes::putString(...));
 		VarInt::writeUnsignedInt($out, $this->dimension);
 		$this->settings->write($out);
 
