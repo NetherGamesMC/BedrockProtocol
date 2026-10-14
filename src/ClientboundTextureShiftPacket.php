@@ -25,8 +25,7 @@ use function count;
 class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::CLIENTBOUND_TEXTURE_SHIFT_PACKET;
 
-	/** @see TextureShiftAction */
-	private int $actionId;
+	private TextureShiftAction $actionId;
 	private string $collectionName;
 	private string $fromStep;
 	private string $toStep;
@@ -45,7 +44,7 @@ class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPac
 	 * @phpstan-param list<string> $allSteps
 	 */
 	public static function create(
-		int $actionId,
+		TextureShiftAction $actionId,
 		string $collectionName,
 		string $fromStep,
 		string $toStep,
@@ -66,10 +65,7 @@ class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPac
 		return $result;
 	}
 
-	/**
-	 * @see TextureShiftAction
-	 */
-	public function getActionId() : int{ return $this->actionId; }
+	public function getActionId() : TextureShiftAction{ return $this->actionId; }
 
 	public function getCollectionName() : string{ return $this->collectionName; }
 
@@ -90,7 +86,7 @@ class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPac
 	public function isEnabled() : bool{ return $this->enabled; }
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->actionId = Byte::readUnsigned($in);
+		$this->actionId = TextureShiftAction::fromPacket(Byte::readUnsigned($in));
 		$this->collectionName = CommonTypes::getString($in);
 		$this->fromStep = CommonTypes::getString($in);
 		$this->toStep = CommonTypes::getString($in);
@@ -105,7 +101,7 @@ class ClientboundTextureShiftPacket extends DataPacket implements ClientboundPac
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		Byte::writeUnsigned($out, $this->actionId);
+		Byte::writeUnsigned($out, $this->actionId->value);
 		CommonTypes::putString($out, $this->collectionName);
 		CommonTypes::putString($out, $this->fromStep);
 		CommonTypes::putString($out, $this->toStep);

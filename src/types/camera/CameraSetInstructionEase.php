@@ -21,29 +21,23 @@ use pmmp\encoding\LE;
 
 final class CameraSetInstructionEase{
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
 	public function __construct(
-		private int $type,
+		private CameraSetInstructionEaseType $type,
 		private float $duration
 	){}
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getType() : int{ return $this->type; }
+	public function getType() : CameraSetInstructionEaseType{ return $this->type; }
 
 	public function getDuration() : float{ return $this->duration; }
 
 	public static function read(ByteBufferReader $in) : self{
-		$type = Byte::readUnsigned($in);
+		$type = CameraSetInstructionEaseType::fromOrdinal(Byte::readUnsigned($in));
 		$duration = LE::readFloat($in);
 		return new self($type, $duration);
 	}
 
 	public function write(ByteBufferWriter $out) : void{
-		Byte::writeUnsigned($out, $this->type);
+		Byte::writeUnsigned($out, $this->type->toOrdinal());
 		LE::writeFloat($out, $this->duration);
 	}
 }

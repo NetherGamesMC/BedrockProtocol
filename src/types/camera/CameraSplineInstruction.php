@@ -26,15 +26,13 @@ use function count;
 final class CameraSplineInstruction{
 
 	/**
-	 * @see CameraSetInstructionEaseType
-	 *
 	 * @param Vector3[] $curve
 	 * @param CameraProgressOption[] $progressKeyFrames
 	 * @param CameraRotationOption[] $rotationOptions
 	 */
 	public function __construct(
 		private float $totalTime,
-		private int $easeType,
+		private CameraSetInstructionEaseType $easeType,
 		private array $curve,
 		private array $progressKeyFrames,
 		private array $rotationOptions,
@@ -44,10 +42,7 @@ final class CameraSplineInstruction{
 
 	public function getTotalTime() : float{ return $this->totalTime; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : int{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	/**
 	 * @return Vector3[]
@@ -70,7 +65,7 @@ final class CameraSplineInstruction{
 
 	public static function read(ByteBufferReader $in) : self{
 		$totalTime = LE::readFloat($in);
-		$easeType = Byte::readUnsigned($in);
+		$easeType = CameraSetInstructionEaseType::fromOrdinal(Byte::readUnsigned($in));
 
 		$curve = [];
 		$curveCount = VarInt::readUnsignedInt($in);
@@ -98,7 +93,7 @@ final class CameraSplineInstruction{
 
 	public function write(ByteBufferWriter $out) : void{
 		LE::writeFloat($out, $this->totalTime);
-		Byte::writeUnsigned($out, $this->easeType);
+		Byte::writeUnsigned($out, $this->easeType->toOrdinal());
 
 		VarInt::writeUnsignedInt($out, count($this->curve));
 		foreach($this->curve as $point){

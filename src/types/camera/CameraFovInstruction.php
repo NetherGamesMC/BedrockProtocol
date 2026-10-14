@@ -18,37 +18,28 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use function is_int;
 
 final class CameraFovInstruction{
-
-	/** @see CameraSetInstructionEaseType */
-	private string $easeType;
 
 	public function __construct(
 		private float $fieldOfView,
 		private float $easeTime,
-		int|string $easeType,
+		private CameraSetInstructionEaseType $easeType,
 		private bool $clear,
-	){
-		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::toName($easeType) : $easeType;
-	}
+	){}
 
 	public function getFieldOfView() : float{ return $this->fieldOfView; }
 
 	public function getEaseTime() : float{ return $this->easeTime; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : string{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	public function getClear() : bool{ return $this->clear; }
 
 	public static function read(ByteBufferReader $in) : self{
 		$fieldOfView = LE::readFloat($in);
 		$easeTime = LE::readFloat($in);
-		$easeType = CommonTypes::getString($in);
+		$easeType = CameraSetInstructionEaseType::fromPacket(CommonTypes::getString($in));
 		$clear = CommonTypes::getBool($in);
 
 		return new self(
@@ -62,7 +53,7 @@ final class CameraFovInstruction{
 	public function write(ByteBufferWriter $out) : void{
 		LE::writeFloat($out, $this->fieldOfView);
 		LE::writeFloat($out, $this->easeTime);
-		CommonTypes::putString($out, $this->easeType);
+		CommonTypes::putString($out, $this->easeType->value);
 		CommonTypes::putBool($out, $this->clear);
 	}
 }

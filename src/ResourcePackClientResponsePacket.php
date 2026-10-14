@@ -18,24 +18,13 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\ResourcePackClientResponseStatus;
 use function count;
 
 class ResourcePackClientResponsePacket extends DataPacket implements ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::RESOURCE_PACK_CLIENT_RESPONSE_PACKET;
 
-	public const STATUS_REFUSED = 0;
-	public const STATUS_SEND_PACKS = 1;
-	public const STATUS_HAVE_ALL_PACKS = 2;
-	public const STATUS_COMPLETED = 3;
-
-	private const INNER_TYPES = [
-		self::STATUS_REFUSED => "cancel",
-		self::STATUS_SEND_PACKS => "downloading",
-		self::STATUS_HAVE_ALL_PACKS => "downloadingfinished",
-		self::STATUS_COMPLETED => "resourcepackstackfinished"
-	];
-
-	public int $status;
+	public ResourcePackClientResponseStatus $status;
 	/** @var string[] */
 	public array $packIds = [];
 
@@ -43,7 +32,7 @@ class ResourcePackClientResponsePacket extends DataPacket implements Serverbound
 	 * @generate-create-func
 	 * @param string[] $packIds
 	 */
-	public static function create(int $status, array $packIds) : self{
+	public static function create(ResourcePackClientResponseStatus $status, array $packIds) : self{
 		$result = new self;
 		$result->status = $status;
 		$result->packIds = $packIds;
@@ -51,14 +40,13 @@ class ResourcePackClientResponsePacket extends DataPacket implements Serverbound
 	}
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->status = VarInt::readUnsignedInt($in);
+		$this->status = ResourcePackClientResponseStatus::fromOrdinal(VarInt::readUnsignedInt($in));
 		$innerType = CommonTypes::getString($in);
-		$expectedInnerType = self::INNER_TYPES[$this->status] ?? "unknown";
-		if($innerType !== $expectedInnerType){
-			throw new PacketDecodeException("Unexpected inner type $innerType for resource pack client response status $this->status, expected $expectedInnerType");
+		if($innerType !== $this->status->value){
+			throw new PacketDecodeException("Unexpected inner type $innerType for resource pack client response status {$this->status->name}, expected {$this->status->value}");
 		}
 
-		if($this->status === self::STATUS_SEND_PACKS){
+		if($this->status === ResourcePackClientResponseStatus::SEND_PACKS){
 			$this->packIds = [];
 			for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
 				$this->packIds[] = CommonTypes::getString($in);
@@ -67,12 +55,9 @@ class ResourcePackClientResponsePacket extends DataPacket implements Serverbound
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		VarInt::writeUnsignedInt($out, $this->status);
-		if(!isset(self::INNER_TYPES[$this->status])){
-			throw new \LogicException("Unknown resource pack client response status $this->status");
-		}
-		CommonTypes::putString($out, self::INNER_TYPES[$this->status]);
-		if($this->status === self::STATUS_SEND_PACKS){
+		VarInt::writeUnsignedInt($out, $this->status->toOrdinal());
+		CommonTypes::putString($out, $this->status->value);
+		if($this->status === ResourcePackClientResponseStatus::SEND_PACKS){
 			VarInt::writeUnsignedInt($out, count($this->packIds));
 			foreach($this->packIds as $id){
 				CommonTypes::putString($out, $id);

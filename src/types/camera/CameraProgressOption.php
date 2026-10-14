@@ -18,34 +18,25 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use function is_int;
 
 final class CameraProgressOption{
-
-	/** @see CameraSetInstructionEaseType */
-	private string $easeType;
 
 	public function __construct(
 		private float $value,
 		private float $time,
-		int|string $easeType,
-	){
-		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::toName($easeType) : $easeType;
-	}
+		private CameraSetInstructionEaseType $easeType,
+	){}
 
 	public function getValue() : float{ return $this->value; }
 
 	public function getTime() : float{ return $this->time; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : string{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	public static function read(ByteBufferReader $in) : self{
 		$value = LE::readFloat($in);
 		$time = LE::readFloat($in);
-		$easeType = CommonTypes::getString($in);
+		$easeType = CameraSetInstructionEaseType::fromPacket(CommonTypes::getString($in));
 
 		return new self(
 			$value,
@@ -57,6 +48,6 @@ final class CameraProgressOption{
 	public function write(ByteBufferWriter $out) : void{
 		LE::writeFloat($out, $this->value);
 		LE::writeFloat($out, $this->time);
-		CommonTypes::putString($out, $this->easeType);
+		CommonTypes::putString($out, $this->easeType->value);
 	}
 }

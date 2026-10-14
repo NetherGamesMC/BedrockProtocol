@@ -22,6 +22,7 @@ use pocketmine\network\mcpe\protocol\types\command\CommandData;
 use pocketmine\network\mcpe\protocol\types\command\CommandHardEnum;
 use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
+use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
 use pocketmine\network\mcpe\protocol\types\command\ConstrainedEnumValue;
 use pocketmine\network\mcpe\protocol\types\command\raw\ChainedSubCommandRawData;
@@ -273,7 +274,7 @@ final class AvailableCommandsPacketDisassembler{
 			name: $rawData->getName(),
 			description: $rawData->getDescription(),
 			flags: $rawData->getFlags(),
-			permission: $rawData->getPermission(),
+			permission: CommandPermissions::fromPacket($rawData->getPermission()),
 			aliases: $aliasesEnum,
 			overloads: $overloads,
 			chainedSubCommandData: $chainedSubCommandData

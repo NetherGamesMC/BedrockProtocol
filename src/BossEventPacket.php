@@ -20,6 +20,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\BossBarColor;
+use pocketmine\network\mcpe\protocol\types\BossBarOverlay;
 
 class BossEventPacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::BOSS_EVENT_PACKET;
@@ -49,8 +50,8 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 	public float $healthPercent = 0.0;
 	public string $title = "";
 	public string $filteredTitle = "";
-	public int $color = BossBarColor::PINK;
-	public int $overlay = 0;
+	public BossBarColor $color = BossBarColor::PINK;
+	public BossBarOverlay $overlay = BossBarOverlay::PROGRESS;
 
 	private static function base(int $bossActorUniqueId, int $eventId) : self{
 		$result = new self;
@@ -59,7 +60,7 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 		return $result;
 	}
 
-	public static function show(int $bossActorUniqueId, string $title, float $healthPercent, int $color = BossBarColor::PURPLE, int $overlay = 0) : self{
+	public static function show(int $bossActorUniqueId, string $title, float $healthPercent, BossBarColor $color = BossBarColor::PURPLE, BossBarOverlay $overlay = BossBarOverlay::PROGRESS) : self{
 		$result = self::base($bossActorUniqueId, self::TYPE_SHOW);
 		$result->title = $title;
 		$result->filteredTitle = $title;
@@ -94,7 +95,7 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 		return $result;
 	}
 
-	public static function properties(int $bossActorUniqueId, int $color = BossBarColor::PURPLE, int $overlay = 0) : self{
+	public static function properties(int $bossActorUniqueId, BossBarColor $color = BossBarColor::PURPLE, BossBarOverlay $overlay = BossBarOverlay::PROGRESS) : self{
 		$result = self::base($bossActorUniqueId, self::TYPE_PROPERTIES);
 		$result->color = $color;
 		$result->overlay = $overlay;
@@ -111,8 +112,8 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 		$this->title = CommonTypes::getString($in);
 		$this->filteredTitle = CommonTypes::getString($in);
 		$this->healthPercent = LE::readFloat($in);
-		$this->color = Byte::readUnsigned($in);
-		$this->overlay = Byte::readUnsigned($in);
+		$this->color = BossBarColor::fromPacket(Byte::readUnsigned($in));
+		$this->overlay = BossBarOverlay::fromPacket(Byte::readUnsigned($in));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
@@ -121,8 +122,8 @@ class BossEventPacket extends DataPacket implements ClientboundPacket, Serverbou
 		CommonTypes::putString($out, $this->title);
 		CommonTypes::putString($out, $this->filteredTitle);
 		LE::writeFloat($out, $this->healthPercent);
-		Byte::writeUnsigned($out, $this->color);
-		Byte::writeUnsigned($out, $this->overlay);
+		Byte::writeUnsigned($out, $this->color->value);
+		Byte::writeUnsigned($out, $this->overlay->value);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

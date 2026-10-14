@@ -30,7 +30,7 @@ class ResourcePackDataInfoPacket extends DataPacket implements ClientboundPacket
 	public int $compressedPackSize;
 	public string $sha256;
 	public bool $isPremium = false;
-	public int $packType = ResourcePackType::RESOURCES; //TODO: check the values for this
+	public ResourcePackType $packType = ResourcePackType::RESOURCES; //TODO: check the values for this
 
 	/**
 	 * @generate-create-func
@@ -42,7 +42,7 @@ class ResourcePackDataInfoPacket extends DataPacket implements ClientboundPacket
 		int $compressedPackSize,
 		string $sha256,
 		bool $isPremium,
-		int $packType,
+		ResourcePackType $packType,
 	) : self{
 		$result = new self;
 		$result->packId = $packId;
@@ -62,7 +62,7 @@ class ResourcePackDataInfoPacket extends DataPacket implements ClientboundPacket
 		$this->compressedPackSize = LE::readUnsignedLong($in);
 		$this->sha256 = CommonTypes::getString($in);
 		$this->isPremium = CommonTypes::getBool($in);
-		$this->packType = Byte::readUnsigned($in);
+		$this->packType = ResourcePackType::fromPacket(Byte::readUnsigned($in));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
@@ -72,7 +72,7 @@ class ResourcePackDataInfoPacket extends DataPacket implements ClientboundPacket
 		LE::writeUnsignedLong($out, $this->compressedPackSize);
 		CommonTypes::putString($out, $this->sha256);
 		CommonTypes::putBool($out, $this->isPremium);
-		Byte::writeUnsigned($out, $this->packType);
+		Byte::writeUnsigned($out, $this->packType->value);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

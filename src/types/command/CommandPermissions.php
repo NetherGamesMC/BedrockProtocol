@@ -14,39 +14,15 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\command;
 
-use function array_flip;
+use pocketmine\network\mcpe\protocol\types\PacketOrdinalEnumTrait;
 
-final class CommandPermissions{
-	private function __construct(){
-		//NOOP
-	}
+enum CommandPermissions : string{
+	use PacketOrdinalEnumTrait;
 
-	public const NORMAL = 0;
-	public const OPERATOR = 1;
-	public const AUTOMATION = 2; //command blocks
-	public const HOST = 3; //hosting player on LAN multiplayer
-	public const OWNER = 4; //server terminal on BDS
-	public const INTERNAL = 5;
-
-	private const PERMISSION_NAMES = [
-		0 => "any",
-		1 => "gamedirectors",
-		2 => "admin",
-		3 => "host",
-		4 => "owner",
-		5 => "internal",
-	];
-
-	public static function toName(int $value) : string{
-		return self::PERMISSION_NAMES[$value] ?? throw new \InvalidArgumentException("Invalid raw value \"$value\" for CommandPermission");
-	}
-
-	public static function fromName(string $name) : int{
-		static $cache = null;
-		if($cache === null){
-			$cache = array_flip(self::PERMISSION_NAMES);
-		}
-
-		return $cache[$name] ?? throw new \InvalidArgumentException("Invalid raw value \"$name\" for CommandPermission");
-	}
+	case NORMAL = "any";
+	case OPERATOR = "gamedirectors";
+	case AUTOMATION = "admin"; //command blocks
+	case HOST = "host"; //hosting player on LAN multiplayer
+	case OWNER = "owner"; //server terminal on BDS
+	case INTERNAL = "internal";
 }

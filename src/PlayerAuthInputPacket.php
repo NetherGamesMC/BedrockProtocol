@@ -41,9 +41,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 	private float $moveVecX;
 	private float $moveVecZ;
 	private BitSet $inputFlags;
-	private int $inputMode;
-	private int $playMode;
-	private int $interactionMode;
+	private InputMode $inputMode;
+	private PlayMode $playMode;
+	private InteractionMode $interactionMode;
 	private Vector2 $interactRotation;
 	private int $tick;
 	private Vector3 $delta;
@@ -73,9 +73,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		float $moveVecX,
 		float $moveVecZ,
 		BitSet $inputFlags,
-		int $inputMode,
-		int $playMode,
-		int $interactionMode,
+		InputMode $inputMode,
+		PlayMode $playMode,
+		InteractionMode $interactionMode,
 		Vector2 $interactRotation,
 		int $tick,
 		Vector3 $delta,
@@ -115,9 +115,6 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 
 	/**
 	 * @param BitSet                   $inputFlags @see PlayerAuthInputFlags
-	 * @param int                      $inputMode @see InputMode
-	 * @param int                      $playMode @see PlayMode
-	 * @param int                      $interactionMode @see InteractionMode
 	 * @param PlayerBlockAction[]|null $blockActions Blocks that the client has interacted with
 	 * @phpstan-param list<PlayerBlockAction>|null $blockActions
 	 */
@@ -129,9 +126,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		float $moveVecX,
 		float $moveVecZ,
 		BitSet $inputFlags,
-		int $inputMode,
-		int $playMode,
-		int $interactionMode,
+		InputMode $inputMode,
+		PlayMode $playMode,
+		InteractionMode $interactionMode,
 		Vector2 $interactRotation,
 		int $tick,
 		Vector3 $delta,
@@ -210,24 +207,15 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		return $this->inputFlags;
 	}
 
-	/**
-	 * @see InputMode
-	 */
-	public function getInputMode() : int{
+	public function getInputMode() : InputMode{
 		return $this->inputMode;
 	}
 
-	/**
-	 * @see PlayMode
-	 */
-	public function getPlayMode() : int{
+	public function getPlayMode() : PlayMode{
 		return $this->playMode;
 	}
 
-	/**
-	 * @see InteractionMode
-	 */
-	public function getInteractionMode() : int{
+	public function getInteractionMode() : InteractionMode{
 		return $this->interactionMode;
 	}
 
@@ -283,9 +271,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 			$this->inputFlags->set($flag, true);
 		}
 
-		$this->inputMode = VarInt::readUnsignedInt($in);
-		$this->playMode = VarInt::readUnsignedInt($in);
-		$this->interactionMode = VarInt::readSignedInt($in);
+		$this->inputMode = InputMode::fromPacket(VarInt::readUnsignedInt($in));
+		$this->playMode = PlayMode::fromPacket(VarInt::readUnsignedInt($in));
+		$this->interactionMode = InteractionMode::fromPacket(VarInt::readSignedInt($in));
 		$this->interactRotation = CommonTypes::getVector2($in);
 		$this->tick = VarInt::readUnsignedLong($in);
 		$this->delta = CommonTypes::getVector3($in);
@@ -324,9 +312,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		}
 		CommonTypes::writeList($out, $flagsArray, VarInt::writeSignedInt(...));
 
-		VarInt::writeUnsignedInt($out, $this->inputMode);
-		VarInt::writeUnsignedInt($out, $this->playMode);
-		VarInt::writeSignedInt($out, $this->interactionMode);
+		VarInt::writeUnsignedInt($out, $this->inputMode->value);
+		VarInt::writeUnsignedInt($out, $this->playMode->value);
+		VarInt::writeSignedInt($out, $this->interactionMode->value);
 		CommonTypes::putVector2($out, $this->interactRotation);
 		VarInt::writeUnsignedLong($out, $this->tick);
 		CommonTypes::putVector3($out, $this->delta);

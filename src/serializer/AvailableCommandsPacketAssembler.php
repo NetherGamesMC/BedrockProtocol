@@ -263,7 +263,7 @@ final class AvailableCommandsPacketAssembler{
 			name: $commandData->getName(),
 			description: $commandData->getDescription(),
 			flags: $commandData->getFlags(),
-			permission: $commandData->getPermission(),
+			permission: $commandData->getPermission()->value,
 			aliasEnumIndex: $aliasesIndex,
 			chainedSubCommandDataIndexes: $chainedSubCommandDataIndexes,
 			overloads: $rawOverloadData
