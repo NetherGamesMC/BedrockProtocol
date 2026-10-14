@@ -14,10 +14,10 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types;
 
-use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pmmp\encoding\VarInt;
 
 /**
  * @see PlayerArmorDamagePacket
@@ -34,7 +34,7 @@ final class ArmorSlotAndDamagePair{
 	public function getDamage() : int{ return $this->damage; }
 
 	public static function read(ByteBufferReader $in) : self{
-		$slot = ArmorSlot::fromPacket(Byte::readUnsigned($in));
+		$slot = ArmorSlot::fromPacket(VarInt::readSignedInt($in));
 		$damage = LE::readUnsignedShort($in);
 
 		return new self(
@@ -44,7 +44,7 @@ final class ArmorSlotAndDamagePair{
 	}
 
 	public function write(ByteBufferWriter $out) : void{
-		Byte::writeUnsigned($out, $this->slot->value);
+		VarInt::writeSignedInt($out, $this->slot->value);
 		LE::writeUnsignedShort($out, $this->damage);
 	}
 }

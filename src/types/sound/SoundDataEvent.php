@@ -17,6 +17,7 @@ namespace pocketmine\network\mcpe\protocol\types\sound;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\ClientboundUpdateSoundDataPacket;
 
 /**
@@ -111,7 +112,7 @@ final class SoundDataEvent{
 	}
 
 	public static function read(ByteBufferReader $in) : self{
-		$type = SoundDataEventType::fromPacket(LE::readUnsignedInt($in));
+		$type = SoundDataEventType::fromPacket(VarInt::readUnsignedInt($in));
 		return match($type){
 			SoundDataEventType::STOP => self::stop(),
 			SoundDataEventType::SET_VOLUME => self::setVolume(
@@ -133,7 +134,7 @@ final class SoundDataEvent{
 	}
 
 	public function write(ByteBufferWriter $out) : void{
-		LE::writeUnsignedInt($out, $this->type->value);
+		VarInt::writeUnsignedInt($out, $this->type->value);
 		switch($this->type){
 			case SoundDataEventType::STOP:
 			case SoundDataEventType::PAUSE:
