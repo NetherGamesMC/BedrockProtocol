@@ -29,7 +29,7 @@ final class LevelSettings{
 	public int $seed;
 	public SpawnSettings $spawnSettings;
 	public int $generator = GeneratorType::OVERWORLD;
-	public int $worldGamemode;
+	public GameMode $worldGamemode;
 	public bool $hardcore = false;
 	public int $difficulty;
 	public BlockPosition $spawnPosition;
@@ -58,7 +58,7 @@ final class LevelSettings{
 	public Experiments $experiments;
 	public bool $hasBonusChestEnabled = false;
 	public bool $hasStartWithMapEnabled = false;
-	public int $defaultPlayerPermission = PlayerPermissions::MEMBER; //TODO
+	public PlayerPermissions $defaultPlayerPermission = PlayerPermissions::MEMBER; //TODO
 
 	public int $serverChunkTickRadius = 4; //TODO (leave as default for now)
 
@@ -103,7 +103,7 @@ final class LevelSettings{
 		$this->seed = LE::readUnsignedLong($in);
 		$this->spawnSettings = SpawnSettings::read($in);
 		$this->generator = VarInt::readSignedInt($in);
-		$this->worldGamemode = VarInt::readSignedInt($in);
+		$this->worldGamemode = GameMode::fromPacket(VarInt::readSignedInt($in));
 		$this->hardcore = CommonTypes::getBool($in);
 		$this->difficulty = VarInt::readSignedInt($in);
 		$this->spawnPosition = CommonTypes::getBlockPosition($in);
@@ -128,7 +128,7 @@ final class LevelSettings{
 		$this->experiments = Experiments::read($in);
 		$this->hasBonusChestEnabled = CommonTypes::getBool($in);
 		$this->hasStartWithMapEnabled = CommonTypes::getBool($in);
-		$this->defaultPlayerPermission = VarInt::readSignedInt($in);
+		$this->defaultPlayerPermission = PlayerPermissions::fromPacket(VarInt::readSignedInt($in));
 		$this->serverChunkTickRadius = LE::readSignedInt($in); //doesn't make sense for this to be signed, but that's what the spec says
 		$this->hasLockedBehaviorPack = CommonTypes::getBool($in);
 		$this->hasLockedResourcePack = CommonTypes::getBool($in);
@@ -156,7 +156,7 @@ final class LevelSettings{
 		LE::writeUnsignedLong($out, $this->seed);
 		$this->spawnSettings->write($out);
 		VarInt::writeSignedInt($out, $this->generator);
-		VarInt::writeSignedInt($out, $this->worldGamemode);
+		VarInt::writeSignedInt($out, $this->worldGamemode->value);
 		CommonTypes::putBool($out, $this->hardcore);
 		VarInt::writeSignedInt($out, $this->difficulty);
 		CommonTypes::putBlockPosition($out, $this->spawnPosition);
@@ -181,7 +181,7 @@ final class LevelSettings{
 		$this->experiments->write($out);
 		CommonTypes::putBool($out, $this->hasBonusChestEnabled);
 		CommonTypes::putBool($out, $this->hasStartWithMapEnabled);
-		VarInt::writeSignedInt($out, $this->defaultPlayerPermission);
+		VarInt::writeSignedInt($out, $this->defaultPlayerPermission->value);
 		LE::writeSignedInt($out, $this->serverChunkTickRadius); //doesn't make sense for this to be signed, but that's what the spec says
 		CommonTypes::putBool($out, $this->hasLockedBehaviorPack);
 		CommonTypes::putBool($out, $this->hasLockedResourcePack);

@@ -14,15 +14,11 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types;
 
-final class PlayerPermissions{
+enum PlayerPermissions : int{
+	use PacketIntEnumTrait;
 
-	private function __construct(){
-		//NOOP
-	}
-
-	public const CUSTOM = 3;
-	public const OPERATOR = 2;
-	public const MEMBER = 1;
-	public const VISITOR = 0;
-
+	case CUSTOM = 3;
+	case OPERATOR = 2;
+	case MEMBER = 1;
+	case VISITOR = 0;
 }

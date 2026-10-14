@@ -23,6 +23,7 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
+use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\LevelSettings;
 use pocketmine\network\mcpe\protocol\types\NetworkPermissions;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
@@ -36,7 +37,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 
 	public int $actorUniqueId;
 	public int $actorRuntimeId;
-	public int $playerGamemode;
+	public GameMode $playerGamemode;
 
 	public Vector3 $playerPosition;
 
@@ -87,7 +88,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	public static function create(
 		int $actorUniqueId,
 		int $actorRuntimeId,
-		int $playerGamemode,
+		GameMode $playerGamemode,
 		Vector3 $playerPosition,
 		float $pitch,
 		float $yaw,
@@ -145,7 +146,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->actorUniqueId = CommonTypes::getActorUniqueId($in);
 		$this->actorRuntimeId = CommonTypes::getActorRuntimeId($in);
-		$this->playerGamemode = VarInt::readSignedInt($in);
+		$this->playerGamemode = GameMode::fromPacket(VarInt::readSignedInt($in));
 
 		$this->playerPosition = CommonTypes::getVector3($in);
 
@@ -186,7 +187,7 @@ class StartGamePacket extends DataPacket implements ClientboundPacket{
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		CommonTypes::putActorUniqueId($out, $this->actorUniqueId);
 		CommonTypes::putActorRuntimeId($out, $this->actorRuntimeId);
-		VarInt::writeSignedInt($out, $this->playerGamemode);
+		VarInt::writeSignedInt($out, $this->playerGamemode->value);
 
 		CommonTypes::putVector3($out, $this->playerPosition);
 
