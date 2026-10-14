@@ -31,7 +31,7 @@ final class CameraSplineRotationKeyFrame{
 		private float $time,
 		int|string|null $easeType,
 	){
-		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::toName($easeType) : $easeType;
+		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::fromOrdinal($easeType)->value : $easeType;
 	}
 
 	public function getRotation() : Vector3{ return $this->rotation; }

@@ -30,7 +30,7 @@ final class CameraSplineProgressKeyFrame{
 		private float $time,
 		int|string|null $easeType,
 	){
-		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::toName($easeType) : $easeType;
+		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::fromOrdinal($easeType)->value : $easeType;
 	}
 
 	public function getProgress() : float{ return $this->progress; }
