@@ -43,35 +43,21 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 	private const LEGACY_TYPE_ADD = 0;
 	private const LEGACY_TYPE_REMOVE = 1;
 
-	/** @var PlayerListEntry[]|UuidInterface[] */
+	/** @var PlayerListEntry[] */
 	private array $entries = [];
 
 	/**
 	 * @generate-create-func
-	 * @param PlayerListEntry[]|UuidInterface[] $entries
+	 * @param PlayerListEntry[] $entries
 	 */
-	private static function create(array $entries) : self{
+	public static function create(array $entries) : self{
 		$result = new self;
 		$result->entries = $entries;
 		return $result;
 	}
 
 	/**
-	 * @param PlayerListEntry[] $entries
-	 */
-	public static function add(array $entries) : self{
-		return self::create($entries);
-	}
-
-	/**
-	 * @param UuidInterface[] $entries
-	 */
-	public static function remove(array $entries) : self{
-		return self::create($entries);
-	}
-
-	/**
-	 * @return PlayerListEntry[]|UuidInterface[]
+	 * @return PlayerListEntry[]
 	 */
 	public function getEntries() : array{ return $this->entries; }
 
@@ -86,7 +72,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 					throw new PacketDecodeException("Unexpected inner type $innerType for player list entry type $type, expected $expectedInnerType");
 				}
 				if($type === self::TYPE_REMOVE){
-					$this->entries[] = CommonTypes::getUUID($in);
+					$this->entries[] = PlayerListEntry::createRemovalEntry(CommonTypes::getUUID($in));
 				}elseif($type === self::TYPE_ADD){
 					$this->entries[] = self::readAdditionEntry($in, $protocolId);
 				}else{
@@ -107,7 +93,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				}
 			}elseif($type === self::LEGACY_TYPE_REMOVE){
 				for($i = 0; $i < $count; ++$i){
-					$this->entries[] = CommonTypes::getUUID($in);
+					$this->entries[] = PlayerListEntry::createRemovalEntry(CommonTypes::getUUID($in));
 				}
 			}else{
 				throw new PacketDecodeException("Unknown player list type $type");
@@ -139,12 +125,8 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 
 	/**
 	 * Returns the UUID to remove if the given entry is a removal entry, or null if it is an addition entry.
-	 * Removal entries may be given either as a UUID or as a PlayerListEntry with type TYPE_REMOVE.
 	 */
-	private static function getRemovalUuid(PlayerListEntry|UuidInterface $entry) : ?UuidInterface{
-		if($entry instanceof UuidInterface){
-			return $entry;
-		}
+	private static function getRemovalUuid(PlayerListEntry $entry) : ?UuidInterface{
 		return match($entry->type){
 			self::TYPE_ADD => null,
 			self::TYPE_REMOVE => $entry->uuid,
@@ -162,7 +144,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				Byte::writeUnsigned($out, self::INNER_TYPES[$type]);
 				if($removalUuid !== null){
 					CommonTypes::putUUID($out, $removalUuid);
-				}elseif($entry instanceof PlayerListEntry){
+				}else{
 					self::writeAdditionEntry($out, $protocolId, $entry);
 				}
 			}
@@ -173,7 +155,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				$removalUuid = self::getRemovalUuid($entry);
 				if($removalUuid !== null){
 					$removalUuids[] = $removalUuid;
-				}elseif($entry instanceof PlayerListEntry){
+				}else{
 					$addEntries[] = $entry;
 				}
 			}

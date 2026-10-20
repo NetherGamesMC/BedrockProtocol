@@ -28,7 +28,7 @@ final class ItemStackResponseSlotInfo{
 		private int $count,
 		private ?int $itemStackId,
 		private string $customName,
-		private string $filteredCustomName,
+		private ?string $filteredCustomName,
 		private int $durabilityCorrection
 	){}
 
@@ -45,7 +45,10 @@ final class ItemStackResponseSlotInfo{
 
 	public function getCustomName() : string{ return $this->customName; }
 
-	public function getFilteredCustomName() : string{ return $this->filteredCustomName; }
+	/**
+	 * Optional since 1.26.40.
+	 */
+	public function getFilteredCustomName() : ?string{ return $this->filteredCustomName; }
 
 	public function getDurabilityCorrection() : int{ return $this->durabilityCorrection; }
 
@@ -59,11 +62,15 @@ final class ItemStackResponseSlotInfo{
 			$itemStackId = CommonTypes::readServerItemStackId($in);
 		}
 		$customName = CommonTypes::getString($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_50){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$filteredCustomName = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_50){
 			$filteredCustomName = CommonTypes::getString($in);
+		}else{
+			$filteredCustomName = $customName;
 		}
 		$durabilityCorrection = VarInt::readSignedInt($in);
-		return new self($slot, $hotbarSlot, $count, $itemStackId, $customName, $filteredCustomName ?? $customName, $durabilityCorrection);
+		return new self($slot, $hotbarSlot, $count, $itemStackId, $customName, $filteredCustomName, $durabilityCorrection);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
@@ -76,8 +83,10 @@ final class ItemStackResponseSlotInfo{
 			CommonTypes::writeServerItemStackId($out, $this->itemStackId ?? 0);
 		}
 		CommonTypes::putString($out, $this->customName);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_50){
-			CommonTypes::putString($out, $this->filteredCustomName);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			CommonTypes::writeOptional($out, $this->filteredCustomName, CommonTypes::putString(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_50){
+			CommonTypes::putString($out, $this->filteredCustomName ?? "");
 		}
 		VarInt::writeSignedInt($out, $this->durabilityCorrection);
 	}
