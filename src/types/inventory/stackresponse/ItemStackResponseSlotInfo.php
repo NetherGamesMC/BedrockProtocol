@@ -56,7 +56,9 @@ final class ItemStackResponseSlotInfo{
 		$slot = Byte::readUnsigned($in);
 		$hotbarSlot = Byte::readUnsigned($in);
 		$count = Byte::readUnsigned($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			$itemStackId = CommonTypes::readOptional($in, CommonTypes::readServerItemStackId(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			$itemStackId = CommonTypes::readDoubleOptional($in, CommonTypes::readServerItemStackId(...));
 		}else{
 			$itemStackId = CommonTypes::readServerItemStackId($in);
@@ -77,7 +79,9 @@ final class ItemStackResponseSlotInfo{
 		Byte::writeUnsigned($out, $this->slot);
 		Byte::writeUnsigned($out, $this->hotbarSlot);
 		Byte::writeUnsigned($out, $this->count);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			CommonTypes::writeOptional($out, $this->itemStackId, CommonTypes::writeServerItemStackId(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			CommonTypes::writeDoubleOptional($out, $this->itemStackId, CommonTypes::writeServerItemStackId(...));
 		}else{
 			CommonTypes::writeServerItemStackId($out, $this->itemStackId ?? 0);

@@ -76,62 +76,61 @@ final class MemoryCategory{
 	public const ORE_UI_CLIENT = 55;
 	public const PERSONA_PIECES = 56;
 	public const PERSONA_ANIMATIONS = 57;
-	public const PERSONA_TEXTURES = 58;
-	public const PERSONA_CHARACTERS = 59;
-	public const PERSONA_SKIN_PACKS = 60;
-	public const PERSONA_REPO = 61;
-	public const PLAYER = 62;
-	public const RENDER_CHUNK = 63;
-	public const RENDER_CHUNK_INDEX_BUFFER = 64;
-	public const RENDER_CHUNK_VERTEX_BUFFER = 65;
-	public const RENDERING = 66;
-	public const RENDERING_BGFX_INIT = 67;
-	public const RENDERING_BGFX_START_FRAME = 68;
-	public const RENDERING_BLOCK_TESSELLATOR = 69;
-	public const RENDERING_END_FRAME = 70;
-	public const RENDERING_GRAPHICS_TASKS_INIT = 71;
-	public const RENDERING_LIBRARY = 72;
-	public const RENDERING_POLYGON_OPERATOR_POOL = 73;
-	public const RENDERING_PBR_TEXTURE_DATA = 74;
-	public const RENDERING_RENDER_REGISTRY = 75;
-	public const RENDERING_SETUP = 76;
-	public const RENDERING_VERTICES = 77;
-	public const REQUEST_LOG = 78;
-	public const RESOURCE_PACKS = 79;
-	public const SOUND = 80;
-	public const SUB_CHUNK_BIOME_DATA = 81;
-	public const SUB_CHUNK_BLOCK_DATA = 82;
-	public const SUB_CHUNK_LIGHT_DATA = 83;
-	public const TEXTURES = 84;
-	public const WEATHER_RENDERER = 85;
-	public const WORLD_GENERATOR = 86;
-	public const TASKS = 87;
-	public const TEST = 88;
-	public const TEST_LOAD_TEST_TAGS = 89;
-	public const SCRIPTING = 90;
-	public const SCRIPTING_RUNTIME = 91;
-	public const SCRIPTING_CONTEXT = 92;
-	public const SCRIPTING_CONTEXT_BINDINGS_MC = 93;
-	public const SCRIPTING_CONTEXT_BINDINGS_GT = 94;
-	public const SCRIPTING_CONTEXT_RUN = 95;
-	public const DATA_DRIVEN_UI = 96;
-	public const DATA_DRIVEN_UI_DEFS = 97;
-	public const GAMEFACE = 98;
-	public const GAMEFACE_SYSTEM = 99;
-	public const GAMEFACE_DOM = 100;
-	public const GAMEFACE_CSS = 101;
-	public const GAMEFACE_DISPLAY = 102;
-	public const GAMEFACE_TEMP_ALLOCATOR = 103;
-	public const GAMEFACE_POOL_ALLOCATOR = 104;
-	public const GAMEFACE_DUMP = 105;
-	public const GAMEFACE_MEDIA = 106;
-	public const GAMEFACE_JSON = 107;
-	public const GAMEFACE_SCRIPT_ENGINE = 108;
-	public const GAMEFACE_SCRIPT = 109;
-	public const GAMEFACE_LAYOUT = 110;
+	public const PERSONA_CHARACTERS = 58;
+	public const PERSONA_SKIN_PACKS = 59;
+	public const PERSONA_REPO = 60;
+	public const PLAYER = 61;
+	public const RENDER_CHUNK = 62;
+	public const RENDER_CHUNK_INDEX_BUFFER = 63;
+	public const RENDER_CHUNK_VERTEX_BUFFER = 64;
+	public const RENDERING = 65;
+	public const RENDERING_BGFX_INIT = 66;
+	public const RENDERING_BGFX_START_FRAME = 67;
+	public const RENDERING_BLOCK_TESSELLATOR = 68;
+	public const RENDERING_END_FRAME = 69;
+	public const RENDERING_GRAPHICS_TASKS_INIT = 70;
+	public const RENDERING_LIBRARY = 71;
+	public const RENDERING_POLYGON_OPERATOR_POOL = 72;
+	public const RENDERING_PBR_TEXTURE_DATA = 73;
+	public const RENDERING_RENDER_REGISTRY = 74;
+	public const RENDERING_SETUP = 75;
+	public const RENDERING_VERTICES = 76;
+	public const REQUEST_LOG = 77;
+	public const RESOURCE_PACKS = 78;
+	public const SOUND = 79;
+	public const SUB_CHUNK_BIOME_DATA = 80;
+	public const SUB_CHUNK_BLOCK_DATA = 81;
+	public const SUB_CHUNK_LIGHT_DATA = 82;
+	public const TEXTURES = 83;
+	public const WEATHER_RENDERER = 84;
+	public const WORLD_GENERATOR = 85;
+	public const TASKS = 86;
+	public const TEST = 87;
+	public const TEST_LOAD_TEST_TAGS = 88;
+	public const SCRIPTING = 89;
+	public const SCRIPTING_RUNTIME = 90;
+	public const SCRIPTING_CONTEXT = 91;
+	public const SCRIPTING_CONTEXT_BINDINGS_MC = 92;
+	public const SCRIPTING_CONTEXT_BINDINGS_GT = 93;
+	public const SCRIPTING_CONTEXT_RUN = 94;
+	public const DATA_DRIVEN_UI = 95;
+	public const DATA_DRIVEN_UI_DEFS = 96;
+	public const GAMEFACE = 97;
+	public const GAMEFACE_SYSTEM = 98;
+	public const GAMEFACE_DOM = 99;
+	public const GAMEFACE_CSS = 100;
+	public const GAMEFACE_DISPLAY = 101;
+	public const GAMEFACE_TEMP_ALLOCATOR = 102;
+	public const GAMEFACE_POOL_ALLOCATOR = 103;
+	public const GAMEFACE_DUMP = 104;
+	public const GAMEFACE_MEDIA = 105;
+	public const GAMEFACE_JSON = 106;
+	public const GAMEFACE_SCRIPT_ENGINE = 107;
+	public const GAMEFACE_SCRIPT = 108;
+	public const GAMEFACE_LAYOUT = 109;
 
 	/*
-	 * Removed in 1.26.40, which also renumbered most of the constants above (the constants above hold the 1.26.40
+	 * Removed in 1.26.40, which also renumbered most of the constants above (the constants above hold the newest
 	 * values). These keep their <= 1.26.30 values for BC only and overlap with the newer numbering.
 	 */
 	/** @deprecated 1.26.40 */
@@ -140,4 +139,11 @@ final class MemoryCategory{
 	public const PERSONA = 54;
 	/** @deprecated 1.26.40 */
 	public const VR = 68;
+
+	/*
+	 * Removed in 1.26.50, which renumbered every constant after it (the constants above hold the 1.26.50 values).
+	 * Keeps its 1.26.40/1.26.45 value for BC only and overlaps with the newer numbering.
+	 */
+	/** @deprecated 1.26.50 */
+	public const PERSONA_TEXTURES = 58;
 }

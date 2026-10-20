@@ -32,7 +32,11 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 	public float $pitch;
 	/** >= ProtocolInfo::PROTOCOL_1_26_40 */
 	public int $loopCount = 0;
+	/** >= ProtocolInfo::PROTOCOL_1_26_50 */
+	public bool $bypassListenerRangeCheck = false;
 	public ?int $serverSoundHandle = null;
+	/** >= ProtocolInfo::PROTOCOL_1_26_50 */
+	public ?float $playbackPositionSeconds = null;
 
 	/**
 	 * @generate-create-func
@@ -45,7 +49,9 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 		float $volume,
 		float $pitch,
 		int $loopCount,
+		bool $bypassListenerRangeCheck,
 		?int $serverSoundHandle,
+		?float $playbackPositionSeconds,
 	) : self{
 		$result = new self;
 		$result->soundName = $soundName;
@@ -55,7 +61,9 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 		$result->volume = $volume;
 		$result->pitch = $pitch;
 		$result->loopCount = $loopCount;
+		$result->bypassListenerRangeCheck = $bypassListenerRangeCheck;
 		$result->serverSoundHandle = $serverSoundHandle;
+		$result->playbackPositionSeconds = $playbackPositionSeconds;
 		return $result;
 	}
 
@@ -70,8 +78,14 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			$this->loopCount = VarInt::readSignedInt($in);
 		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			$this->bypassListenerRangeCheck = CommonTypes::getBool($in);
+		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
 			$this->serverSoundHandle = CommonTypes::readOptional($in, LE::readUnsignedLong(...));
+		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			$this->playbackPositionSeconds = CommonTypes::readOptional($in, LE::readFloat(...));
 		}
 	}
 
@@ -83,8 +97,14 @@ class PlaySoundPacket extends DataPacket implements ClientboundPacket{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			VarInt::writeSignedInt($out, $this->loopCount);
 		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			CommonTypes::putBool($out, $this->bypassListenerRangeCheck);
+		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
 			CommonTypes::writeOptional($out, $this->serverSoundHandle, LE::writeUnsignedLong(...));
+		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			CommonTypes::writeOptional($out, $this->playbackPositionSeconds, LE::writeFloat(...));
 		}
 	}
 

@@ -68,11 +68,11 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 			$this->requestChangedSlots = CommonTypes::readList($in, InventoryTransactionChangedSlotsHack::read(...));
 		}
 
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 && $protocolId <= ProtocolInfo::PROTOCOL_1_26_45){
 			CommonTypes::readDummyOptional($in);
 		}
 		$transactionType = VarInt::readUnsignedInt($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 && $protocolId <= ProtocolInfo::PROTOCOL_1_26_45){
 			CommonTypes::readDummyOptional($in);
 		}
 		$this->trData = match($transactionType) {
@@ -95,11 +95,11 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 			CommonTypes::writeList($out, $this->requestChangedSlots ?? [], static fn(ByteBufferWriter $out, InventoryTransactionChangedSlotsHack $v) => $v->write($out));
 		}
 
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 && $protocolId <= ProtocolInfo::PROTOCOL_1_26_45){
 			CommonTypes::writeDummyOptional($out);
 		}
 		VarInt::writeUnsignedInt($out, $this->trData->getTypeId());
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 && $protocolId <= ProtocolInfo::PROTOCOL_1_26_45){
 			CommonTypes::writeDummyOptional($out);
 		}
 		$this->trData->encode($out, $protocolId);

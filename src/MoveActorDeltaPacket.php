@@ -18,6 +18,7 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\DataDecodeException;
 use pmmp\encoding\LE;
+use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
@@ -46,6 +47,11 @@ class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
 	public bool $forceMoveLocalEntity = false; //force move local entity in the docs
 	/** >= ProtocolInfo::PROTOCOL_1_26_40 */
 	public bool $forceCompletion = false;
+	/**
+	 * >= ProtocolInfo::PROTOCOL_1_26_50
+	 * Expected number of ticks before the next movement update, used for position interpolation duration on the client.
+	 */
+	public int $ticks = 0;
 
 	/**
 	 * @generate-create-func
@@ -62,6 +68,7 @@ class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
 		bool $teleport,
 		bool $forceMoveLocalEntity,
 		bool $forceCompletion,
+		int $ticks,
 	) : self{
 		$result = new self;
 		$result->actorRuntimeId = $actorRuntimeId;
@@ -75,6 +82,7 @@ class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
 		$result->teleport = $teleport;
 		$result->forceMoveLocalEntity = $forceMoveLocalEntity;
 		$result->forceCompletion = $forceCompletion;
+		$result->ticks = $ticks;
 		return $result;
 	}
 
@@ -133,6 +141,9 @@ class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
 			$this->teleport = CommonTypes::getBool($in);
 			$this->forceMoveLocalEntity = CommonTypes::getBool($in);
 			$this->forceCompletion = CommonTypes::getBool($in);
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+				$this->ticks = VarInt::readUnsignedLong($in);
+			}
 		}else{
 			$flags = LE::readUnsignedShort($in);
 			$this->xPos = self::legacyMaybeReadCoord($flags, self::FLAG_HAS_X, $in);
@@ -169,6 +180,9 @@ class MoveActorDeltaPacket extends DataPacket implements ClientboundPacket{
 			CommonTypes::putBool($out, $this->teleport);
 			CommonTypes::putBool($out, $this->forceMoveLocalEntity);
 			CommonTypes::putBool($out, $this->forceCompletion);
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+				VarInt::writeUnsignedLong($out, $this->ticks);
+			}
 		}else{
 			LE::writeUnsignedShort($out, $this->getLegacyFlags());
 			if($this->xPos !== null){

@@ -22,6 +22,7 @@ use pocketmine\network\mcpe\protocol\types\BoolPackSetting;
 use pocketmine\network\mcpe\protocol\types\FloatPackSetting;
 use pocketmine\network\mcpe\protocol\types\PackSetting;
 use pocketmine\network\mcpe\protocol\types\PackSettingType;
+use pocketmine\network\mcpe\protocol\types\StringArrayPackSetting;
 use pocketmine\network\mcpe\protocol\types\StringPackSetting;
 use Ramsey\Uuid\UuidInterface;
 
@@ -54,6 +55,7 @@ class ServerboundPackSettingChangePacket extends DataPacket implements Serverbou
 			PackSettingType::FLOAT => FloatPackSetting::read($in, $name),
 			PackSettingType::BOOL => BoolPackSetting::read($in, $name),
 			PackSettingType::STRING => StringPackSetting::read($in, $name),
+			PackSettingType::STRING_ARRAY => StringArrayPackSetting::read($in, $name),
 		};
 	}
 

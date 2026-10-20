@@ -969,4 +969,12 @@ trait PacketHandlerDefaultImplTrait{
 	public function handlePartyDestinationCookieResponse(PartyDestinationCookieResponsePacket $packet) : bool{
 		return false;
 	}
+
+	public function handleSetPlayerFurnaceOptions(SetPlayerFurnaceOptionsPacket $packet) : bool{
+		return false;
+	}
+
+	public function handleRecordStarted(RecordStartedPacket $packet) : bool{
+		return false;
+	}
 }

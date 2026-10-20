@@ -71,7 +71,8 @@ class NetworkInventoryAction{
 	/**
 	 * Before 1.26.30 (InventoryTransactionPacket) / 1.26.40 (PlayerAuthInputPacket item interactions), actions used a
 	 * legacy layout where windowId/sourceFlags presence depended on the source type and items used the legacy item stack
-	 * format. Since then, both use double optionals and the network item stack descriptor format.
+	 * format. Since then, both use the network item stack descriptor format, with windowId/sourceFlags as double optionals
+	 * (single optionals since 1.26.50).
 	 *
 	 * @param bool $authInput whether this action is part of a PlayerAuthInputPacket item interaction, which kept the
 	 *                        legacy layout one version longer (until 1.26.30 inclusive)
@@ -88,8 +89,13 @@ class NetworkInventoryAction{
 
 		$this->sourceType = VarInt::readUnsignedInt($in);
 
-		$this->windowId = CommonTypes::readDoubleOptional($in, Byte::readSigned(...));
-		$this->sourceFlags = CommonTypes::readDoubleOptional($in, VarInt::readUnsignedInt(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			$this->windowId = CommonTypes::readOptional($in, Byte::readSigned(...));
+			$this->sourceFlags = CommonTypes::readOptional($in, VarInt::readUnsignedInt(...));
+		}else{
+			$this->windowId = CommonTypes::readDoubleOptional($in, Byte::readSigned(...));
+			$this->sourceFlags = CommonTypes::readDoubleOptional($in, VarInt::readUnsignedInt(...));
+		}
 
 		$this->inventorySlot = VarInt::readUnsignedInt($in);
 		$this->oldItem = CommonTypes::getNetworkItemStackDescriptor($in, $protocolId);
@@ -111,8 +117,13 @@ class NetworkInventoryAction{
 
 		VarInt::writeUnsignedInt($out, $this->sourceType);
 
-		CommonTypes::writeDoubleOptional($out, $this->windowId, Byte::writeSigned(...));
-		CommonTypes::writeDoubleOptional($out, $this->sourceFlags, VarInt::writeUnsignedInt(...));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			CommonTypes::writeOptional($out, $this->windowId, Byte::writeSigned(...));
+			CommonTypes::writeOptional($out, $this->sourceFlags, VarInt::writeUnsignedInt(...));
+		}else{
+			CommonTypes::writeDoubleOptional($out, $this->windowId, Byte::writeSigned(...));
+			CommonTypes::writeDoubleOptional($out, $this->sourceFlags, VarInt::writeUnsignedInt(...));
+		}
 
 		VarInt::writeUnsignedInt($out, $this->inventorySlot);
 		CommonTypes::putNetworkItemStackDescriptor($out, $protocolId, $this->oldItem);

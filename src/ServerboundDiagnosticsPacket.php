@@ -173,7 +173,7 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 			$this->memoryCategoryValues = CommonTypes::readList($in, MemoryCategoryCounter::read(...));
 
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
-				$this->entityDiagnostics = CommonTypes::readList($in, EntityDiagnosticTimingInfo::read(...));
+				$this->entityDiagnostics = CommonTypes::readList($in, static fn(ByteBufferReader $in) => EntityDiagnosticTimingInfo::read($in, $protocolId));
 				$this->systemDiagnostics = CommonTypes::readList($in, SystemDiagnosticTimingInfo::read(...));
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
@@ -202,7 +202,7 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 			CommonTypes::writeList($out, $this->memoryCategoryValues, static fn(ByteBufferWriter $out, MemoryCategoryCounter $v) => $v->write($out));
 
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
-				CommonTypes::writeList($out, $this->entityDiagnostics, static fn(ByteBufferWriter $out, EntityDiagnosticTimingInfo $v) => $v->write($out));
+				CommonTypes::writeList($out, $this->entityDiagnostics, static fn(ByteBufferWriter $out, EntityDiagnosticTimingInfo $v) => $v->write($out, $protocolId));
 				CommonTypes::writeList($out, $this->systemDiagnostics, static fn(ByteBufferWriter $out, SystemDiagnosticTimingInfo $v) => $v->write($out));
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){

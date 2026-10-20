@@ -32,7 +32,7 @@ final class ProtocolInfo{
 	 */
 
 	/** Actual Minecraft: PE protocol version */
-	public const CURRENT_PROTOCOL = self::PROTOCOL_1_26_45;
+	public const CURRENT_PROTOCOL = self::PROTOCOL_1_26_50;
 	public const ACCEPTED_PROTOCOL = [
 		self::PROTOCOL_1_20_0,
 		self::PROTOCOL_1_20_10,
@@ -63,14 +63,16 @@ final class ProtocolInfo{
 		self::PROTOCOL_1_26_20,
 		self::PROTOCOL_1_26_30,
 		self::PROTOCOL_1_26_40,
+		self::PROTOCOL_1_26_45,
 		self::CURRENT_PROTOCOL,
 	];
 
 	/** Display version shown in the server logs. This should match the version on the game's home screen. */
-	public const MINECRAFT_VERSION = 'v26.45';
+	public const MINECRAFT_VERSION = 'v26.50';
 	/** Version sent on the network for client side compatibility checks. This may differ from the display version. */
-	public const MINECRAFT_VERSION_NETWORK = '1.26.45';
+	public const MINECRAFT_VERSION_NETWORK = '1.26.50';
 
+	public const PROTOCOL_1_26_50 = 2193;
 	public const PROTOCOL_1_26_45 = 2169;
 	public const PROTOCOL_1_26_40 = 2168;
 	public const PROTOCOL_1_26_30 = 1001;
@@ -350,5 +352,7 @@ final class ProtocolInfo{
 	public const CLIENTBOUND_UPDATE_SOUND_DATA_PACKET = 0x15c;
 	public const SEND_PARTY_DESTINATION_COOKIE_PACKET = 0x15d;
 	public const PARTY_DESTINATION_COOKIE_RESPONSE_PACKET = 0x15e;
+	public const SET_PLAYER_FURNACE_OPTIONS_PACKET = 0x15f;
+	public const RECORD_STARTED_PACKET = 0x160;
 
 }

@@ -115,7 +115,7 @@ final class PacketShapeData{
 		);
 	}
 
-	public static function text(int $networkId, Vector3 $location, string $text, bool $useRotation = false, ?Color $backgroundColor = null, bool $depthTest = true, bool $showBackface = true, bool $showTextBackface = true, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
+	public static function text(int $networkId, Vector3 $location, string $text, bool $useRotation = false, ?Color $backgroundColor = null, float $lineGapHeight = 0.0, bool $depthTest = true, bool $showBackface = true, bool $showTextBackface = true, ?Color $color = null, ?int $dimensionId = null, ?int $attachedToEntityId = null) : self{
 		return new self(
 			networkId: $networkId,
 			type: PrimitiveShapeType::TEXT,
@@ -127,7 +127,7 @@ final class PacketShapeData{
 			color: $color,
 			dimensionId: $dimensionId,
 			attachedToEntityId: $attachedToEntityId,
-			payload: new PrimitiveShapeTextPayload($text, $useRotation, $backgroundColor, $depthTest, $showBackface, $showTextBackface)
+			payload: new PrimitiveShapeTextPayload($text, $useRotation, $backgroundColor, $lineGapHeight, $depthTest, $showBackface, $showTextBackface)
 		);
 	}
 
@@ -264,7 +264,7 @@ final class PacketShapeData{
 			$payload = match($payloadType){
 				PrimitiveShapeType::PAYLOAD_TYPE_NONE => null,
 				PrimitiveShapeType::PAYLOAD_TYPE_ARROW => PrimitiveShapeArrowPayload::read($in),
-				PrimitiveShapeType::PAYLOAD_TYPE_TEXT => PrimitiveShapeTextPayload::read($in),
+				PrimitiveShapeType::PAYLOAD_TYPE_TEXT => PrimitiveShapeTextPayload::read($in, $protocolId),
 				PrimitiveShapeType::PAYLOAD_TYPE_BOX => PrimitiveShapeBoxPayload::read($in),
 				PrimitiveShapeType::PAYLOAD_TYPE_LINE => PrimitiveShapeLinePayload::read($in),
 				PrimitiveShapeType::PAYLOAD_TYPE_CIRCLE_OR_SPHERE => PrimitiveShapeCircleOrSpherePayload::read($in),
@@ -287,7 +287,7 @@ final class PacketShapeData{
 				PrimitiveShapeType::LINE => $lineEndLocation !== null ? new PrimitiveShapeLinePayload($lineEndLocation) : null,
 				PrimitiveShapeType::BOX => $boxBound !== null ? new PrimitiveShapeBoxPayload($boxBound) : null,
 				PrimitiveShapeType::SPHERE, PrimitiveShapeType::CIRCLE => $segments !== null ? new PrimitiveShapeCircleOrSpherePayload($segments) : null,
-				PrimitiveShapeType::TEXT => $text !== null ? new PrimitiveShapeTextPayload($text, false, null, true, true, true) : null,
+				PrimitiveShapeType::TEXT => $text !== null ? new PrimitiveShapeTextPayload($text, false, null, 0.0, true, true, true) : null,
 				PrimitiveShapeType::ARROW => new PrimitiveShapeArrowPayload($lineEndLocation, $arrowHeadLength, $arrowHeadRadius, $segments),
 				default => throw new PacketDecodeException("Unknown shape type " . $shapeType->name)
 			};
@@ -328,7 +328,12 @@ final class PacketShapeData{
 			}
 
 			VarInt::writeUnsignedInt($out, $this->payload?->getTypeId() ?? PrimitiveShapeType::PAYLOAD_TYPE_NONE);
-			$this->payload?->write($out);
+			$payload = $this->payload; //avoid PHPStan purity issue
+			if($payload instanceof PrimitiveShapeTextPayload){
+				$payload->write($out, $protocolId);
+			}else{
+				$payload?->write($out);
+			}
 		}else{
 			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeTextPayload ? $this->payload->getText() : null, CommonTypes::putString(...));
 			CommonTypes::writeOptional($out, $this->payload instanceof PrimitiveShapeBoxPayload ? $this->payload->getBoxBound() : null, CommonTypes::putVector3(...));
