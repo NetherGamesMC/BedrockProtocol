@@ -79,9 +79,9 @@ class SubChunkRequestPacket extends DataPacket implements ServerboundPacket{
 		}
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			LE::writeUnsignedInt($out, count($this->entries));
-		}else{
 			VarInt::writeUnsignedInt($out, count($this->entries));
+		}else{
+			LE::writeUnsignedInt($out, count($this->entries));
 		}
 		foreach($this->entries as $entry){
 			$entry->write($out);
