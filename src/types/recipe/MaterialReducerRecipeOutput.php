@@ -14,6 +14,10 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
+use pmmp\encoding\ByteBufferReader;
+use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\VarInt;
+
 final class MaterialReducerRecipeOutput{
 	public function __construct(
 		private int $itemId,
@@ -23,4 +27,16 @@ final class MaterialReducerRecipeOutput{
 	public function getItemId() : int{ return $this->itemId; }
 
 	public function getCount() : int{ return $this->count; }
+
+	public static function decode(ByteBufferReader $in) : self{
+		$outputItemId = VarInt::readSignedInt($in);
+		$outputItemCount = VarInt::readSignedInt($in);
+
+		return new self($outputItemId, $outputItemCount);
+	}
+
+	public function encode(ByteBufferWriter $out) : void{
+		VarInt::writeSignedInt($out, $this->itemId);
+		VarInt::writeSignedInt($out, $this->count);
+	}
 }

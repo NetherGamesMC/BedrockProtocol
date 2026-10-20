@@ -14,23 +14,14 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\skin;
 
-final class PersonaSkinPiece{
+use Ramsey\Uuid\UuidInterface;
 
-	public const PIECE_TYPE_PERSONA_BODY = "persona_body";
-	public const PIECE_TYPE_PERSONA_BOTTOM = "persona_bottom";
-	public const PIECE_TYPE_PERSONA_EYES = "persona_eyes";
-	public const PIECE_TYPE_PERSONA_FACIAL_HAIR = "persona_facial_hair";
-	public const PIECE_TYPE_PERSONA_FEET = "persona_feet";
-	public const PIECE_TYPE_PERSONA_HAIR = "persona_hair";
-	public const PIECE_TYPE_PERSONA_MOUTH = "persona_mouth";
-	public const PIECE_TYPE_PERSONA_SKELETON = "persona_skeleton";
-	public const PIECE_TYPE_PERSONA_SKIN = "persona_skin";
-	public const PIECE_TYPE_PERSONA_TOP = "persona_top";
+final class PersonaSkinPiece{
 
 	public function __construct(
 		private string $pieceId,
-		private string $pieceType,
-		private string $packId,
+		private PersonaSkinPieceType $pieceType,
+		private UuidInterface $packId,
 		private bool $isDefaultPiece,
 		private string $productId
 	){}
@@ -39,11 +30,11 @@ final class PersonaSkinPiece{
 		return $this->pieceId;
 	}
 
-	public function getPieceType() : string{
+	public function getPieceType() : PersonaSkinPieceType{
 		return $this->pieceType;
 	}
 
-	public function getPackId() : string{
+	public function getPackId() : UuidInterface{
 		return $this->packId;
 	}
 

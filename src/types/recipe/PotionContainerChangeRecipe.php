@@ -14,6 +14,10 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
+use pmmp\encoding\ByteBufferReader;
+use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\VarInt;
+
 class PotionContainerChangeRecipe{
 	public function __construct(
 		private int $inputItemId,
@@ -31,5 +35,19 @@ class PotionContainerChangeRecipe{
 
 	public function getOutputItemId() : int{
 		return $this->outputItemId;
+	}
+
+	public static function decode(ByteBufferReader $in) : self{
+		$input = VarInt::readSignedInt($in);
+		$ingredient = VarInt::readSignedInt($in);
+		$output = VarInt::readSignedInt($in);
+
+		return new self($input, $ingredient, $output);
+	}
+
+	public function encode(ByteBufferWriter $out) : void{
+		VarInt::writeSignedInt($out, $this->inputItemId);
+		VarInt::writeSignedInt($out, $this->ingredientItemId);
+		VarInt::writeSignedInt($out, $this->outputItemId);
 	}
 }

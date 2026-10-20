@@ -14,6 +14,10 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
+use pmmp\encoding\ByteBufferReader;
+use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\VarInt;
+
 class PotionTypeRecipe{
 	public function __construct(
 		private int $inputItemId,
@@ -46,5 +50,32 @@ class PotionTypeRecipe{
 
 	public function getOutputItemMeta() : int{
 		return $this->outputItemMeta;
+	}
+
+	public static function decode(ByteBufferReader $in) : self{
+		$inputId = VarInt::readSignedInt($in);
+		$inputMeta = VarInt::readSignedInt($in);
+		$ingredientId = VarInt::readSignedInt($in);
+		$ingredientMeta = VarInt::readSignedInt($in);
+		$outputId = VarInt::readSignedInt($in);
+		$outputMeta = VarInt::readSignedInt($in);
+
+		return new self(
+			$inputId,
+			$inputMeta,
+			$ingredientId,
+			$ingredientMeta,
+			$outputId,
+			$outputMeta
+		);
+	}
+
+	public function encode(ByteBufferWriter $out) : void{
+		VarInt::writeSignedInt($out, $this->inputItemId);
+		VarInt::writeSignedInt($out, $this->inputItemMeta);
+		VarInt::writeSignedInt($out, $this->ingredientItemId);
+		VarInt::writeSignedInt($out, $this->ingredientItemMeta);
+		VarInt::writeSignedInt($out, $this->outputItemId);
+		VarInt::writeSignedInt($out, $this->outputItemMeta);
 	}
 }

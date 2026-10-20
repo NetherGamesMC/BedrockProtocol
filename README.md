@@ -1,5 +1,5 @@
 # BedrockProtocol
-[![CI](https://github.com/pmmp/BedrockProtocol/actions/workflows/ci.yml/badge.svg)](https://github.com/pmmp/BedrockProtocol/actions/workflows/ci.yml)
+[![CI](https://github.com/NetherGamesMC/BedrockProtocol/actions/workflows/ci.yml/badge.svg)](https://github.com/NetherGamesMC/BedrockProtocol/actions/workflows/ci.yml)
 
 An implementation of the Minecraft: Bedrock Edition protocol in PHP
 

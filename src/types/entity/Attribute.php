@@ -14,17 +14,15 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\entity;
 
+/**
+ * Spec name: SyncedAttribute
+ */
 final class Attribute{
-	/**
-	 * @param AttributeModifier[] $modifiers
-	 */
 	public function __construct(
 		private string $id,
 		private float $min,
 		private float $max,
-		private float $current,
-		private float $default,
-		private array $modifiers
+		private float $current
 	){}
 
 	public function getId() : string{
@@ -42,13 +40,4 @@ final class Attribute{
 	public function getCurrent() : float{
 		return $this->current;
 	}
-
-	public function getDefault() : float{
-		return $this->default;
-	}
-
-	/**
-	 * @return AttributeModifier[]
-	 */
-	public function getModifiers() : array{ return $this->modifiers; }
 }

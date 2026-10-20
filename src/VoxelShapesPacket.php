@@ -76,6 +76,9 @@ class VoxelShapesPacket extends DataPacket implements ClientboundPacket{
 		$this->nameMap = [];
 		for($i = 0, $namesCount = VarInt::readUnsignedInt($in); $i < $namesCount; ++$i){
 			$name = CommonTypes::getString($in);
+			if(isset($this->nameMap[$name])){
+				throw new PacketDecodeException("Repeated shape name \"$name\"");
+			}
 			$id = LE::readUnsignedShort($in);
 			$this->nameMap[$name] = $id;
 		}

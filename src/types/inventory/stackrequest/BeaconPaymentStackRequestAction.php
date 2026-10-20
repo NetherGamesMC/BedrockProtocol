@@ -21,6 +21,7 @@ use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 
 /**
  * Completes a transaction involving a beacon consuming input to produce effects.
+ * Spec name: ItemStackRequestBeaconPaymentAction
  */
 final class BeaconPaymentStackRequestAction extends ItemStackRequestAction{
 	use GetTypeIdFromConstTrait;

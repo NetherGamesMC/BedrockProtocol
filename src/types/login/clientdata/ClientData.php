@@ -94,6 +94,9 @@ final class ClientData{
 	/** >= ProtocolInfo::PROTOCOL_1_21_40 */
 	public int $MemoryTier;
 
+	/** >= ProtocolInfo::PROTOCOL_1_26_40 */
+	public string $Nonce = ""; //sometimes the client doesn't send it, apparently
+
 	public bool $OverrideSkin;
 
 	public string $PartyId;
@@ -131,6 +134,9 @@ final class ClientData{
 
 	/** @required */
 	public bool $PremiumSkin = false;
+
+	/** >= ProtocolInfo::PROTOCOL_1_26_40 */
+	public string $ProfileHash = "";
 
 	/** @required */
 	public string $SelfSignedId;

@@ -11,14 +11,47 @@
  */
 
 declare(strict_types=1);
-
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
-final class ItemDescriptorType{
+use pocketmine\network\mcpe\protocol\types\PacketOrdinalEnumTrait;
 
-	public const INT_ID_META = 1;
-	public const MOLANG = 2;
-	public const TAG = 3;
-	public const STRING_ID_META = 4;
-	public const COMPLEX_ALIAS = 5;
+enum ItemDescriptorType : string{
+	use PacketOrdinalEnumTrait;
+
+	case EMPTY = "empty";
+	case STRING_ID_META = "name";
+	case MOLANG = "molang";
+	case TAG = "item_tag";
+
+	/**
+	 * Only used by protocols older than 1.26.40.
+	 * These must stay after the cases above so their ordinals don't shift the ones used on the wire.
+	 */
+	case INT_ID_META = "int_id_meta";
+	case COMPLEX_ALIAS = "complex_alias";
+
+	/**
+	 * Type IDs used on the wire before 1.26.40.
+	 */
+	private const LEGACY_IDS = [
+		"empty" => 0,
+		"int_id_meta" => 1,
+		"molang" => 2,
+		"item_tag" => 3,
+		"name" => 4,
+		"complex_alias" => 5,
+	];
+
+	public function toLegacyId() : int{
+		return self::LEGACY_IDS[$this->value];
+	}
+
+	public static function tryFromLegacyId(int $id) : ?self{
+		foreach(self::LEGACY_IDS as $value => $legacyId){
+			if($legacyId === $id){
+				return self::from($value);
+			}
+		}
+		return null;
+	}
 }

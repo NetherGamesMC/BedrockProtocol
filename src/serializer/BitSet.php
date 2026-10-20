@@ -15,7 +15,8 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\protocol\serializer;
 
 use pmmp\encoding\Byte;
-use pmmp\encoding\ByteBufferReader;use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\ByteBufferReader;
+use pmmp\encoding\ByteBufferWriter;
 use function array_pad;
 use function array_slice;
 use function array_values;
@@ -138,10 +139,13 @@ class BitSet{
 			$bits = $parts[$currentIndex] >> $currentShift;
 			$nextShift = $currentShift + self::SHIFT;
 			if($nextShift >= self::INT_BITS){
+				//>> is an arithmetic shift, so drop the sign bits it may have copied in before merging the next part
+				$bits &= (1 << (self::INT_BITS - $currentShift)) - 1;
 				$nextShift -= self::INT_BITS;
 				$bits |= ($parts[++$currentIndex] ?? 0) << (self::SHIFT - $nextShift);
 			}
 			$currentShift = $nextShift;
+			$bits &= 0x7f;
 
 			$last = $i + self::SHIFT >= $length;
 			$bits |= $last ? 0 : 0x80;

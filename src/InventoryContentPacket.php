@@ -51,17 +51,17 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		$count = VarInt::readUnsignedInt($in);
 		for($i = 0; $i < $count; ++$i){
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-				$this->items[] = CommonTypes::getNetworkItemStackDescriptor($in);
+				$this->items[] = CommonTypes::getNetworkItemStackDescriptor($in, $protocolId);
 			}else{
-				$this->items[] = CommonTypes::getItemStackWrapper($in);
+				$this->items[] = CommonTypes::getItemStackWrapper($in, $protocolId);
 			}
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_30){
 			$this->containerName = FullContainerName::read($in, $protocolId);
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-				$this->storage = CommonTypes::getNetworkItemStackDescriptor($in);
+				$this->storage = CommonTypes::getNetworkItemStackDescriptor($in, $protocolId);
 			}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
-				$this->storage = CommonTypes::getItemStackWrapper($in);
+				$this->storage = CommonTypes::getItemStackWrapper($in, $protocolId);
 			}else{
 				$this->dynamicContainerSize = VarInt::readUnsignedInt($in);
 			}
@@ -75,17 +75,17 @@ class InventoryContentPacket extends DataPacket implements ClientboundPacket{
 		VarInt::writeUnsignedInt($out, count($this->items));
 		foreach($this->items as $item){
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-				CommonTypes::putNetworkItemStackDescriptor($out, $item);
+				CommonTypes::putNetworkItemStackDescriptor($out, $protocolId, $item);
 			}else{
-				CommonTypes::putItemStackWrapper($out, $item);
+				CommonTypes::putItemStackWrapper($out, $protocolId, $item);
 			}
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_30){
 			$this->containerName->write($out, $protocolId);
 			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-				CommonTypes::putNetworkItemStackDescriptor($out, $this->storage);
+				CommonTypes::putNetworkItemStackDescriptor($out, $protocolId, $this->storage);
 			}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
-				CommonTypes::putItemStackWrapper($out, $this->storage);
+				CommonTypes::putItemStackWrapper($out, $protocolId, $this->storage);
 			}else{
 				VarInt::writeUnsignedInt($out, $this->dynamicContainerSize);
 			}

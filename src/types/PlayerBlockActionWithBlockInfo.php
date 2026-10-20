@@ -20,9 +20,11 @@ use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 /**
- * This is used for PlayerAuthInput packet when the flags include PERFORM_BLOCK_ACTIONS
+ * Legacy (< 1.26.40) representation of a block action carrying block info.
+ *
+ * @deprecated Use {@link PlayerBlockAction} instead. PlayerAuthInputPacket no longer uses this class.
  */
-final class PlayerBlockActionWithBlockInfo implements PlayerBlockAction{
+final class PlayerBlockActionWithBlockInfo{
 	public function __construct(
 		private int $actionType,
 		private BlockPosition $blockPosition,
@@ -31,6 +33,14 @@ final class PlayerBlockActionWithBlockInfo implements PlayerBlockAction{
 		if(!self::isValidActionType($actionType)){
 			throw new \InvalidArgumentException("Invalid action type for " . self::class);
 		}
+	}
+
+	public static function fromBlockAction(PlayerBlockAction $action) : self{
+		return new self($action->getActionType(), $action->getBlockPosition(), $action->getFace());
+	}
+
+	public function toBlockAction() : PlayerBlockAction{
+		return new PlayerBlockAction($this->actionType, $this->blockPosition, $this->face);
 	}
 
 	public function getActionType() : int{ return $this->actionType; }

@@ -17,7 +17,6 @@ namespace pocketmine\network\mcpe\protocol\types\ddui;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
-use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\cereal\DynamicValue;
 use pocketmine\network\mcpe\protocol\types\cereal\DynamicValueType;
@@ -49,7 +48,7 @@ final class DataStoreChange implements DataStoreOperation{
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
 		$property = CommonTypes::getString($in);
-		$updateCount = VarInt::readUnsignedInt($in);
+		$updateCount = LE::readUnsignedInt($in);
 
 		$type = LE::readUnsignedInt($in);
 		$data = DynamicValue::read($in, $type);
@@ -65,7 +64,7 @@ final class DataStoreChange implements DataStoreOperation{
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
 		CommonTypes::putString($out, $this->property);
-		VarInt::writeUnsignedInt($out, $this->updateCount);
+		LE::writeUnsignedInt($out, $this->updateCount);
 
 		//TODO: yucky, we really need to revamp how unions are handled :(
 		$type = $this->data?->getTypeId() ?? DynamicValueType::NULL;

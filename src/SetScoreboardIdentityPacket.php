@@ -48,7 +48,9 @@ class SetScoreboardIdentityPacket extends DataPacket implements ClientboundPacke
 		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
 			$entry = new ScoreboardIdentityPacketEntry();
 			$entry->scoreboardId = VarInt::readSignedLong($in);
-			if($this->type === self::TYPE_REGISTER_IDENTITY){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+				$entry->actorUniqueId = CommonTypes::readOptional($in, CommonTypes::getActorUniqueId(...));
+			}elseif($this->type === self::TYPE_REGISTER_IDENTITY){
 				$entry->actorUniqueId = CommonTypes::getActorUniqueId($in);
 			}
 
@@ -61,7 +63,9 @@ class SetScoreboardIdentityPacket extends DataPacket implements ClientboundPacke
 		VarInt::writeUnsignedInt($out, count($this->entries));
 		foreach($this->entries as $entry){
 			VarInt::writeSignedLong($out, $entry->scoreboardId);
-			if($this->type === self::TYPE_REGISTER_IDENTITY){
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+				CommonTypes::writeOptional($out, $entry->actorUniqueId, CommonTypes::putActorUniqueId(...));
+			}elseif($this->type === self::TYPE_REGISTER_IDENTITY){
 				CommonTypes::putActorUniqueId($out, $entry->actorUniqueId);
 			}
 		}

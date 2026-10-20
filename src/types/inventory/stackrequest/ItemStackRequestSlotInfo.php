@@ -36,13 +36,13 @@ final class ItemStackRequestSlotInfo{
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$containerName = FullContainerName::read($in, $protocolId);
 		$slotId = Byte::readUnsigned($in);
-		$stackId = CommonTypes::readItemStackNetIdVariant($in);
+		$stackId = CommonTypes::readItemStackNetIdVariant($in, $protocolId);
 		return new self($containerName, $slotId, $stackId);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		$this->containerName->write($out, $protocolId);
 		Byte::writeUnsigned($out, $this->slotId);
-		CommonTypes::writeItemStackNetIdVariant($out, $this->stackId);
+		CommonTypes::writeItemStackNetIdVariant($out, $protocolId, $this->stackId);
 	}
 }

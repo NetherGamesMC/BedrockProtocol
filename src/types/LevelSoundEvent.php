@@ -595,6 +595,9 @@ final class LevelSoundEvent{
 	public const BUCKET_EMPTY_LAND_ANIMAL = "bucket.empty.land_animal";
 	public const GEYSER_CONTINUOUS_ERUPTION_START = "geyser_continuous_eruption_start";
 	public const GEYSER_CONTINUOUS_ERUPTION_ACTIVE = "geyser_continuous_eruption_active";
+	public const MOUNT = "mount";
+	public const DISMOUNT = "dismount";
+	public const STRAW_BED_BREAK_LEAVE = "straw_bed.break_leave";
 
 	/**
 	 * @var int[]

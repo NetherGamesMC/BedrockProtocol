@@ -27,6 +27,8 @@ use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
  * This is only used with crafting recipes that have multiple outputs. For recipes with single outputs, it's assumed
  * that the content of the "created item" slot is the only output.
  *
+ * Spec name: ItemStackRequestCreateAction
+ *
  * @see ContainerUIIds::CREATED_OUTPUT
  * @see UIInventorySlotOffset::CREATED_ITEM_OUTPUT
  */

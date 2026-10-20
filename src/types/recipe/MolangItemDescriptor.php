@@ -11,38 +11,43 @@
  */
 
 declare(strict_types=1);
-
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
 use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
+use pmmp\encoding\LE;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 
 final class MolangItemDescriptor implements ItemDescriptor{
-	use GetTypeIdFromConstTrait;
-
-	public const ID = ItemDescriptorType::MOLANG;
 
 	public function __construct(
 		private string $molangExpression,
 		private int $molangVersion
 	){}
 
+	public function getDescriptorType() : ItemDescriptorType{
+		return ItemDescriptorType::MOLANG;
+	}
+
 	public function getMolangExpression() : string{ return $this->molangExpression; }
 
 	public function getMolangVersion() : int{ return $this->molangVersion; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$expression = CommonTypes::getString($in);
-		$version = Byte::readUnsigned($in);
+		$version = $protocolId >= ProtocolInfo::PROTOCOL_1_26_40 ? LE::readUnsignedShort($in) : Byte::readUnsigned($in);
 
 		return new self($expression, $version);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->molangExpression);
-		Byte::writeUnsigned($out, $this->molangVersion);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			LE::writeUnsignedShort($out, $this->molangVersion);
+		}else{
+			Byte::writeUnsigned($out, $this->molangVersion);
+		}
 	}
 }

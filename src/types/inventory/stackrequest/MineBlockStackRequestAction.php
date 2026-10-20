@@ -20,6 +20,9 @@ use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 
+/**
+ * Spec name: ItemStackRequestMineBlockAction
+ */
 final class MineBlockStackRequestAction extends ItemStackRequestAction{
 	use GetTypeIdFromConstTrait;
 
@@ -40,13 +43,13 @@ final class MineBlockStackRequestAction extends ItemStackRequestAction{
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$hotbarSlot = VarInt::readSignedInt($in);
 		$predictedDurability = VarInt::readSignedInt($in);
-		$stackId = CommonTypes::readItemStackNetIdVariant($in);
+		$stackId = CommonTypes::readItemStackNetIdVariant($in, $protocolId);
 		return new self($hotbarSlot, $predictedDurability, $stackId);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		VarInt::writeSignedInt($out, $this->hotbarSlot);
 		VarInt::writeSignedInt($out, $this->predictedDurability);
-		CommonTypes::writeItemStackNetIdVariant($out, $this->stackId);
+		CommonTypes::writeItemStackNetIdVariant($out, $protocolId, $this->stackId);
 	}
 }

@@ -16,6 +16,11 @@ namespace pocketmine\network\mcpe\protocol\types\recipe;
 
 use pmmp\encoding\ByteBufferWriter;
 
+/**
+ * Fork-only legacy base class (removed upstream in 1.26.40): recipes which are sent with a type ID in the single
+ * type-tagged recipe list used before 1.26.40. Only FurnaceRecipe still uses it, since it needs the type ID to
+ * distinguish ENTRY_FURNACE from ENTRY_FURNACE_DATA.
+ */
 abstract class RecipeWithTypeId{
 	protected function __construct(
 		private int $typeId

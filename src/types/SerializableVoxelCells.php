@@ -23,7 +23,8 @@ use function count;
 final class SerializableVoxelCells{
 
 	/**
-	 * @param list<int> $storage
+	 * @param int[] $storage
+	 * @phpstan-param list<int> $storage
 	 */
 	public function __construct(
 		private int $xSize,
@@ -39,7 +40,8 @@ final class SerializableVoxelCells{
 	public function getZSize() : int{ return $this->zSize; }
 
 	/**
-	 * @return list<int>
+	 * @return int[]
+	 * @phpstan-return list<int>
 	 */
 	public function getStorage() : array{ return $this->storage; }
 

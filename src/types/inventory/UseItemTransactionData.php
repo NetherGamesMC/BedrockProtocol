@@ -102,9 +102,9 @@ class UseItemTransactionData extends TransactionData{
 		}
 		$this->hotbarSlot = VarInt::readSignedInt($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			$this->itemInHand = CommonTypes::getNetworkItemStackDescriptor($in);
+			$this->itemInHand = CommonTypes::getNetworkItemStackDescriptor($in, $protocolId);
 		}else{
-			$this->itemInHand = CommonTypes::getItemStackWrapper($in);
+			$this->itemInHand = CommonTypes::getItemStackWrapper($in, $protocolId);
 		}
 		$this->playerPosition = CommonTypes::getVector3($in);
 		$this->clickPosition = CommonTypes::getVector3($in);
@@ -138,9 +138,9 @@ class UseItemTransactionData extends TransactionData{
 		}
 		VarInt::writeSignedInt($out, $this->hotbarSlot);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			CommonTypes::putNetworkItemStackDescriptor($out, $this->itemInHand);
+			CommonTypes::putNetworkItemStackDescriptor($out, $protocolId, $this->itemInHand);
 		}else{
-			CommonTypes::putItemStackWrapper($out, $this->itemInHand);
+			CommonTypes::putItemStackWrapper($out, $protocolId, $this->itemInHand);
 		}
 		CommonTypes::putVector3($out, $this->playerPosition);
 		CommonTypes::putVector3($out, $this->clickPosition);
@@ -190,6 +190,7 @@ class UseItemTransactionData extends TransactionData{
 
 	/**
 	 * @param NetworkInventoryAction[] $actions
+	 * @phpstan-param list<NetworkInventoryAction> $actions
 	 */
 	public static function new(array $actions, int $actionType, TriggerType $triggerType, BlockPosition $blockPosition, int $face, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $playerPosition, Vector3 $clickPosition, int $blockRuntimeId, PredictedResult $clientInteractPrediction, int $clientCooldownState) : self{
 		$result = self::initSelf($actionType, $triggerType, $blockPosition, $face, $hotbarSlot, $itemInHand, $playerPosition, $clickPosition, $blockRuntimeId, $clientInteractPrediction, $clientCooldownState);

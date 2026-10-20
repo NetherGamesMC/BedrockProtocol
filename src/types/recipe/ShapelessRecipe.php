@@ -23,7 +23,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use Ramsey\Uuid\UuidInterface;
 use function count;
 
-final class ShapelessRecipe extends RecipeWithTypeId{
+final class ShapelessRecipe{
 	/**
 	 * @param RecipeIngredient[] $inputs
 	 * @param ItemStack[]        $outputs
@@ -31,18 +31,15 @@ final class ShapelessRecipe extends RecipeWithTypeId{
 	 * @phpstan-param list<ItemStack> $outputs
 	 */
 	public function __construct(
-		int $typeId,
 		private string $recipeId,
 		private array $inputs,
 		private array $outputs,
 		private UuidInterface $uuid,
 		private string $blockName,
 		private int $priority,
-		private RecipeUnlockingRequirement $unlockingRequirement,
+		private ?RecipeUnlockingRequirement $unlockingRequirement,
 		private int $recipeNetId
-	){
-		parent::__construct($typeId);
-	}
+	){}
 
 	public function getRecipeId() : string{
 		return $this->recipeId;
@@ -76,51 +73,58 @@ final class ShapelessRecipe extends RecipeWithTypeId{
 		return $this->priority;
 	}
 
-	public function getUnlockingRequirement() : RecipeUnlockingRequirement{ return $this->unlockingRequirement; }
+	public function getUnlockingRequirement() : ?RecipeUnlockingRequirement{ return $this->unlockingRequirement; }
 
 	public function getRecipeNetId() : int{
 		return $this->recipeNetId;
 	}
 
-	public static function decode(int $recipeType, ByteBufferReader $in, int $protocolId) : self{
+	public static function decode(ByteBufferReader $in, int $protocolId) : self{
 		$recipeId = CommonTypes::getString($in);
 		$input = [];
 		for($j = 0, $ingredientCount = VarInt::readUnsignedInt($in); $j < $ingredientCount; ++$j){
-			$input[] = CommonTypes::getRecipeIngredient($in);
+			$input[] = CommonTypes::getRecipeIngredient($in, $protocolId);
 		}
 		$output = [];
 		for($k = 0, $resultCount = VarInt::readUnsignedInt($in); $k < $resultCount; ++$k){
-			$output[] = CommonTypes::getItemStackWithoutStackId($in);
+			$output[] = CommonTypes::getItemStackWithoutStackId($in, $protocolId);
 		}
 		$uuid = CommonTypes::getUUID($in);
 		$block = CommonTypes::getString($in);
 		$priority = VarInt::readSignedInt($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_0){
-			$unlockingRequirement = RecipeUnlockingRequirement::read($in);
+		$unlockingRequirement = null;
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$unlockingRequirement = CommonTypes::readOptional($in, static fn(ByteBufferReader $in) => RecipeUnlockingRequirement::read($in, $protocolId));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_0){
+			$unlockingRequirement = RecipeUnlockingRequirement::read($in, $protocolId);
 		}
 
 		$recipeNetId = CommonTypes::readRecipeNetId($in);
 
-		return new self($recipeType, $recipeId, $input, $output, $uuid, $block, $priority, $unlockingRequirement ?? new RecipeUnlockingRequirement(null), $recipeNetId);
+		return new self($recipeId, $input, $output, $uuid, $block, $priority, $unlockingRequirement, $recipeNetId);
 	}
 
 	public function encode(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->recipeId);
 		VarInt::writeUnsignedInt($out, count($this->inputs));
 		foreach($this->inputs as $item){
-			CommonTypes::putRecipeIngredient($out, $item);
+			CommonTypes::putRecipeIngredient($out, $protocolId, $item);
 		}
 
 		VarInt::writeUnsignedInt($out, count($this->outputs));
 		foreach($this->outputs as $item){
-			CommonTypes::putItemStackWithoutStackId($out, $item);
+			CommonTypes::putItemStackWithoutStackId($out, $protocolId, $item);
 		}
 
 		CommonTypes::putUUID($out, $this->uuid);
 		CommonTypes::putString($out, $this->blockName);
 		VarInt::writeSignedInt($out, $this->priority);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_0){
-			$this->unlockingRequirement->write($out);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			CommonTypes::writeOptional($out, $this->unlockingRequirement, static fn(ByteBufferWriter $out, RecipeUnlockingRequirement $data) => $data->write($out, $protocolId));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_21_0){
+			//the requirement isn't optional on this wire format: no requirement is written as ALWAYS_UNLOCKED, which
+			//is what the old API's `new RecipeUnlockingRequirement(null)` used to encode to
+			($this->unlockingRequirement ?? new RecipeUnlockingRequirement(RecipeUnlockingContext::ALWAYS_UNLOCKED, null))->write($out, $protocolId);
 		}
 
 		CommonTypes::writeRecipeNetId($out, $this->recipeNetId);

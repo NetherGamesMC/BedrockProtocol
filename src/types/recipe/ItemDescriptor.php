@@ -11,7 +11,6 @@
  */
 
 declare(strict_types=1);
-
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
 use pmmp\encoding\ByteBufferWriter;
@@ -20,7 +19,7 @@ use pmmp\encoding\ByteBufferWriter;
  * Describes what items are accepted in a recipe input.
  */
 interface ItemDescriptor{
-	public function getTypeId() : int;
+	public function getDescriptorType() : ItemDescriptorType;
 
-	public function write(ByteBufferWriter $out) : void;
+	public function write(ByteBufferWriter $out, int $protocolId) : void;
 }

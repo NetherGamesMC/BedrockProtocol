@@ -14,9 +14,11 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\inventory;
 
+use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 final class CreativeGroupEntry{
@@ -32,16 +34,20 @@ final class CreativeGroupEntry{
 
 	public function getIcon() : ItemStack{ return $this->icon; }
 
-	public static function read(ByteBufferReader $in) : self{
-		$categoryId = LE::readSignedInt($in);
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
+		$categoryId = $protocolId >= ProtocolInfo::PROTOCOL_1_26_40 ? Byte::readUnsigned($in) : LE::readSignedInt($in);
 		$categoryName = CommonTypes::getString($in);
-		$icon = CommonTypes::getItemStackWithoutStackId($in);
+		$icon = CommonTypes::getItemStackWithoutStackId($in, $protocolId);
 		return new self($categoryId, $categoryName, $icon);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
-		LE::writeSignedInt($out, $this->categoryId);
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			Byte::writeUnsigned($out, $this->categoryId);
+		}else{
+			LE::writeSignedInt($out, $this->categoryId);
+		}
 		CommonTypes::putString($out, $this->categoryName);
-		CommonTypes::putItemStackWithoutStackId($out, $this->icon);
+		CommonTypes::putItemStackWithoutStackId($out, $protocolId, $this->icon);
 	}
 }

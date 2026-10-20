@@ -21,6 +21,7 @@ use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 /**
  * Tells that the current transaction involves crafting an item in a way that isn't supported by the current system.
  * At the time of writing, this includes using anvils.
+ * Spec name: ItemStackRequestCraftNonImplementedDeprecatedAction
  */
 final class DeprecatedCraftingNonImplementedStackRequestAction extends ItemStackRequestAction{
 	use GetTypeIdFromConstTrait;

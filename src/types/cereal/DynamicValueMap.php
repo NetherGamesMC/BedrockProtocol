@@ -18,6 +18,7 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
+use pocketmine\network\mcpe\protocol\PacketDecodeException;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 use function count;
@@ -46,6 +47,9 @@ final class DynamicValueMap extends DynamicValue{
 
 		for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; $i++){
 			$key = CommonTypes::getString($in);
+			if(isset($value[$key])){
+				throw new PacketDecodeException("Duplicate key $key");
+			}
 			//YIKES! unchecked recursion ?!?!?! thank god this never gets sent by the client...
 			$type = LE::readUnsignedInt($in);
 			$value[$key] = DynamicValue::read($in, $type);

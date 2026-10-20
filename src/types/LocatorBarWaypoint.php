@@ -66,7 +66,7 @@ final class LocatorBarWaypoint{
 		}else{
 			$textureId = CommonTypes::readOptional($in, LE::readUnsignedInt(...));
 		}
-		$color = CommonTypes::readOptional($in, fn() => Color::fromARGB(LE::readUnsignedInt($in)));
+		$color = CommonTypes::readOptional($in, CommonTypes::readColor(...));
 		$clientPositionAuthority = CommonTypes::readOptional($in, CommonTypes::getBool(...));
 		$actorUniqueId = CommonTypes::readOptional($in, CommonTypes::getActorUniqueId(...));
 
@@ -93,7 +93,7 @@ final class LocatorBarWaypoint{
 		}else{
 			CommonTypes::writeOptional($out, $this->textureId, LE::writeUnsignedInt(...));
 		}
-		CommonTypes::writeOptional($out, $this->color, fn(ByteBufferWriter $out, Color $v) => LE::writeUnsignedInt($out, $v->toARGB()));
+		CommonTypes::writeOptional($out, $this->color, CommonTypes::writeColor(...));
 		CommonTypes::writeOptional($out, $this->clientPositionAuthority, CommonTypes::putBool(...));
 		CommonTypes::writeOptional($out, $this->actorUniqueId, CommonTypes::putActorUniqueId(...));
 	}

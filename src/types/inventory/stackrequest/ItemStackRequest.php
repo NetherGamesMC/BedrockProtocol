@@ -21,13 +21,14 @@ use pmmp\encoding\DataDecodeException;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\PacketDecodeException;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use function count;
 
 final class ItemStackRequest{
 	/**
 	 * @param ItemStackRequestAction[] $actions
 	 * @param string[]                 $filterStrings
+	 * @phpstan-param list<ItemStackRequestAction> $actions
 	 * @phpstan-param list<string> $filterStrings
 	 */
 	public function __construct(
@@ -39,7 +40,10 @@ final class ItemStackRequest{
 
 	public function getRequestId() : int{ return $this->requestId; }
 
-	/** @return ItemStackRequestAction[] */
+	/**
+	 * @return ItemStackRequestAction[]
+	 * @phpstan-return list<ItemStackRequestAction>
+	 */
 	public function getActions() : array{ return $this->actions; }
 
 	/**
@@ -82,30 +86,39 @@ final class ItemStackRequest{
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$requestId = CommonTypes::readItemStackRequestId($in);
-		$actions = [];
-		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$typeId = Byte::readUnsigned($in);
-			$actions[] = self::readAction($in, $protocolId, $typeId);
-		}
-		$filterStrings = [];
-		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-			$filterStrings[] = CommonTypes::getString($in);
-		}
+		$actions = CommonTypes::readList($in, static function(ByteBufferReader $in) use ($protocolId) : ItemStackRequestAction{
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+				$typeId = VarInt::readUnsignedInt($in);
+				$innerTypeId = Byte::readUnsigned($in);
+				$expectedInnerType = ItemStackRequestActionType::INNER_TYPES[$typeId] ?? "unknown";
+				if($expectedInnerType !== $innerTypeId){
+					throw new PacketDecodeException("ItemStackRequestAction type mismatch: outer type $typeId, expected inner type $expectedInnerType, actual inner type $innerTypeId");
+				}
+			}else{
+				$legacyTypeId = Byte::readUnsigned($in);
+				$typeId = ItemStackRequestActionType::fromLegacyId($legacyTypeId) ?? throw new PacketDecodeException("Unhandled item stack request action type $legacyTypeId");
+			}
+			return self::readAction($in, $protocolId, $typeId);
+		});
+		$filterStrings = CommonTypes::readList($in, CommonTypes::getString(...));
 		$filterStringCause = LE::readSignedInt($in);
 		return new self($requestId, $actions, $filterStrings, $filterStringCause);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeItemStackRequestId($out, $this->requestId);
-		VarInt::writeUnsignedInt($out, count($this->actions));
-		foreach($this->actions as $action){
-			Byte::writeUnsigned($out, $action->getTypeId());
+		CommonTypes::writeList($out, $this->actions, static function(ByteBufferWriter $out, ItemStackRequestAction $action) use ($protocolId) : void{
+			$typeId = $action->getTypeId();
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+				$innerTypeId = ItemStackRequestActionType::INNER_TYPES[$typeId] ?? throw new \InvalidArgumentException("Item stack request action type $typeId is not supported by protocol $protocolId");
+				VarInt::writeUnsignedInt($out, $typeId);
+				Byte::writeUnsigned($out, $innerTypeId);
+			}else{
+				Byte::writeUnsigned($out, ItemStackRequestActionType::toLegacyId($typeId) ?? throw new \InvalidArgumentException("Item stack request action type $typeId is not supported by protocol $protocolId"));
+			}
 			$action->write($out, $protocolId);
-		}
-		VarInt::writeUnsignedInt($out, count($this->filterStrings));
-		foreach($this->filterStrings as $string){
-			CommonTypes::putString($out, $string);
-		}
+		});
+		CommonTypes::writeList($out, $this->filterStrings, CommonTypes::putString(...));
 		LE::writeSignedInt($out, $this->filterStringCause);
 	}
 }

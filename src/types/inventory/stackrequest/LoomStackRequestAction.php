@@ -23,6 +23,7 @@ use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 
 /**
  * Apply a pattern to a banner using a loom.
+ * Spec name: ItemStackRequestCraftLoomAction
  */
 final class LoomStackRequestAction extends ItemStackRequestAction{
 	use GetTypeIdFromConstTrait;

@@ -16,7 +16,16 @@ namespace pocketmine\network\mcpe\protocol\types;
 
 use pmmp\encoding\ByteBufferWriter;
 
-final class PlayerBlockActionStopBreak implements PlayerBlockAction{
+/**
+ * Legacy (< 1.26.40) representation of a STOP_BREAK block action, which carried no block info.
+ *
+ * @deprecated Use {@link PlayerBlockAction::stopBreak()} instead. PlayerAuthInputPacket no longer uses this class.
+ */
+final class PlayerBlockActionStopBreak{
+
+	public function toBlockAction() : PlayerBlockAction{
+		return PlayerBlockAction::stopBreak();
+	}
 
 	public function getActionType() : int{
 		return PlayerAction::STOP_BREAK;

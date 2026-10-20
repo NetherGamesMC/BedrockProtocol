@@ -15,16 +15,24 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\protocol\types;
 
 class ScorePacketEntry{
+	/*
+	 * Legacy (<= 1.26.30) per-entry type IDs. Use $action (ScorePacketEntryAction) instead; SetScorePacket converts
+	 * between the two when encoding/decoding older protocols.
+	 */
+	/** @deprecated use ScorePacketEntryAction::CHANGE_PLAYER */
 	public const TYPE_PLAYER = 1;
+	/** @deprecated use ScorePacketEntryAction::CHANGE_ENTITY */
 	public const TYPE_ENTITY = 2;
+	/** @deprecated use ScorePacketEntryAction::CHANGE_FAKE_PLAYER */
 	public const TYPE_FAKE_PLAYER = 3;
 
 	public int $scoreboardId;
-	public string $objectiveName;
-	public int $score;
-	public int $type;
-	/** @var int|null (if type entity or player) */
-	public ?int $actorUniqueId;
-	/** @var string|null (if type fake player) */
-	public ?string $customName;
+	/** @var string|null (optional for remove action) */
+	public ?string $objectiveName;
+	public int $score = 0;
+	public ScorePacketEntryAction $action;
+	/** @var int|null (if action entity or player) */
+	public ?int $actorUniqueId = null;
+	/** @var string|null (if action fake player) */
+	public ?string $customName = null;
 }

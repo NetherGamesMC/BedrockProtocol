@@ -18,15 +18,27 @@ use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
+use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
+/**
+ * Spec name: DimensionDefinition
+ */
 final class DimensionData{
+
+	/** >= ProtocolInfo::PROTOCOL_1_26_40 (nil UUID for older protocols) */
+	private UuidInterface $packId;
 
 	public function __construct(
 		private int $maxHeight,
 		private int $minHeight,
 		private int $generator,
 		private int $dimensionType,
-	){}
+		?UuidInterface $packId = null
+	){
+		$this->packId = $packId ?? Uuid::fromString(Uuid::NIL);
+	}
 
 	public function getMaxHeight() : int{ return $this->maxHeight; }
 
@@ -36,6 +48,8 @@ final class DimensionData{
 
 	public function getDimensionType() : int{ return $this->dimensionType; }
 
+	public function getPackId() : UuidInterface{ return $this->packId; }
+
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$maxHeight = VarInt::readSignedInt($in);
 		$minHeight = VarInt::readSignedInt($in);
@@ -43,8 +57,11 @@ final class DimensionData{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
 			$dimensionType = VarInt::readSignedInt($in);
 		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$packId = CommonTypes::getUUID($in);
+		}
 
-		return new self($maxHeight, $minHeight, $generator, $dimensionType ?? DimensionIds::OVERWORLD);
+		return new self($maxHeight, $minHeight, $generator, $dimensionType ?? DimensionIds::OVERWORLD, $packId ?? null);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
@@ -53,6 +70,9 @@ final class DimensionData{
 		VarInt::writeSignedInt($out, $this->generator);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
 			VarInt::writeSignedInt($out, $this->dimensionType);
+		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			CommonTypes::putUUID($out, $this->packId);
 		}
 	}
 }

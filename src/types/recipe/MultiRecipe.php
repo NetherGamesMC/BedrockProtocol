@@ -19,7 +19,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use Ramsey\Uuid\UuidInterface;
 
-final class MultiRecipe extends RecipeWithTypeId{
+final class MultiRecipe{
 
 	public const TYPE_REPAIR_ITEM = "00000000-0000-0000-0000-000000000001";
 	public const TYPE_MAP_EXTENDING = "D392B075-4BA1-40AE-8789-AF868D56F6CE";
@@ -35,12 +35,9 @@ final class MultiRecipe extends RecipeWithTypeId{
 	public const TYPE_MAP_LOCKING_CARTOGRAPHY = "602234E4-CAC1-4353-8BB7-B1EBFF70024B";
 
 	public function __construct(
-		int $typeId,
 		private UuidInterface $recipeId,
 		private int $recipeNetId
-	){
-		parent::__construct($typeId);
-	}
+	){}
 
 	public function getRecipeId() : UuidInterface{
 		return $this->recipeId;
@@ -50,13 +47,13 @@ final class MultiRecipe extends RecipeWithTypeId{
 		return $this->recipeNetId;
 	}
 
-	public static function decode(int $typeId, ByteBufferReader $in) : self{
+	public static function decode(ByteBufferReader $in) : self{
 		$uuid = CommonTypes::getUUID($in);
 		$recipeNetId = CommonTypes::readRecipeNetId($in);
-		return new self($typeId, $uuid, $recipeNetId);
+		return new self($uuid, $recipeNetId);
 	}
 
-	public function encode(ByteBufferWriter $out, int $protocolId) : void{
+	public function encode(ByteBufferWriter $out) : void{
 		CommonTypes::putUUID($out, $this->recipeId);
 		CommonTypes::writeRecipeNetId($out, $this->recipeNetId);
 	}

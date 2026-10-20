@@ -23,20 +23,29 @@ use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
  * @see ServerPresenceInfoPacket&ServerJoinInformation
  */
 final class PresenceInfo{
+	/**
+	 * @param string|null $richPresenceId  >= 1.26.30 (optional since 1.26.40; written as "" for 1.26.30 when null)
+	 * @param string|null $experienceName  <= 1.26.30 only (removed in 1.26.40; required before 1.26.30)
+	 * @param string|null $worldName       <= 1.26.30 only (removed in 1.26.40; required before 1.26.30)
+	 */
 	public function __construct(
-		private ?string $experienceName,
-		private ?string $worldName,
-		private string $richPresenceId
+		private ?string $richPresenceId,
+		private ?string $experienceName = null,
+		private ?string $worldName = null
 	){}
 
+	public function getRichPresenceId() : ?string{ return $this->richPresenceId; }
+
+	/** <= ProtocolInfo::PROTOCOL_1_26_30 */
 	public function getExperienceName() : ?string{ return $this->experienceName; }
 
+	/** <= ProtocolInfo::PROTOCOL_1_26_30 */
 	public function getWorldName() : ?string{ return $this->worldName; }
 
-	public function getRichPresenceId() : string{ return $this->richPresenceId; }
-
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$richPresenceId = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$experienceName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 			$worldName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 			$richPresenceId = CommonTypes::getString($in);
@@ -45,14 +54,16 @@ final class PresenceInfo{
 			$worldName = CommonTypes::getString($in);
 		}
 
-		return new self($experienceName, $worldName, $richPresenceId ?? "");
+		return new self($richPresenceId ?? null, $experienceName ?? null, $worldName ?? null);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			CommonTypes::writeOptional($out, $this->richPresenceId, CommonTypes::putString(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			CommonTypes::writeOptional($out, $this->experienceName, CommonTypes::putString(...));
 			CommonTypes::writeOptional($out, $this->worldName, CommonTypes::putString(...));
-			CommonTypes::putString($out, $this->richPresenceId);
+			CommonTypes::putString($out, $this->richPresenceId ?? "");
 		}else{
 			CommonTypes::putString($out, $this->experienceName ?? throw new \InvalidArgumentException("experienceName must be set"));
 			CommonTypes::putString($out, $this->worldName ?? throw new \InvalidArgumentException("worldName must be set"));

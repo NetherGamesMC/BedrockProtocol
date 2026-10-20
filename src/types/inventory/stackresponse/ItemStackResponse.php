@@ -17,10 +17,13 @@ namespace pocketmine\network\mcpe\protocol\types\inventory\stackresponse;
 use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
-use pmmp\encoding\VarInt;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use function count;
 
+/**
+ * Spec name: ItemStackResponseInfo
+ */
 final class ItemStackResponse{
 
 	public const RESULT_OK = 0;
@@ -29,32 +32,51 @@ final class ItemStackResponse{
 	//to waste my time on right now...
 
 	/**
-	 * @param ItemStackResponseContainerInfo[] $containerInfos
+	 * @var ItemStackResponseContainerInfo[]|null
+	 * @phpstan-var list<ItemStackResponseContainerInfo>|null
+	 */
+	private ?array $containerInfos;
+
+	/**
+	 * Before 1.26.40, container infos are only sent (and always sent) if the result is RESULT_OK; null is written as an
+	 * empty list there.
+	 *
+	 * @param ItemStackResponseContainerInfo[]|null $containerInfos
+	 * @phpstan-param list<ItemStackResponseContainerInfo>|null $containerInfos
 	 */
 	public function __construct(
 		private int $result,
 		private int $requestId,
-		private array $containerInfos = []
+		?array $containerInfos = null
 	){
-		if($this->result !== self::RESULT_OK && count($this->containerInfos) !== 0){
-			throw new \InvalidArgumentException("Container infos must be empty if rejecting the request");
+		if($this->result !== self::RESULT_OK && $containerInfos !== null){
+			if(count($containerInfos) !== 0){
+				throw new \InvalidArgumentException("Container infos must be null if rejecting the request");
+			}
+			$containerInfos = null; //BC: older code passed an empty array
 		}
+		$this->containerInfos = $containerInfos;
 	}
 
 	public function getResult() : int{ return $this->result; }
 
 	public function getRequestId() : int{ return $this->requestId; }
 
-	/** @return ItemStackResponseContainerInfo[] */
-	public function getContainerInfos() : array{ return $this->containerInfos; }
+	/**
+	 * @return ItemStackResponseContainerInfo[]|null
+	 * @phpstan-return list<ItemStackResponseContainerInfo>|null
+	 */
+	public function getContainerInfos() : ?array{ return $this->containerInfos; }
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$result = Byte::readUnsigned($in);
 		$requestId = CommonTypes::readItemStackRequestId($in);
-		$containerInfos = [];
-		if($result === self::RESULT_OK){
-			for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-				$containerInfos[] = ItemStackResponseContainerInfo::read($in, $protocolId);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$containerInfos = CommonTypes::readDoubleOptional($in, static fn(ByteBufferReader $in) : array => CommonTypes::readList($in, static fn(ByteBufferReader $in) => ItemStackResponseContainerInfo::read($in, $protocolId)));
+		}else{
+			$containerInfos = null;
+			if($result === self::RESULT_OK){
+				$containerInfos = CommonTypes::readList($in, static fn(ByteBufferReader $in) => ItemStackResponseContainerInfo::read($in, $protocolId));
 			}
 		}
 		return new self($result, $requestId, $containerInfos);
@@ -63,11 +85,10 @@ final class ItemStackResponse{
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		Byte::writeUnsigned($out, $this->result);
 		CommonTypes::writeItemStackRequestId($out, $this->requestId);
-		if($this->result === self::RESULT_OK){
-			VarInt::writeUnsignedInt($out, count($this->containerInfos));
-			foreach($this->containerInfos as $containerInfo){
-				$containerInfo->write($out, $protocolId);
-			}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			CommonTypes::writeDoubleOptional($out, $this->containerInfos, static fn(ByteBufferWriter $out, array $list) => CommonTypes::writeList($out, $list, static fn(ByteBufferWriter $out, ItemStackResponseContainerInfo $v) => $v->write($out, $protocolId)));
+		}elseif($this->result === self::RESULT_OK){
+			CommonTypes::writeList($out, $this->containerInfos ?? [], static fn(ByteBufferWriter $out, ItemStackResponseContainerInfo $v) => $v->write($out, $protocolId));
 		}
 	}
 }

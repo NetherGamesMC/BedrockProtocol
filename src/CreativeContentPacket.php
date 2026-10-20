@@ -30,7 +30,7 @@ class CreativeContentPacket extends DataPacket implements ClientboundPacket{
 	public const CATEGORY_ITEMS = 4;
 
 	/** @var CreativeGroupEntry[] */
-	private array $groups;
+	private array $groups = [];
 	/** @var CreativeItemEntry[] */
 	private array $items;
 
@@ -56,7 +56,7 @@ class CreativeContentPacket extends DataPacket implements ClientboundPacket{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_60){
 			$this->groups = [];
 			for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
-				$this->groups[] = CreativeGroupEntry::read($in);
+				$this->groups[] = CreativeGroupEntry::read($in, $protocolId);
 			}
 		}
 
@@ -70,7 +70,7 @@ class CreativeContentPacket extends DataPacket implements ClientboundPacket{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_60){
 			VarInt::writeUnsignedInt($out, count($this->groups));
 			foreach($this->groups as $entry){
-				$entry->write($out);
+				$entry->write($out, $protocolId);
 			}
 		}
 

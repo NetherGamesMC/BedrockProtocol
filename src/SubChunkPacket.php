@@ -19,69 +19,81 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use pocketmine\network\mcpe\protocol\types\SubChunkPacketEntryWithCache as EntryWithBlobHash;
-use pocketmine\network\mcpe\protocol\types\SubChunkPacketEntryWithCacheList as ListWithBlobHashes;
-use pocketmine\network\mcpe\protocol\types\SubChunkPacketEntryWithoutCache as EntryWithoutBlobHash;
-use pocketmine\network\mcpe\protocol\types\SubChunkPacketEntryWithoutCacheList as ListWithoutBlobHashes;
+use pocketmine\network\mcpe\protocol\types\SubChunkPacketEntry;
 use pocketmine\network\mcpe\protocol\types\SubChunkPosition;
 use function count;
 
 class SubChunkPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::SUB_CHUNK_PACKET;
 
+	private bool $cacheEnabled;
 	private int $dimension;
 	private SubChunkPosition $baseSubChunkPosition;
-	private ListWithBlobHashes|ListWithoutBlobHashes $entries;
+	/**
+	 * @var SubChunkPacketEntry[]
+	 * @phpstan-var list<SubChunkPacketEntry>
+	 */
+	private array $entries;
 
 	/**
 	 * @generate-create-func
+	 * @param SubChunkPacketEntry[] $entries
+	 * @phpstan-param list<SubChunkPacketEntry> $entries
 	 */
-	public static function create(int $dimension, SubChunkPosition $baseSubChunkPosition, ListWithBlobHashes|ListWithoutBlobHashes $entries) : self{
+	public static function create(bool $cacheEnabled, int $dimension, SubChunkPosition $baseSubChunkPosition, array $entries) : self{
 		$result = new self;
+		$result->cacheEnabled = $cacheEnabled;
 		$result->dimension = $dimension;
 		$result->baseSubChunkPosition = $baseSubChunkPosition;
 		$result->entries = $entries;
 		return $result;
 	}
 
-	public function isCacheEnabled() : bool{ return $this->entries instanceof ListWithBlobHashes; }
+	public function isCacheEnabled() : bool{ return $this->cacheEnabled; }
 
 	public function getDimension() : int{ return $this->dimension; }
 
 	public function getBaseSubChunkPosition() : SubChunkPosition{ return $this->baseSubChunkPosition; }
 
-	public function getEntries() : ListWithBlobHashes|ListWithoutBlobHashes{ return $this->entries; }
+	/**
+	 * @return SubChunkPacketEntry[]
+	 * @phpstan-return list<SubChunkPacketEntry>
+	 */
+	public function getEntries() : array{ return $this->entries; }
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
-		$cacheEnabled = CommonTypes::getBool($in);
+		$this->cacheEnabled = CommonTypes::getBool($in);
 		$this->dimension = VarInt::readSignedInt($in);
-		$this->baseSubChunkPosition = SubChunkPosition::readVarInts($in);
 
-		$count = LE::readUnsignedInt($in);
-		if($cacheEnabled){
-			$entries = [];
-			for($i = 0; $i < $count; $i++){
-				$entries[] = EntryWithBlobHash::read($in, $protocolId);
-			}
-			$this->entries = new ListWithBlobHashes($entries);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$this->baseSubChunkPosition = SubChunkPosition::read($in);
+
+			$this->entries = CommonTypes::readList($in, fn(ByteBufferReader $in) => SubChunkPacketEntry::read($in, $protocolId, $this->cacheEnabled));
 		}else{
-			$entries = [];
-			for($i = 0; $i < $count; $i++){
-				$entries[] = EntryWithoutBlobHash::read($in, $protocolId);
+			$this->baseSubChunkPosition = SubChunkPosition::readVarInts($in);
+
+			$this->entries = [];
+			for($i = 0, $count = LE::readUnsignedInt($in); $i < $count; $i++){
+				$this->entries[] = SubChunkPacketEntry::read($in, $protocolId, $this->cacheEnabled);
 			}
-			$this->entries = new ListWithoutBlobHashes($entries);
 		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
-		CommonTypes::putBool($out, $this->entries instanceof ListWithBlobHashes);
+		CommonTypes::putBool($out, $this->cacheEnabled);
 		VarInt::writeSignedInt($out, $this->dimension);
-		$this->baseSubChunkPosition->writeVarInts($out);
 
-		LE::writeUnsignedInt($out, count($this->entries->getEntries()));
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+			$this->baseSubChunkPosition->write($out);
 
-		foreach($this->entries->getEntries() as $entry){
-			$entry->write($out, $protocolId);
+			CommonTypes::writeList($out, $this->entries, fn(ByteBufferWriter $out, SubChunkPacketEntry $v) => $v->write($out, $protocolId, $this->cacheEnabled));
+		}else{
+			$this->baseSubChunkPosition->writeVarInts($out);
+
+			LE::writeUnsignedInt($out, count($this->entries));
+			foreach($this->entries as $entry){
+				$entry->write($out, $protocolId, $this->cacheEnabled);
+			}
 		}
 	}
 

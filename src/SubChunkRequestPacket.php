@@ -68,7 +68,7 @@ class SubChunkRequestPacket extends DataPacket implements ServerboundPacket{
 		}
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			$this->basePosition = SubChunkPosition::readFixedInts($in);
+			$this->basePosition = SubChunkPosition::read($in);
 		}
 	}
 
@@ -88,7 +88,7 @@ class SubChunkRequestPacket extends DataPacket implements ServerboundPacket{
 		}
 
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			$this->basePosition->writeFixedInts($out);
+			$this->basePosition->write($out);
 		}
 	}
 

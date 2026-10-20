@@ -50,7 +50,7 @@ final class DebugMarkerData{
 				(int) (LE::readFloat($in) * 255)
 			);
 		}else{
-			$color = Color::fromARGB(LE::readUnsignedInt($in));
+			$color = CommonTypes::readColor($in);
 		}
 		$durationMillis = LE::readUnsignedLong($in);
 
@@ -71,7 +71,7 @@ final class DebugMarkerData{
 			LE::writeFloat($out, $this->color->getB() / 255);
 			LE::writeFloat($out, $this->color->getA() / 255);
 		}else{
-			LE::writeUnsignedInt($out, $this->color->toARGB());
+			CommonTypes::writeColor($out, $this->color);
 		}
 		LE::writeUnsignedLong($out, $this->durationMillis);
 	}

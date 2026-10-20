@@ -23,6 +23,7 @@ use pocketmine\network\mcpe\protocol\types\GetTypeIdFromConstTrait;
 
 /**
  * Creates an item by copying it from the creative inventory. This is treated as a crafting action by vanilla.
+ * Spec name: ItemStackRequestCraftCreativeAction
  */
 final class CreativeCreateStackRequestAction extends ItemStackRequestAction{
 	use GetTypeIdFromConstTrait;

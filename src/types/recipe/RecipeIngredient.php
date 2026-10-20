@@ -14,6 +14,9 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\recipe;
 
+/**
+ * The descriptor may be an IntIdMetaItemDescriptor or ComplexAliasItemDescriptor for protocols older than 1.26.40.
+ */
 final class RecipeIngredient{
 	public function __construct(
 		private ?ItemDescriptor $descriptor,
