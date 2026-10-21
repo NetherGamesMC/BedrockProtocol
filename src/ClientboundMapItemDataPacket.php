@@ -69,13 +69,8 @@ class ClientboundMapItemDataPacket extends DataPacket implements ClientboundPack
 		$this->trackedEntities = CommonTypes::readOptional($in, static fn($in) => CommonTypes::readList($in, static function($in){
 			$object = new MapTrackedObject();
 			$object->type = LE::readUnsignedInt($in);
-			if($object->type === MapTrackedObject::TYPE_BLOCK){
-				$object->blockPosition = CommonTypes::getBlockPosition($in);
-			}elseif($object->type === MapTrackedObject::TYPE_ENTITY){
-				$object->actorUniqueId = CommonTypes::getActorUniqueId($in);
-			}else{
-				throw new PacketDecodeException("Unknown map object type $object->type");
-			}
+			$object->actorUniqueId = CommonTypes::readOptional($in, CommonTypes::getActorUniqueId(...));
+			$object->blockPosition = CommonTypes::readOptional($in, CommonTypes::getBlockPosition(...));
 			return $object;
 		}));
 
@@ -124,13 +119,8 @@ class ClientboundMapItemDataPacket extends DataPacket implements ClientboundPack
 
 		CommonTypes::writeOptional($out, $this->trackedEntities, static fn($out, $v) => CommonTypes::writeList($out, $v, static function($out, $object) : void{
 			LE::writeUnsignedInt($out, $object->type);
-			if($object->type === MapTrackedObject::TYPE_BLOCK){
-				CommonTypes::putBlockPosition($out, $object->blockPosition);
-			}elseif($object->type === MapTrackedObject::TYPE_ENTITY){
-				CommonTypes::putActorUniqueId($out, $object->actorUniqueId);
-			}else{
-				throw new \InvalidArgumentException("Unknown map object type $object->type");
-			}
+			CommonTypes::writeOptional($out, $object->actorUniqueId, CommonTypes::putActorUniqueId(...));
+			CommonTypes::writeOptional($out, $object->blockPosition, CommonTypes::putBlockPosition(...));
 		}));
 
 		CommonTypes::writeOptional($out, $this->decorations, static fn($out, $v) => CommonTypes::writeList($out, $v, static function($out, $decoration) : void{

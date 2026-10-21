@@ -52,8 +52,6 @@ final class ItemInteractionData{
 		$requestId = VarInt::readSignedInt($in);
 		$requestChangedSlots = CommonTypes::readOptional($in, static fn($in) => CommonTypes::readList($in, InventoryTransactionChangedSlotsHack::read(...)));
 		$transactionData = new UseItemTransactionData();
-		CommonTypes::readDummyOptional($in);
-		CommonTypes::readDummyOptional($in);
 		$transactionData->decode($in);
 		return new ItemInteractionData($requestId, $requestChangedSlots, $transactionData);
 	}
@@ -61,8 +59,6 @@ final class ItemInteractionData{
 	public function write(ByteBufferWriter $out) : void{
 		VarInt::writeSignedInt($out, $this->requestId);
 		CommonTypes::writeOptional($out, $this->requestChangedSlots, static fn($out, $list) => CommonTypes::writeList($out, $list, static fn($out, $v) => $v->write($out)));
-		CommonTypes::writeDummyOptional($out);
-		CommonTypes::writeDummyOptional($out);
 		$this->transactionData->encode($out);
 	}
 }
