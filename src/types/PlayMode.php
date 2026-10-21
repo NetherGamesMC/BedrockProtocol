@@ -24,14 +24,22 @@ enum PlayMode : int{
 	case TEASER = 1;
 	case SCREEN = 2;
 	case VIEWER = 3;
-	/** @deprecated 1.21.120 */
+	/**
+	 * @deprecated 1.21.120
+	 */
 	case REALITY = 4;
-	/** @deprecated 1.21.120 */
+	/**
+	 * @deprecated 1.21.120
+	 */
 	case PLACEMENT = 5;
-	/** @deprecated 1.21.120 */
+	/**
+	 * @deprecated 1.21.120
+	 */
 	case LIVING_ROOM = 6;
 	case EXIT_LEVEL = 7;
-	/** @deprecated 1.21.120 */
+	/**
+	 * @deprecated 1.21.120
+	 */
 	case EXIT_LEVEL_LIVING_ROOM = 8;
 
 	/**

@@ -21,6 +21,8 @@ enum InputMode : int{
 	case MOUSE_KEYBOARD = 1;
 	case TOUCHSCREEN = 2;
 	case GAME_PAD = 3;
-	/** @deprecated 1.21.120 */
+	/**
+	 * @deprecated 1.21.120
+	 */
 	case MOTION_CONTROLLER = 4;
 }

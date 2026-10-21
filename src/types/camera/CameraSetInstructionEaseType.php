@@ -56,6 +56,8 @@ enum CameraSetInstructionEaseType : string{
 	case IN_ELASTIC = "in_elastic";
 	case OUT_ELASTIC = "out_elastic";
 	case IN_OUT_ELASTIC = "in_out_elastic";
-	/** Has no numeric ID for CameraFovInstruction before 1.26.10. */
+	/**
+	 * Has no numeric ID for CameraFovInstruction before 1.26.10.
+	 */
 	case INVERSE_LERP = "inverse_lerp";
 }
