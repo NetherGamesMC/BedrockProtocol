@@ -25,6 +25,7 @@ use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
+use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use Ramsey\Uuid\UuidInterface;
 use function count;
@@ -42,7 +43,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 	public float $yaw = 0.0;
 	public float $headYaw = 0.0;
 	public ItemStackWrapper $item;
-	public int $gameMode;
+	public GameMode $gameMode;
 	/**
 	 * @var MetadataProperty[]
 	 * @phpstan-var array<int, MetadataProperty>
@@ -74,7 +75,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		float $yaw,
 		float $headYaw,
 		ItemStackWrapper $item,
-		int $gameMode,
+		GameMode $gameMode,
 		array $metadata,
 		PropertySyncData $syncedProperties,
 		AbilitiesData $abilities,
@@ -114,7 +115,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		$this->yaw = LE::readFloat($in);
 		$this->headYaw = LE::readFloat($in);
 		$this->item = CommonTypes::getItemStackWrapper($in, $protocolId);
-		$this->gameMode = VarInt::readSignedInt($in);
+		$this->gameMode = GameMode::fromPacket(VarInt::readSignedInt($in));
 		$this->metadata = CommonTypes::getEntityMetadata($in, $protocolId);
 		$this->syncedProperties = PropertySyncData::read($in);
 
@@ -140,7 +141,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		LE::writeFloat($out, $this->yaw);
 		LE::writeFloat($out, $this->headYaw);
 		CommonTypes::putItemStackWrapper($out, $protocolId, $this->item);
-		VarInt::writeSignedInt($out, $this->gameMode);
+		VarInt::writeSignedInt($out, $this->gameMode->value);
 		CommonTypes::putEntityMetadata($out, $protocolId, $this->metadata);
 		$this->syncedProperties->write($out);
 

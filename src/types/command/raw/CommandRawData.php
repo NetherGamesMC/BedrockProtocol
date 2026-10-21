@@ -68,7 +68,7 @@ final class CommandRawData{
 		$name = CommonTypes::getString($in);
 		$description = CommonTypes::getString($in);
 		$flags = LE::readUnsignedShort($in);
-		$permission = $protocolId >= ProtocolInfo::PROTOCOL_1_21_130 ? CommonTypes::getString($in) : CommandPermissions::toName(Byte::readUnsigned($in));
+		$permission = $protocolId >= ProtocolInfo::PROTOCOL_1_21_130 ? CommonTypes::getString($in) : CommandPermissions::fromOrdinal(Byte::readUnsigned($in))->value;
 		$aliasEnumIndex = LE::readSignedInt($in); //may be -1 for not set
 
 		$chainedSubCommandDataIndexes = [];
@@ -101,7 +101,7 @@ final class CommandRawData{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_130){
 			CommonTypes::putString($out, $this->permission);
 		}else{
-			Byte::writeUnsigned($out, CommandPermissions::fromName($this->permission));
+			Byte::writeUnsigned($out, (CommandPermissions::tryFrom($this->permission) ?? throw new \InvalidArgumentException("Invalid command permission \"$this->permission\""))->toOrdinal());
 		}
 		LE::writeSignedInt($out, $this->aliasEnumIndex);
 

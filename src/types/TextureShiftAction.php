@@ -17,10 +17,12 @@ namespace pocketmine\network\mcpe\protocol\types;
 /**
  * @see ClientboundTextureShiftPacket
  */
-final class TextureShiftAction{
-	public const INVALID = 0;
-	public const INITIALIZE = 1;
-	public const START = 2;
-	public const SET_ENABLED = 3;
-	public const SYNC = 4;
+enum TextureShiftAction : int{
+	use PacketIntEnumTrait;
+
+	case INVALID = 0;
+	case INITIALIZE = 1;
+	case START = 2;
+	case SET_ENABLED = 3;
+	case SYNC = 4;
 }

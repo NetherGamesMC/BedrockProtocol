@@ -19,41 +19,32 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use function is_int;
 
 final class CameraProgressOption{
-
-	/** @see CameraSetInstructionEaseType */
-	private string $easeType;
 
 	public function __construct(
 		private float $value,
 		private float $time,
-		int|string $easeType,
-	){
-		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::toName($easeType) : $easeType;
-	}
+		private CameraSetInstructionEaseType $easeType,
+	){}
 
 	public function getValue() : float{ return $this->value; }
 
 	public function getTime() : float{ return $this->time; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : string{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$value = LE::readFloat($in);
 		$time = LE::readFloat($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			$easeType = CommonTypes::getString($in);
+			$easeType = CameraSetInstructionEaseType::fromPacket(CommonTypes::getString($in));
 		}
 
 		return new self(
 			$value,
 			$time,
-			$easeType ?? ""
+			$easeType ?? CameraSetInstructionEaseType::LINEAR //not sent before 1.26.0
 		);
 	}
 
@@ -61,7 +52,7 @@ final class CameraProgressOption{
 		LE::writeFloat($out, $this->value);
 		LE::writeFloat($out, $this->time);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			CommonTypes::putString($out, $this->easeType);
+			CommonTypes::putString($out, $this->easeType->value);
 		}
 	}
 }

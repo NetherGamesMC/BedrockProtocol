@@ -20,41 +20,32 @@ use pmmp\encoding\LE;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
-use function is_int;
 
 final class CameraRotationOption{
-
-	/** @see CameraSetInstructionEaseType */
-	private string $easeType;
 
 	public function __construct(
 		private Vector3 $value,
 		private float $time,
-		int|string $easeType,
-	){
-		$this->easeType = is_int($easeType) ? CameraSetInstructionEaseType::toName($easeType) : $easeType;
-	}
+		private CameraSetInstructionEaseType $easeType,
+	){}
 
 	public function getValue() : Vector3{ return $this->value; }
 
 	public function getTime() : float{ return $this->time; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : string{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$value = CommonTypes::getVector3($in);
 		$time = LE::readFloat($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			$ease = CommonTypes::getString($in);
+			$ease = CameraSetInstructionEaseType::fromPacket(CommonTypes::getString($in));
 		}
 
 		return new self(
 			$value,
 			$time,
-			$ease ?? ""
+			$ease ?? CameraSetInstructionEaseType::LINEAR //not sent before 1.26.0
 		);
 	}
 
@@ -62,7 +53,7 @@ final class CameraRotationOption{
 		CommonTypes::putVector3($out, $this->value);
 		LE::writeFloat($out, $this->time);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
-			CommonTypes::putString($out, $this->easeType);
+			CommonTypes::putString($out, $this->easeType->value);
 		}
 	}
 }

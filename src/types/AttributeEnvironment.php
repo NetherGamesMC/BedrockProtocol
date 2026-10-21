@@ -19,6 +19,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\camera\CameraSetInstructionEaseType;
 
 /**
  * @see AttributeLayer&AttributesUpdateEnvironment
@@ -32,7 +33,7 @@ final class AttributeEnvironment{
 		private ?AttributeValue $toAttribute,
 		private int $currentTransitionTicks,
 		private int $totalTransitionTicks,
-		private string $easeType,
+		private CameraSetInstructionEaseType $easeType,
 		private int $localTransitionTicks,
 		private bool $noiseTransition,
 		/** >= ProtocolInfo::PROTOCOL_1_26_50 */
@@ -51,10 +52,7 @@ final class AttributeEnvironment{
 
 	public function getTotalTransitionTicks() : int{ return $this->totalTransitionTicks; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : string{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	public function getLocalTransitionTicks() : int{ return $this->localTransitionTicks; }
 
@@ -69,7 +67,7 @@ final class AttributeEnvironment{
 		$toAttribute = CommonTypes::readOptional($in, AttributeValue::read(...));
 		$currentTransitionTicks = LE::readUnsignedInt($in);
 		$totalTransitionTicks = LE::readUnsignedInt($in);
-		$easeType = CommonTypes::getString($in);
+		$easeType = CameraSetInstructionEaseType::fromPacket(CommonTypes::getString($in));
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$localTransitionTicks = LE::readUnsignedInt($in);
 			$noiseTransition = CommonTypes::getBool($in);
@@ -94,12 +92,12 @@ final class AttributeEnvironment{
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
-		CommonTypes::writeOptional($out, $this->fromAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->write($out));
-		$this->attribute->write($out);
-		CommonTypes::writeOptional($out, $this->toAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->write($out));
+		CommonTypes::writeOptional($out, $this->fromAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->writeWithType($out));
+		$this->attribute->writeWithType($out);
+		CommonTypes::writeOptional($out, $this->toAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->writeWithType($out));
 		LE::writeUnsignedInt($out, $this->currentTransitionTicks);
 		LE::writeUnsignedInt($out, $this->totalTransitionTicks);
-		CommonTypes::putString($out, $this->easeType);
+		CommonTypes::putString($out, $this->easeType->value);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			LE::writeUnsignedInt($out, $this->localTransitionTicks);
 			CommonTypes::putBool($out, $this->noiseTransition);

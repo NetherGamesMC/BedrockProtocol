@@ -23,15 +23,14 @@ use pocketmine\network\mcpe\protocol\types\GameMode;
 class UpdatePlayerGameTypePacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::UPDATE_PLAYER_GAME_TYPE_PACKET;
 
-	/** @see GameMode */
-	private int $gameMode;
+	private GameMode $gameMode;
 	private int $playerActorUniqueId;
 	private int $tick;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(int $gameMode, int $playerActorUniqueId, int $tick) : self{
+	public static function create(GameMode $gameMode, int $playerActorUniqueId, int $tick) : self{
 		$result = new self;
 		$result->gameMode = $gameMode;
 		$result->playerActorUniqueId = $playerActorUniqueId;
@@ -39,14 +38,14 @@ class UpdatePlayerGameTypePacket extends DataPacket implements ClientboundPacket
 		return $result;
 	}
 
-	public function getGameMode() : int{ return $this->gameMode; }
+	public function getGameMode() : GameMode{ return $this->gameMode; }
 
 	public function getPlayerActorUniqueId() : int{ return $this->playerActorUniqueId; }
 
 	public function getTick() : int{ return $this->tick; }
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
-		$this->gameMode = VarInt::readSignedInt($in);
+		$this->gameMode = GameMode::fromPacket(VarInt::readSignedInt($in));
 		$this->playerActorUniqueId = CommonTypes::getActorUniqueId($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
 			$this->tick = VarInt::readUnsignedLong($in);
@@ -56,7 +55,7 @@ class UpdatePlayerGameTypePacket extends DataPacket implements ClientboundPacket
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
-		VarInt::writeSignedInt($out, $this->gameMode);
+		VarInt::writeSignedInt($out, $this->gameMode->value);
 		CommonTypes::putActorUniqueId($out, $this->playerActorUniqueId);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
 			VarInt::writeUnsignedLong($out, $this->tick);

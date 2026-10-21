@@ -27,14 +27,13 @@ class AgentActionEventPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::AGENT_ACTION_EVENT_PACKET;
 
 	private string $requestId;
-	/** @see AgentActionType */
-	private int $action;
+	private AgentActionType $action;
 	private string $responseJson;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(string $requestId, int $action, string $responseJson) : self{
+	public static function create(string $requestId, AgentActionType $action, string $responseJson) : self{
 		$result = new self;
 		$result->requestId = $requestId;
 		$result->action = $action;
@@ -44,20 +43,19 @@ class AgentActionEventPacket extends DataPacket implements ClientboundPacket{
 
 	public function getRequestId() : string{ return $this->requestId; }
 
-	/** @see AgentActionType */
-	public function getAction() : int{ return $this->action; }
+	public function getAction() : AgentActionType{ return $this->action; }
 
 	public function getResponseJson() : string{ return $this->responseJson; }
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->requestId = CommonTypes::getString($in);
-		$this->action = LE::readUnsignedInt($in);
+		$this->action = AgentActionType::fromPacket(LE::readUnsignedInt($in));
 		$this->responseJson = CommonTypes::getString($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->requestId);
-		LE::writeUnsignedInt($out, $this->action);
+		LE::writeUnsignedInt($out, $this->action->value);
 		CommonTypes::putString($out, $this->responseJson);
 	}
 

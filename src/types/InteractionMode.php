@@ -14,12 +14,10 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types;
 
-final class InteractionMode{
-	private function __construct(){
-		//NOOP
-	}
+enum InteractionMode : int{
+	use PacketIntEnumTrait;
 
-	public const TOUCH = 0;
-	public const CROSSHAIR = 1;
-	public const CLASSIC = 2; //???
+	case TOUCH = 0;
+	case CROSSHAIR = 1;
+	case CLASSIC = 2; //???
 }

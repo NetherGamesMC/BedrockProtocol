@@ -17,24 +17,26 @@ namespace pocketmine\network\mcpe\protocol\types;
 /**
  * Enum used by PlayerAuthInputPacket. Most of these names don't make any sense, but that isn't surprising.
  */
-final class PlayMode{
+enum PlayMode : int{
+	use PacketIntEnumTrait;
 
-	private function __construct(){
-		//NOOP
-	}
+	case NORMAL = 0;
+	case TEASER = 1;
+	case SCREEN = 2;
+	case VIEWER = 3;
+	/** @deprecated 1.21.120 */
+	case REALITY = 4;
+	/** @deprecated 1.21.120 */
+	case PLACEMENT = 5;
+	/** @deprecated 1.21.120 */
+	case LIVING_ROOM = 6;
+	case EXIT_LEVEL = 7;
+	/** @deprecated 1.21.120 */
+	case EXIT_LEVEL_LIVING_ROOM = 8;
 
-	public const NORMAL = 0;
-	public const TEASER = 1;
-	public const SCREEN = 2;
-	public const VIEWER = 3;
-	/** @deprecated 1.21.120 */
-	public const VR = 4;
-	/** @deprecated 1.21.120 */
-	public const PLACEMENT = 5;
-	/** @deprecated 1.21.120 */
-	public const LIVING_ROOM = 6;
-	public const EXIT_LEVEL = 7;
-	/** @deprecated 1.21.120 */
-	public const EXIT_LEVEL_LIVING_ROOM = 8;
-
+	/**
+	 * Fork alias kept for BC with the former int constant name.
+	 * @deprecated 1.21.120
+	 */
+	public const VR = self::REALITY;
 }

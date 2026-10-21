@@ -14,28 +14,25 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types;
 
-final class AgentActionType{
+enum AgentActionType : int{
+	use PacketIntEnumTrait;
 
-	private function __construct(){
-		//NOOP
-	}
-
-	public const ATTACK = 1;
-	public const COLLECT = 2;
-	public const DESTROY = 3;
-	public const DETECT_REDSTONE = 4;
-	public const DETECT_OBSTACLE = 5;
-	public const DROP = 6;
-	public const DROP_ALL = 7;
-	public const INSPECT = 8;
-	public const INSPECT_DATA = 9;
-	public const INSPECT_ITEM_COUNT = 10;
-	public const INSPECT_ITEM_DETAIL = 11;
-	public const INSPECT_ITEM_SPACE = 12;
-	public const INTERACT = 13;
-	public const MOVE = 14;
-	public const PLACE_BLOCK = 15;
-	public const TILL = 16;
-	public const TRANSFER_ITEM_TO = 17;
-	public const TURN = 18;
+	case ATTACK = 1;
+	case COLLECT = 2;
+	case DESTROY = 3;
+	case DETECT_REDSTONE = 4;
+	case DETECT_OBSTACLE = 5;
+	case DROP = 6;
+	case DROP_ALL = 7;
+	case INSPECT = 8;
+	case INSPECT_DATA = 9;
+	case INSPECT_ITEM_COUNT = 10;
+	case INSPECT_ITEM_DETAIL = 11;
+	case INSPECT_ITEM_SPACE = 12;
+	case INTERACT = 13;
+	case MOVE = 14;
+	case PLACE_BLOCK = 15;
+	case TILL = 16;
+	case TRANSFER_ITEM_TO = 17;
+	case TURN = 18;
 }

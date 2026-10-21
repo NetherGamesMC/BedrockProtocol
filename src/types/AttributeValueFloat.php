@@ -36,6 +36,8 @@ final class AttributeValueFloat extends AttributeValue{
 	public function __construct(
 		private float $value,
 		private string $operation,
+		private ?float $constraintMin = null,
+		private ?float $constraintMax = null,
 	){}
 
 	public function getTypeId() : int{
@@ -46,18 +48,28 @@ final class AttributeValueFloat extends AttributeValue{
 
 	public function getOperation() : string{ return $this->operation; }
 
+	public function getConstraintMin() : ?float{ return $this->constraintMin; }
+
+	public function getConstraintMax() : ?float{ return $this->constraintMax; }
+
 	public static function read(ByteBufferReader $in) : self{
 		$value = LE::readFloat($in);
 		$operation = CommonTypes::getString($in);
+		$constraintMin = CommonTypes::readOptional($in, LE::readFloat(...));
+		$constraintMax = CommonTypes::readOptional($in, LE::readFloat(...));
 
 		return new self(
 			$value,
-			$operation
+			$operation,
+			$constraintMin,
+			$constraintMax
 		);
 	}
 
 	public function write(ByteBufferWriter $out) : void{
 		LE::writeFloat($out, $this->value);
 		CommonTypes::putString($out, $this->operation);
+		CommonTypes::writeOptional($out, $this->constraintMin, LE::writeFloat(...));
+		CommonTypes::writeOptional($out, $this->constraintMax, LE::writeFloat(...));
 	}
 }

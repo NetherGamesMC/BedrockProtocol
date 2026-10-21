@@ -17,14 +17,11 @@ namespace pocketmine\network\mcpe\protocol\types;
 /**
  * List of supported compression algorithms for compressing packet batches.
  */
-final class CompressionAlgorithm{
+enum CompressionAlgorithm : int{
+	use PacketIntEnumTrait;
 
-	private function __construct(){
-		//NOOP
-	}
+	case ZLIB = 0;
+	case SNAPPY = 1;
 
-	public const ZLIB = 0;
-	public const SNAPPY = 1;
-
-	public const NONE = 255;
+	case NONE = 255;
 }

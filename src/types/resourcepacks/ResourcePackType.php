@@ -14,19 +14,18 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\resourcepacks;
 
-final class ResourcePackType{
+use pocketmine\network\mcpe\protocol\types\PacketIntEnumTrait;
 
-	private function __construct(){
-		//NOOP
-	}
+enum ResourcePackType : int{
+	use PacketIntEnumTrait;
 
-	public const INVALID = 0;
-	public const ADDON = 1;
-	public const CACHED = 2;
-	public const COPY_PROTECTED = 3;
-	public const BEHAVIORS = 4;
-	public const PERSONA_PIECE = 5;
-	public const RESOURCES = 6;
-	public const SKINS = 7;
-	public const WORLD_TEMPLATE = 8;
+	case INVALID = 0;
+	case ADDON = 1;
+	case CACHED = 2;
+	case COPY_PROTECTED = 3;
+	case BEHAVIORS = 4;
+	case PERSONA_PIECE = 5;
+	case RESOURCES = 6;
+	case SKINS = 7;
+	case WORLD_TEMPLATE = 8;
 }

@@ -20,31 +20,28 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\ResourcePackClientResponseStatus;
 use function count;
 
 class ResourcePackClientResponsePacket extends DataPacket implements ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::RESOURCE_PACK_CLIENT_RESPONSE_PACKET;
 
-	/*
-	 * These hold the >= 1.26.40 values. Protocols <= 1.26.30 used the same statuses shifted up by one
-	 * (REFUSED = 1 ... COMPLETED = 4), see LEGACY_STATUS_OFFSET.
+	/** @deprecated use {@link ResourcePackClientResponseStatus::REFUSED} */
+	public const STATUS_REFUSED = ResourcePackClientResponseStatus::REFUSED;
+	/** @deprecated use {@link ResourcePackClientResponseStatus::SEND_PACKS} */
+	public const STATUS_SEND_PACKS = ResourcePackClientResponseStatus::SEND_PACKS;
+	/** @deprecated use {@link ResourcePackClientResponseStatus::HAVE_ALL_PACKS} */
+	public const STATUS_HAVE_ALL_PACKS = ResourcePackClientResponseStatus::HAVE_ALL_PACKS;
+	/** @deprecated use {@link ResourcePackClientResponseStatus::COMPLETED} */
+	public const STATUS_COMPLETED = ResourcePackClientResponseStatus::COMPLETED;
+
+	/**
+	 * >= 1.26.40 sends the status ordinal (REFUSED = 0 ... COMPLETED = 3). Protocols <= 1.26.30 used the same statuses
+	 * shifted up by one (REFUSED = 1 ... COMPLETED = 4).
 	 */
-	public const STATUS_REFUSED = 0;
-	public const STATUS_SEND_PACKS = 1;
-	public const STATUS_HAVE_ALL_PACKS = 2;
-	public const STATUS_COMPLETED = 3;
-
-	private const INNER_TYPES = [
-		self::STATUS_REFUSED => "cancel",
-		self::STATUS_SEND_PACKS => "downloading",
-		self::STATUS_HAVE_ALL_PACKS => "downloadingfinished",
-		self::STATUS_COMPLETED => "resourcepackstackfinished"
-	];
-
-	/** legacy (<= 1.26.30) wire status = status + LEGACY_STATUS_OFFSET */
 	private const LEGACY_STATUS_OFFSET = 1;
 
-	public int $status;
+	public ResourcePackClientResponseStatus $status;
 	/** @var string[] */
 	public array $packIds = [];
 
@@ -52,7 +49,7 @@ class ResourcePackClientResponsePacket extends DataPacket implements Serverbound
 	 * @generate-create-func
 	 * @param string[] $packIds
 	 */
-	public static function create(int $status, array $packIds) : self{
+	public static function create(ResourcePackClientResponseStatus $status, array $packIds) : self{
 		$result = new self;
 		$result->status = $status;
 		$result->packIds = $packIds;
@@ -61,21 +58,20 @@ class ResourcePackClientResponsePacket extends DataPacket implements Serverbound
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-			$this->status = VarInt::readUnsignedInt($in);
+			$this->status = ResourcePackClientResponseStatus::fromOrdinal(VarInt::readUnsignedInt($in));
 			$innerType = CommonTypes::getString($in);
-			$expectedInnerType = self::INNER_TYPES[$this->status] ?? "unknown";
-			if($innerType !== $expectedInnerType){
-				throw new PacketDecodeException("Unexpected inner type $innerType for resource pack client response status $this->status, expected $expectedInnerType");
+			if($innerType !== $this->status->value){
+				throw new PacketDecodeException("Unexpected inner type $innerType for resource pack client response status {$this->status->name}, expected {$this->status->value}");
 			}
 
-			if($this->status === self::STATUS_SEND_PACKS){
+			if($this->status === ResourcePackClientResponseStatus::SEND_PACKS){
 				$this->packIds = [];
 				for($i = 0, $count = VarInt::readUnsignedInt($in); $i < $count; ++$i){
 					$this->packIds[] = CommonTypes::getString($in);
 				}
 			}
 		}else{
-			$this->status = Byte::readUnsigned($in) - self::LEGACY_STATUS_OFFSET;
+			$this->status = ResourcePackClientResponseStatus::fromOrdinal(Byte::readUnsigned($in) - self::LEGACY_STATUS_OFFSET);
 			$entryCount = LE::readUnsignedShort($in);
 			$this->packIds = [];
 			while($entryCount-- > 0){
@@ -86,19 +82,16 @@ class ResourcePackClientResponsePacket extends DataPacket implements Serverbound
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-			VarInt::writeUnsignedInt($out, $this->status);
-			if(!isset(self::INNER_TYPES[$this->status])){
-				throw new \LogicException("Unknown resource pack client response status $this->status");
-			}
-			CommonTypes::putString($out, self::INNER_TYPES[$this->status]);
-			if($this->status === self::STATUS_SEND_PACKS){
+			VarInt::writeUnsignedInt($out, $this->status->toOrdinal());
+			CommonTypes::putString($out, $this->status->value);
+			if($this->status === ResourcePackClientResponseStatus::SEND_PACKS){
 				VarInt::writeUnsignedInt($out, count($this->packIds));
 				foreach($this->packIds as $id){
 					CommonTypes::putString($out, $id);
 				}
 			}
 		}else{
-			Byte::writeUnsigned($out, $this->status + self::LEGACY_STATUS_OFFSET);
+			Byte::writeUnsigned($out, $this->status->toOrdinal() + self::LEGACY_STATUS_OFFSET);
 			LE::writeUnsignedShort($out, count($this->packIds));
 			foreach($this->packIds as $id){
 				CommonTypes::putString($out, $id);

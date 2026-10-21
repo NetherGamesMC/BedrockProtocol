@@ -14,15 +14,15 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types;
 
-class BossBarColor{
+enum BossBarColor : int{
+	use PacketIntEnumTrait;
 
-	public const PINK = 0;
-	public const BLUE = 1;
-	public const RED = 2;
-	public const GREEN = 3;
-	public const YELLOW = 4;
-	public const PURPLE = 5;
-	public const REBECCA_PURPLE = 6;
-	public const WHITE = 7;
-
+	case PINK = 0;
+	case BLUE = 1;
+	case RED = 2;
+	case GREEN = 3;
+	case YELLOW = 4;
+	case PURPLE = 5;
+	case REBECCA_PURPLE = 6;
+	case WHITE = 7;
 }

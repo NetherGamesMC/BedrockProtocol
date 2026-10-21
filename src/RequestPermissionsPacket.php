@@ -37,14 +37,13 @@ class RequestPermissionsPacket extends DataPacket implements ServerboundPacket{
 	public const FLAG_TELEPORT = 1 << 7;
 
 	private int $targetActorUniqueId;
-	/** @see PlayerPermissions */
-	private int $playerPermission;
+	private PlayerPermissions $playerPermission;
 	private int $customFlags;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(int $targetActorUniqueId, int $playerPermission, int $customFlags) : self{
+	public static function create(int $targetActorUniqueId, PlayerPermissions $playerPermission, int $customFlags) : self{
 		$result = new self;
 		$result->targetActorUniqueId = $targetActorUniqueId;
 		$result->playerPermission = $playerPermission;
@@ -54,20 +53,19 @@ class RequestPermissionsPacket extends DataPacket implements ServerboundPacket{
 
 	public function getTargetActorUniqueId() : int{ return $this->targetActorUniqueId; }
 
-	/** @see PlayerPermissions */
-	public function getPlayerPermission() : int{ return $this->playerPermission; }
+	public function getPlayerPermission() : PlayerPermissions{ return $this->playerPermission; }
 
 	public function getCustomFlags() : int{ return $this->customFlags; }
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->targetActorUniqueId = LE::readSignedLong($in);
-		$this->playerPermission = VarInt::readSignedInt($in);
+		$this->playerPermission = PlayerPermissions::fromPacket(VarInt::readSignedInt($in));
 		$this->customFlags = LE::readUnsignedShort($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		LE::writeSignedLong($out, $this->targetActorUniqueId);
-		VarInt::writeSignedInt($out, $this->playerPermission);
+		VarInt::writeSignedInt($out, $this->playerPermission->value);
 		LE::writeUnsignedShort($out, $this->customFlags);
 	}
 

@@ -26,8 +26,23 @@ abstract class AttributeValue{
 
 	abstract public function getTypeId() : int;
 
+	/**
+	 * Writes the value payload only, without the type ID. Use {@link AttributeValue::writeWithType()} to write a value
+	 * that can be decoded by {@link AttributeValue::read()}.
+	 */
 	abstract public function write(ByteBufferWriter $out) : void;
 
+	/**
+	 * Writes the type ID followed by the value payload. This is the counterpart of {@link AttributeValue::read()}.
+	 */
+	final public function writeWithType(ByteBufferWriter $out) : void{
+		VarInt::writeUnsignedInt($out, $this->getTypeId());
+		$this->write($out);
+	}
+
+	/**
+	 * Reads the type ID followed by the value payload.
+	 */
 	public static function read(ByteBufferReader $in) : self{
 		return match(VarInt::readUnsignedInt($in)){
 			AttributeValueBool::ID => AttributeValueBool::read($in),

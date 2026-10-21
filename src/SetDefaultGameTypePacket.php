@@ -17,27 +17,28 @@ namespace pocketmine\network\mcpe\protocol;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
+use pocketmine\network\mcpe\protocol\types\GameMode;
 
 class SetDefaultGameTypePacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::SET_DEFAULT_GAME_TYPE_PACKET;
 
-	public int $gamemode;
+	public GameMode $gamemode;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(int $gamemode) : self{
+	public static function create(GameMode $gamemode) : self{
 		$result = new self;
 		$result->gamemode = $gamemode;
 		return $result;
 	}
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
-		$this->gamemode = VarInt::readSignedInt($in);
+		$this->gamemode = GameMode::fromPacket(VarInt::readSignedInt($in));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
-		VarInt::writeSignedInt($out, $this->gamemode);
+		VarInt::writeSignedInt($out, $this->gamemode->value);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

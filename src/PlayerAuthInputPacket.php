@@ -44,9 +44,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 	private float $moveVecX;
 	private float $moveVecZ;
 	private BitSet $inputFlags;
-	private int $inputMode;
-	private int $playMode;
-	private int $interactionMode;
+	private InputMode $inputMode;
+	private PlayMode $playMode;
+	private InteractionMode $interactionMode;
 	private ?Vector3 $vrGazeDirection = null;
 	private Vector2 $interactRotation;
 	private int $tick;
@@ -77,9 +77,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		float $moveVecX,
 		float $moveVecZ,
 		BitSet $inputFlags,
-		int $inputMode,
-		int $playMode,
-		int $interactionMode,
+		InputMode $inputMode,
+		PlayMode $playMode,
+		InteractionMode $interactionMode,
 		?Vector3 $vrGazeDirection,
 		Vector2 $interactRotation,
 		int $tick,
@@ -121,9 +121,6 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 
 	/**
 	 * @param BitSet                   $inputFlags @see PlayerAuthInputFlags
-	 * @param int                      $inputMode @see InputMode
-	 * @param int                      $playMode @see PlayMode
-	 * @param int                      $interactionMode @see InteractionMode
 	 * @param PlayerBlockAction[]|null $blockActions Blocks that the client has interacted with
 	 * @phpstan-param list<PlayerBlockAction>|null $blockActions
 	 */
@@ -135,9 +132,9 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		float $moveVecX,
 		float $moveVecZ,
 		BitSet $inputFlags,
-		int $inputMode,
-		int $playMode,
-		int $interactionMode,
+		InputMode $inputMode,
+		PlayMode $playMode,
+		InteractionMode $interactionMode,
 		?Vector3 $vrGazeDirection,
 		Vector2 $interactRotation,
 		int $tick,
@@ -155,7 +152,7 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 			throw new \InvalidArgumentException("Input flags must be " . PlayerAuthInputFlags::NUMBER_OF_FLAGS . " bits long");
 		}
 
-		if($playMode === PlayMode::VR and $vrGazeDirection === null){
+		if($playMode === PlayMode::REALITY and $vrGazeDirection === null){
 			//yuck, can we get a properly written packet just once? ...
 			throw new \InvalidArgumentException("Gaze direction must be provided for VR play mode");
 		}
@@ -223,24 +220,15 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		return $this->inputFlags;
 	}
 
-	/**
-	 * @see InputMode
-	 */
-	public function getInputMode() : int{
+	public function getInputMode() : InputMode{
 		return $this->inputMode;
 	}
 
-	/**
-	 * @see PlayMode
-	 */
-	public function getPlayMode() : int{
+	public function getPlayMode() : PlayMode{
 		return $this->playMode;
 	}
 
-	/**
-	 * @see InteractionMode
-	 */
-	public function getInteractionMode() : int{
+	public function getInteractionMode() : InteractionMode{
 		return $this->interactionMode;
 	}
 
@@ -316,12 +304,12 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 				}
 			}
 		}
-		$this->inputMode = VarInt::readUnsignedInt($in);
-		$this->playMode = VarInt::readUnsignedInt($in);
-		$this->interactionMode = $protocolId >= ProtocolInfo::PROTOCOL_1_26_40 ? VarInt::readSignedInt($in) : VarInt::readUnsignedInt($in);
+		$this->inputMode = InputMode::fromPacket(VarInt::readUnsignedInt($in));
+		$this->playMode = PlayMode::fromPacket(VarInt::readUnsignedInt($in));
+		$this->interactionMode = InteractionMode::fromPacket($protocolId >= ProtocolInfo::PROTOCOL_1_26_40 ? VarInt::readSignedInt($in) : VarInt::readUnsignedInt($in));
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
 			$this->interactRotation = CommonTypes::getVector2($in);
-		}elseif($this->playMode === PlayMode::VR){
+		}elseif($this->playMode === PlayMode::REALITY){
 			$this->vrGazeDirection = CommonTypes::getVector3($in);
 		}
 		$this->tick = VarInt::readUnsignedLong($in);
@@ -407,16 +395,16 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 			}
 			$inputFlags->write($out, self::getLegacyInputFlagsLength($protocolId));
 		}
-		VarInt::writeUnsignedInt($out, $this->inputMode);
-		VarInt::writeUnsignedInt($out, $this->playMode);
+		VarInt::writeUnsignedInt($out, $this->inputMode->value);
+		VarInt::writeUnsignedInt($out, $this->playMode->value);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-			VarInt::writeSignedInt($out, $this->interactionMode);
+			VarInt::writeSignedInt($out, $this->interactionMode->value);
 		}else{
-			VarInt::writeUnsignedInt($out, $this->interactionMode);
+			VarInt::writeUnsignedInt($out, $this->interactionMode->value);
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_40){
 			CommonTypes::putVector2($out, $this->interactRotation);
-		}elseif($this->playMode === PlayMode::VR){
+		}elseif($this->playMode === PlayMode::REALITY){
 			assert($this->vrGazeDirection !== null);
 			CommonTypes::putVector3($out, $this->vrGazeDirection);
 		}

@@ -20,34 +20,32 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use function count;
 
 final class CameraSplineInstruction{
 
 	/**
-	 * @see CameraSetInstructionEaseType
-	 *
 	 * @param Vector3[] $curve
 	 * @param CameraProgressOption[] $progressKeyFrames
 	 * @param CameraRotationOption[] $rotationOptions
 	 */
 	public function __construct(
 		private float $totalTime,
-		private int $easeType,
+		private CameraSetInstructionEaseType $easeType,
 		private array $curve,
 		private array $progressKeyFrames,
 		private array $rotationOptions,
+		/** >= ProtocolInfo::PROTOCOL_1_26_0 */
 		private string $splineIdentifier,
+		/** >= ProtocolInfo::PROTOCOL_1_26_0 */
 		private bool $loadFromJson
 	){}
 
 	public function getTotalTime() : float{ return $this->totalTime; }
 
-	/**
-	 * @see CameraSetInstructionEaseType
-	 */
-	public function getEaseType() : int{ return $this->easeType; }
+	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
 
 	/**
 	 * @return Vector3[]
@@ -70,7 +68,7 @@ final class CameraSplineInstruction{
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$totalTime = LE::readFloat($in);
-		$easeType = Byte::readUnsigned($in);
+		$easeType = CameraSetInstructionEaseType::fromOrdinal(Byte::readUnsigned($in));
 
 		$curve = [];
 		$curveCount = VarInt::readUnsignedInt($in);
@@ -90,15 +88,17 @@ final class CameraSplineInstruction{
 			$rotationOptions[] = CameraRotationOption::read($in, $protocolId);
 		}
 
-		$splineIdentifier = CommonTypes::getString($in);
-		$loadFromJson = CommonTypes::getBool($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+			$splineIdentifier = CommonTypes::getString($in);
+			$loadFromJson = CommonTypes::getBool($in);
+		}
 
-		return new self($totalTime, $easeType, $curve, $progressKeyFrames, $rotationOptions, $splineIdentifier, $loadFromJson);
+		return new self($totalTime, $easeType, $curve, $progressKeyFrames, $rotationOptions, $splineIdentifier ?? "", $loadFromJson ?? false);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		LE::writeFloat($out, $this->totalTime);
-		Byte::writeUnsigned($out, $this->easeType);
+		Byte::writeUnsigned($out, $this->easeType->toOrdinal());
 
 		VarInt::writeUnsignedInt($out, count($this->curve));
 		foreach($this->curve as $point){
@@ -115,7 +115,9 @@ final class CameraSplineInstruction{
 			$option->write($out, $protocolId);
 		}
 
-		CommonTypes::putString($out, $this->splineIdentifier);
-		CommonTypes::putBool($out, $this->loadFromJson);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_0){
+			CommonTypes::putString($out, $this->splineIdentifier);
+			CommonTypes::putBool($out, $this->loadFromJson);
+		}
 	}
 }
