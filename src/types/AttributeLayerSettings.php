@@ -19,6 +19,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\PacketDecodeException;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 
 /**
@@ -41,13 +42,18 @@ final class AttributeLayerSettings{
 
 	public function isTransitionsPaused() : bool{ return $this->transitionsPaused; }
 
-	public static function read(ByteBufferReader $in) : self{
+	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$priority = LE::readSignedInt($in);
-		$weight = match (VarInt::readUnsignedInt($in)){
-			AttributeLayerSettingsWeightFloat::ID => AttributeLayerSettingsWeightFloat::read($in),
-			AttributeLayerSettingsWeightString::ID => AttributeLayerSettingsWeightString::read($in),
-			default => throw new PacketDecodeException("Unknown AttributeLayerSettingsWeight type"),
-		};
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			//the weight is always a float since 1.26.20
+			$weight = AttributeLayerSettingsWeightFloat::read($in);
+		}else{
+			$weight = match (VarInt::readUnsignedInt($in)){
+				AttributeLayerSettingsWeightFloat::ID => AttributeLayerSettingsWeightFloat::read($in),
+				AttributeLayerSettingsWeightString::ID => AttributeLayerSettingsWeightString::read($in),
+				default => throw new PacketDecodeException("Unknown AttributeLayerSettingsWeight type"),
+			};
+		}
 		$enabled = CommonTypes::getBool($in);
 		$transitionsPaused = CommonTypes::getBool($in);
 
@@ -59,9 +65,15 @@ final class AttributeLayerSettings{
 		);
 	}
 
-	public function write(ByteBufferWriter $out) : void{
+	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		LE::writeSignedInt($out, $this->priority);
-		VarInt::writeUnsignedInt($out, $this->weight->getTypeId());
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+			if(!$this->weight instanceof AttributeLayerSettingsWeightFloat){
+				throw new \InvalidArgumentException("Only float weights are supported since 1.26.20");
+			}
+		}else{
+			VarInt::writeUnsignedInt($out, $this->weight->getTypeId());
+		}
 		$this->weight->write($out);
 		CommonTypes::putBool($out, $this->enabled);
 		CommonTypes::putBool($out, $this->transitionsPaused);

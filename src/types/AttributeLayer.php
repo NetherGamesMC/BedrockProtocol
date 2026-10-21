@@ -58,7 +58,7 @@ final class AttributeLayer{
 			$noiseName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		}
 		$dimension = VarInt::readUnsignedInt($in);
-		$settings = AttributeLayerSettings::read($in);
+		$settings = AttributeLayerSettings::read($in, $protocolId);
 
 		$attributes = [];
 		for($i = 0, $len = VarInt::readUnsignedInt($in); $i < $len; ++$i){
@@ -80,7 +80,7 @@ final class AttributeLayer{
 			CommonTypes::writeOptional($out, $this->noiseName, CommonTypes::putString(...));
 		}
 		VarInt::writeUnsignedInt($out, $this->dimension);
-		$this->settings->write($out);
+		$this->settings->write($out, $protocolId);
 
 		VarInt::writeUnsignedInt($out, count($this->attributes));
 		foreach($this->attributes as $attribute){

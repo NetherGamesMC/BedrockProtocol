@@ -42,7 +42,7 @@ class ClientboundAttributeLayerSyncPacket extends DataPacket implements Clientbo
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->payload = match(VarInt::readUnsignedInt($in)){
 			AttributeUpdateLayers::ID => AttributeUpdateLayers::read($in, $protocolId),
-			AttributeUpdateLayerSettings::ID => AttributeUpdateLayerSettings::read($in),
+			AttributeUpdateLayerSettings::ID => AttributeUpdateLayerSettings::read($in, $protocolId),
 			AttributesUpdateEnvironment::ID => AttributesUpdateEnvironment::read($in, $protocolId),
 			AttributesRemoveEnvironment::ID => AttributesRemoveEnvironment::read($in),
 			default => throw new PacketDecodeException("Unknown ClientboundAttributeLayerSync type"),
