@@ -57,7 +57,7 @@ final class AttributeLayer{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$noiseName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		}
-		$dimension = VarInt::readUnsignedInt($in);
+		$dimension = VarInt::readSignedInt($in);
 		$settings = AttributeLayerSettings::read($in, $protocolId);
 
 		$attributes = [];
@@ -79,7 +79,7 @@ final class AttributeLayer{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			CommonTypes::writeOptional($out, $this->noiseName, CommonTypes::putString(...));
 		}
-		VarInt::writeUnsignedInt($out, $this->dimension);
+		VarInt::writeSignedInt($out, $this->dimension);
 		$this->settings->write($out, $protocolId);
 
 		VarInt::writeUnsignedInt($out, count($this->attributes));

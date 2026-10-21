@@ -85,7 +85,7 @@ class ClientboundMapItemDataPacket extends DataPacket implements ClientboundPack
 
 		$this->scale = CommonTypes::readOptional($in, Byte::readUnsigned(...));
 
-		$this->trackedEntities = CommonTypes::readOptional($in, static fn($in) => CommonTypes::readList($in, static fn($in) => self::readTrackedObject($in, true)));
+		$this->trackedEntities = CommonTypes::readOptional($in, static fn($in) => CommonTypes::readList($in, static fn($in) => self::readOptionalTrackedObject($in)));
 
 		$this->decorations = CommonTypes::readOptional($in, static fn($in) => CommonTypes::readList($in, static function($in) : MapDecoration{
 			$icon = Byte::readUnsigned($in);
@@ -170,6 +170,20 @@ class ClientboundMapItemDataPacket extends DataPacket implements ClientboundPack
 		}
 	}
 
+	private static function readOptionalTrackedObject(ByteBufferReader $in) : MapTrackedObject{
+		$object = new MapTrackedObject();
+		$object->type = LE::readUnsignedInt($in);
+		$object->actorUniqueId = CommonTypes::readOptional($in, CommonTypes::getActorUniqueId(...));
+		$object->blockPosition = CommonTypes::readOptional($in, CommonTypes::getBlockPosition(...));
+		return $object;
+	}
+
+	private static function writeOptionalTrackedObject(ByteBufferWriter $out, MapTrackedObject $object) : void{
+		LE::writeUnsignedInt($out, $object->type);
+		CommonTypes::writeOptional($out, $object->actorUniqueId, CommonTypes::putActorUniqueId(...));
+		CommonTypes::writeOptional($out, $object->blockPosition, CommonTypes::putBlockPosition(...));
+	}
+
 	private static function readTrackedObject(ByteBufferReader $in, bool $signedBlockY) : MapTrackedObject{
 		$object = new MapTrackedObject();
 		$object->type = LE::readUnsignedInt($in);
@@ -186,9 +200,9 @@ class ClientboundMapItemDataPacket extends DataPacket implements ClientboundPack
 	private static function writeTrackedObject(ByteBufferWriter $out, MapTrackedObject $object, bool $signedBlockY) : void{
 		LE::writeUnsignedInt($out, $object->type);
 		if($object->type === MapTrackedObject::TYPE_BLOCK){
-			CommonTypes::putBlockPosition($out, $object->blockPosition, $signedBlockY);
+			CommonTypes::putBlockPosition($out, $object->blockPosition ?? throw new \InvalidArgumentException("Block map object must have a block position"), $signedBlockY);
 		}elseif($object->type === MapTrackedObject::TYPE_ENTITY){
-			CommonTypes::putActorUniqueId($out, $object->actorUniqueId);
+			CommonTypes::putActorUniqueId($out, $object->actorUniqueId ?? throw new \InvalidArgumentException("Entity map object must have an actor unique ID"));
 		}else{
 			throw new \InvalidArgumentException("Unknown map object type $object->type");
 		}
@@ -223,7 +237,7 @@ class ClientboundMapItemDataPacket extends DataPacket implements ClientboundPack
 
 		CommonTypes::writeOptional($out, $this->scale, Byte::writeUnsigned(...));
 
-		CommonTypes::writeOptional($out, $this->trackedEntities, static fn($out, $v) => CommonTypes::writeList($out, $v, static fn($out, $object) => self::writeTrackedObject($out, $object, true)));
+		CommonTypes::writeOptional($out, $this->trackedEntities, static fn($out, $v) => CommonTypes::writeList($out, $v, static fn($out, $object) => self::writeOptionalTrackedObject($out, $object)));
 
 		CommonTypes::writeOptional($out, $this->decorations, static fn($out, $v) => CommonTypes::writeList($out, $v, static function($out, $decoration) : void{
 			Byte::writeUnsigned($out, $decoration->getIcon());
