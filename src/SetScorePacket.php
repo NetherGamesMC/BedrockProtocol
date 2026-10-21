@@ -62,7 +62,7 @@ class SetScorePacket extends DataPacket implements ClientboundPacket{
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-			$this->entries = CommonTypes::readList($in, function(ByteBufferReader $in) : ScorePacketEntry{
+			$this->entries = CommonTypes::readList($in, function(ByteBufferReader $in) use ($protocolId) : ScorePacketEntry{
 				$action = ScorePacketEntryAction::fromOrdinal(VarInt::readUnsignedInt($in));
 				$innerType = CommonTypes::getString($in);
 				if($action !== ScorePacketEntryAction::fromPacket($innerType)){
@@ -76,7 +76,9 @@ class SetScorePacket extends DataPacket implements ClientboundPacket{
 				$entry->scoreboardId = VarInt::readSignedLong($in);
 
 				if($action === ScorePacketEntryAction::REMOVE){
-					$entry->objectiveName = CommonTypes::readOptional($in, CommonTypes::getString(...));
+					$entry->objectiveName = $protocolId === ProtocolInfo::PROTOCOL_1_26_44 ?
+						CommonTypes::readDoubleOptional($in, CommonTypes::getString(...)) :
+						CommonTypes::readOptional($in, CommonTypes::getString(...));
 				}elseif($action === ScorePacketEntryAction::CHANGE_PLAYER || $action === ScorePacketEntryAction::CHANGE_ENTITY){
 					$entry->objectiveName = CommonTypes::getString($in);
 					$entry->score = LE::readSignedInt($in);
@@ -116,7 +118,7 @@ class SetScorePacket extends DataPacket implements ClientboundPacket{
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-			CommonTypes::writeList($out, $this->entries, function(ByteBufferWriter $out, ScorePacketEntry $entry) : void{
+			CommonTypes::writeList($out, $this->entries, function(ByteBufferWriter $out, ScorePacketEntry $entry) use ($protocolId) : void{
 				VarInt::writeUnsignedInt($out, $entry->action->toOrdinal());
 				CommonTypes::putString($out, $entry->action->value);
 
@@ -124,7 +126,11 @@ class SetScorePacket extends DataPacket implements ClientboundPacket{
 				VarInt::writeSignedLong($out, $entry->scoreboardId);
 
 				if($entry->action === ScorePacketEntryAction::REMOVE){
-					CommonTypes::writeOptional($out, $entry->objectiveName, CommonTypes::putString(...));
+					if($protocolId === ProtocolInfo::PROTOCOL_1_26_44){
+						CommonTypes::writeDoubleOptional($out, $entry->objectiveName, CommonTypes::putString(...));
+					}else{
+						CommonTypes::writeOptional($out, $entry->objectiveName, CommonTypes::putString(...));
+					}
 				}elseif($entry->action === ScorePacketEntryAction::CHANGE_PLAYER || $entry->action === ScorePacketEntryAction::CHANGE_ENTITY){
 					CommonTypes::putString($out, $entry->objectiveName);
 					LE::writeSignedInt($out, $entry->score);

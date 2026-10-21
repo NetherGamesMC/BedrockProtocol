@@ -62,7 +62,7 @@ final class ProtocolInfo{
 		self::PROTOCOL_1_26_10,
 		self::PROTOCOL_1_26_20,
 		self::PROTOCOL_1_26_30,
-		self::PROTOCOL_1_26_40,
+		self::PROTOCOL_1_26_44,
 		self::PROTOCOL_1_26_45,
 		self::CURRENT_PROTOCOL,
 	];
@@ -74,7 +74,9 @@ final class ProtocolInfo{
 
 	public const PROTOCOL_1_26_50 = 2193;
 	public const PROTOCOL_1_26_45 = 2169;
-	public const PROTOCOL_1_26_40 = 2168;
+	public const PROTOCOL_1_26_44 = 2168;
+	/** Internal: 1.26.40 clients send 2168; servers switch to this when GameVersion < 1.26.44 */
+	public const PROTOCOL_1_26_40 = 2167;
 	public const PROTOCOL_1_26_30 = 1001;
 	public const PROTOCOL_1_26_20 = 975;
 	public const PROTOCOL_1_26_10 = 944;
