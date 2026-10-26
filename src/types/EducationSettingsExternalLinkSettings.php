@@ -31,7 +31,7 @@ final class EducationSettingsExternalLinkSettings{
 	public static function read(ByteBufferReader $in) : self{
 		$url = CommonTypes::getString($in);
 		$displayName = CommonTypes::getString($in);
-		return new self($displayName, $url);
+		return new self($url, $displayName);
 	}
 
 	public function write(ByteBufferWriter $out) : void{
