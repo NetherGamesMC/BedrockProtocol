@@ -596,5 +596,6 @@ final class LevelSoundEvent{
 	public const MOUNT = "mount";
 	public const DISMOUNT = "dismount";
 	public const STRAW_BED_BREAK_LEAVE = "straw_bed.break_leave";
+	public const ICE_BALL_BREAK = "ice_ball.break";
 
 }

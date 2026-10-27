@@ -266,6 +266,14 @@ class PacketPool{
 		$this->registerPacket(new PartyDestinationCookieResponsePacket());
 		$this->registerPacket(new SetPlayerFurnaceOptionsPacket());
 		$this->registerPacket(new RecordStartedPacket());
+		$this->registerPacket(new ClientboundMatchmakingStatePacket());
+		$this->registerPacket(new ServerboundStonecutterSetRecipePacket());
+		$this->registerPacket(new ClientboundStonecutterSetRecipePacket());
+		$this->registerPacket(new ServerboundMatchmakingCancelPacket());
+		$this->registerPacket(new SetPassengerOfBlockPacket());
+		$this->registerPacket(new ServerboundCursorItemDragPacket());
+		$this->registerPacket(new ClientboundPlayAudioContentPacket());
+		$this->registerPacket(new ServerboundRegisterAudioContentPacket());
 	}
 
 	public function registerPacket(Packet $packet) : void{

@@ -48,6 +48,7 @@ enum PersonaSkinPieceType : string{
 	case CAPES = 'capes';
 	case CLASSIC_SKIN = 'classicskin';
 	case EMOTE = 'emote';
+	case COCO = 'coco';
 	case UNSUPPORTED = 'unsupported';
 
 	private const JSON_STRING_TO_CASE = [

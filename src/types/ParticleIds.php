@@ -123,4 +123,5 @@ final class ParticleIds{
 	public const ORANGE_POPLAR_LEAVES = 102;
 	public const RED_POPLAR_LEAVES = 103;
 	public const YELLOW_POPLAR_LEAVES = 104;
+	public const ICE_BALL_BREAK = 105;
 }

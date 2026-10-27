@@ -14,11 +14,13 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\protocol\types\sound;
 
+use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\ClientboundUpdateSoundDataPacket;
+use pocketmine\network\mcpe\protocol\PacketDecodeException;
 
 /**
  * @see ClientboundUpdateSoundDataPacket
@@ -112,7 +114,11 @@ final class SoundDataEvent{
 	}
 
 	public static function read(ByteBufferReader $in) : self{
-		$type = SoundDataEventType::fromPacket(VarInt::readUnsignedInt($in));
+		$variantIndex = VarInt::readUnsignedInt($in);
+		$type = SoundDataEventType::fromPacket(Byte::readUnsigned($in));
+		if($variantIndex !== $type->value){
+			throw new PacketDecodeException("Sound data event type mismatch: variant index $variantIndex, type " . $type->value);
+		}
 		return match($type){
 			SoundDataEventType::STOP => self::stop(),
 			SoundDataEventType::SET_VOLUME => self::setVolume(
@@ -135,6 +141,7 @@ final class SoundDataEvent{
 
 	public function write(ByteBufferWriter $out) : void{
 		VarInt::writeUnsignedInt($out, $this->type->value);
+		Byte::writeUnsigned($out, $this->type->value);
 		switch($this->type){
 			case SoundDataEventType::STOP:
 			case SoundDataEventType::PAUSE:

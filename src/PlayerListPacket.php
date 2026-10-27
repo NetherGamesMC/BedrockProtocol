@@ -70,6 +70,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				$entry->actorUniqueId = CommonTypes::getActorUniqueId($in);
 				$entry->username = CommonTypes::getString($in);
 				$entry->xboxUserId = CommonTypes::getString($in);
+				$entry->playFabId = CommonTypes::getString($in);
 				$entry->platformChatId = CommonTypes::getString($in);
 				$entry->buildPlatform = LE::readSignedInt($in);
 				$entry->skinData = CommonTypes::getSkin($in);
@@ -97,6 +98,7 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 				CommonTypes::putActorUniqueId($out, $entry->actorUniqueId);
 				CommonTypes::putString($out, $entry->username);
 				CommonTypes::putString($out, $entry->xboxUserId);
+				CommonTypes::putString($out, $entry->playFabId);
 				CommonTypes::putString($out, $entry->platformChatId);
 				LE::writeSignedInt($out, $entry->buildPlatform);
 				CommonTypes::putSkin($out, $entry->skinData);

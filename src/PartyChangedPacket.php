@@ -17,35 +17,30 @@ namespace pocketmine\network\mcpe\protocol;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\PlayerPartyInfo;
 
 class PartyChangedPacket extends DataPacket implements ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::PARTY_CHANGED_PACKET;
 
-	private string $partyId;
-	private bool $partyLeader;
+	private ?PlayerPartyInfo $partyInfo;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(string $partyId, bool $partyLeader) : self{
+	public static function create(?PlayerPartyInfo $partyInfo) : self{
 		$result = new self;
-		$result->partyId = $partyId;
-		$result->partyLeader = $partyLeader;
+		$result->partyInfo = $partyInfo;
 		return $result;
 	}
 
-	public function getPartyId() : string{ return $this->partyId; }
-
-	public function isPartyLeader() : bool{ return $this->partyLeader; }
+	public function getPartyInfo() : ?PlayerPartyInfo{ return $this->partyInfo; }
 
 	protected function decodePayload(ByteBufferReader $in) : void{
-		$this->partyId = CommonTypes::getString($in);
-		$this->partyLeader = CommonTypes::getBool($in);
+		$this->partyInfo = CommonTypes::readOptional($in, PlayerPartyInfo::read(...));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
-		CommonTypes::putString($out, $this->partyId);
-		CommonTypes::putBool($out, $this->partyLeader);
+		CommonTypes::writeOptional($out, $this->partyInfo, static fn(ByteBufferWriter $out, PlayerPartyInfo $info) => $info->write($out));
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

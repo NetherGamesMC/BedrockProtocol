@@ -27,6 +27,7 @@ use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\GameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
+use pocketmine\network\mcpe\protocol\types\PassengerOfBlockData;
 use Ramsey\Uuid\UuidInterface;
 use function count;
 
@@ -55,6 +56,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 
 	/** @var EntityLink[] */
 	public array $links = [];
+	public ?PassengerOfBlockData $passengerBlockData = null;
 	public string $deviceId = ""; //TODO: fill player's device ID (???)
 	public int $buildPlatform = DeviceOS::UNKNOWN;
 
@@ -80,6 +82,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		PropertySyncData $syncedProperties,
 		AbilitiesData $abilities,
 		array $links,
+		?PassengerOfBlockData $passengerBlockData,
 		string $deviceId,
 		int $buildPlatform,
 	) : self{
@@ -99,6 +102,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 		$result->syncedProperties = $syncedProperties;
 		$result->abilities = $abilities;
 		$result->links = $links;
+		$result->passengerBlockData = $passengerBlockData;
 		$result->deviceId = $deviceId;
 		$result->buildPlatform = $buildPlatform;
 		return $result;
@@ -126,6 +130,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 			$this->links[$i] = CommonTypes::getEntityLink($in);
 		}
 
+		$this->passengerBlockData = CommonTypes::readOptional($in, PassengerOfBlockData::read(...));
 		$this->deviceId = CommonTypes::getString($in);
 		$this->buildPlatform = LE::readSignedInt($in);
 	}
@@ -152,6 +157,7 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 			CommonTypes::putEntityLink($out, $link);
 		}
 
+		CommonTypes::writeOptional($out, $this->passengerBlockData, static fn(ByteBufferWriter $out, PassengerOfBlockData $data) => $data->write($out));
 		CommonTypes::putString($out, $this->deviceId);
 		LE::writeSignedInt($out, $this->buildPlatform);
 	}

@@ -93,7 +93,7 @@ class UseItemTransactionData extends TransactionData{
 		$this->blockPosition = CommonTypes::getBlockPosition($in);
 		$this->face = Byte::readUnsigned($in);
 		$this->hotbarSlot = VarInt::readSignedInt($in);
-		$this->hand = HandSlot::fromPacket(Byte::readUnsigned($in));
+		$this->hand = CommonTypes::readHandSlot($in);
 		$this->itemInHand = CommonTypes::getItemStackWrapper($in);
 		$this->playerPosition = CommonTypes::getVector3($in);
 		$this->clickPosition = CommonTypes::getVector3($in);
@@ -108,7 +108,7 @@ class UseItemTransactionData extends TransactionData{
 		CommonTypes::putBlockPosition($out, $this->blockPosition);
 		Byte::writeUnsigned($out, $this->face);
 		VarInt::writeSignedInt($out, $this->hotbarSlot);
-		Byte::writeUnsigned($out, $this->hand->value);
+		CommonTypes::writeHandSlot($out, $this->hand);
 		CommonTypes::putItemStackWrapper($out, $this->itemInHand);
 		CommonTypes::putVector3($out, $this->playerPosition);
 		CommonTypes::putVector3($out, $this->clickPosition);

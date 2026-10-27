@@ -52,10 +52,10 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 	 */
 	private array $systemDiagnostics = [];
 	/**
-	 * @var SystemCategory[]
-	 * @phpstan-var list<SystemCategory>
+	 * @var SystemCategory[]|null
+	 * @phpstan-var list<SystemCategory>|null
 	 */
-	private array $systemCategories = [];
+	private ?array $systemCategories = null;
 	/**
 	 * @var WhiskerScopeDataSummary[]
 	 * @phpstan-var list<WhiskerScopeDataSummary>
@@ -67,12 +67,12 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 	 * @param MemoryCategoryCounter[]      $memoryCategoryValues
 	 * @param EntityDiagnosticTimingInfo[] $entityDiagnostics
 	 * @param SystemDiagnosticTimingInfo[] $systemDiagnostics
-	 * @param SystemCategory[]             $systemCategories
+	 * @param SystemCategory[]|null        $systemCategories
 	 * @param WhiskerScopeDataSummary[]    $whiskerScopes
 	 * @phpstan-param list<MemoryCategoryCounter>      $memoryCategoryValues
 	 * @phpstan-param list<EntityDiagnosticTimingInfo> $entityDiagnostics
 	 * @phpstan-param list<SystemDiagnosticTimingInfo> $systemDiagnostics
-	 * @phpstan-param list<SystemCategory>             $systemCategories
+	 * @phpstan-param list<SystemCategory>|null        $systemCategories
 	 * @phpstan-param list<WhiskerScopeDataSummary>    $whiskerScopes
 	 */
 	public static function create(
@@ -88,7 +88,7 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 		array $memoryCategoryValues,
 		array $entityDiagnostics,
 		array $systemDiagnostics,
-		array $systemCategories,
+		?array $systemCategories,
 		array $whiskerScopes,
 	) : self{
 		$result = new self;
@@ -146,10 +146,10 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 	public function getSystemDiagnostics() : array{ return $this->systemDiagnostics; }
 
 	/**
-	 * @return SystemCategory[]
-	 * @phpstan-return list<SystemCategory>
+	 * @return SystemCategory[]|null
+	 * @phpstan-return list<SystemCategory>|null
 	 */
-	public function getSystemCategories() : array{ return $this->systemCategories; }
+	public function getSystemCategories() : ?array{ return $this->systemCategories; }
 
 	/**
 	 * @return WhiskerScopeDataSummary[]
@@ -171,7 +171,7 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 		$this->memoryCategoryValues = CommonTypes::readList($in, MemoryCategoryCounter::read(...));
 		$this->entityDiagnostics = CommonTypes::readList($in, EntityDiagnosticTimingInfo::read(...));
 		$this->systemDiagnostics = CommonTypes::readList($in, SystemDiagnosticTimingInfo::read(...));
-		$this->systemCategories = CommonTypes::readList($in, SystemCategory::read(...));
+		$this->systemCategories = CommonTypes::readOptional($in, static fn(ByteBufferReader $in) => CommonTypes::readList($in, SystemCategory::read(...)));
 		$this->whiskerScopes = CommonTypes::readList($in, WhiskerScopeDataSummary::read(...));
 	}
 
@@ -189,7 +189,7 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 		CommonTypes::writeList($out, $this->memoryCategoryValues, static fn($out, $v) => $v->write($out));
 		CommonTypes::writeList($out, $this->entityDiagnostics, static fn($out, $v) => $v->write($out));
 		CommonTypes::writeList($out, $this->systemDiagnostics, static fn($out, $v) => $v->write($out));
-		CommonTypes::writeList($out, $this->systemCategories, static fn($out, $v) => $v->write($out));
+		CommonTypes::writeOptional($out, $this->systemCategories, static fn($out, $v) => CommonTypes::writeList($out, $v, static fn($out, $v) => $v->write($out)));
 		CommonTypes::writeList($out, $this->whiskerScopes, static fn($out, $v) => $v->write($out));
 	}
 

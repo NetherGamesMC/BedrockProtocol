@@ -22,9 +22,6 @@ use pocketmine\network\mcpe\protocol\types\sound\SoundDataEvent;
 class ClientboundUpdateSoundDataPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::CLIENTBOUND_UPDATE_SOUND_DATA_PACKET;
 
-	//BDS binds one event member under 7 field names (Stop to Resume)
-	private const EVENT_COPIES = 7;
-
 	private int $serverSoundHandle;
 	private SoundDataEvent $event;
 
@@ -44,16 +41,12 @@ class ClientboundUpdateSoundDataPacket extends DataPacket implements Clientbound
 
 	protected function decodePayload(ByteBufferReader $in) : void{
 		$this->serverSoundHandle = LE::readUnsignedLong($in);
-		for($i = 0; $i < self::EVENT_COPIES; ++$i){
-			$this->event = SoundDataEvent::read($in);
-		}
+		$this->event = SoundDataEvent::read($in);
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
 		LE::writeUnsignedLong($out, $this->serverSoundHandle);
-		for($i = 0; $i < self::EVENT_COPIES; ++$i){
-			$this->event->write($out);
-		}
+		$this->event->write($out);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

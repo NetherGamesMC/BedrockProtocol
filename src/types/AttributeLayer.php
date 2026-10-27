@@ -31,15 +31,12 @@ final class AttributeLayer{
 	 */
 	public function __construct(
 		private string $name,
-		private ?string $noiseName,
 		private int $dimension,
 		private AttributeLayerSettings $settings,
 		private array $attributes,
 	){}
 
 	public function getName() : string{ return $this->name; }
-
-	public function getNoiseName() : ?string{ return $this->noiseName; }
 
 	public function getDimension() : int{ return $this->dimension; }
 
@@ -53,7 +50,6 @@ final class AttributeLayer{
 
 	public static function read(ByteBufferReader $in) : self{
 		$name = CommonTypes::getString($in);
-		$noiseName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		$dimension = VarInt::readSignedInt($in);
 		$settings = AttributeLayerSettings::read($in);
 
@@ -64,7 +60,6 @@ final class AttributeLayer{
 
 		return new self(
 			$name,
-			$noiseName,
 			$dimension,
 			$settings,
 			$attributes,
@@ -73,7 +68,6 @@ final class AttributeLayer{
 
 	public function write(ByteBufferWriter $out) : void{
 		CommonTypes::putString($out, $this->name);
-		CommonTypes::writeOptional($out, $this->noiseName, CommonTypes::putString(...));
 		VarInt::writeSignedInt($out, $this->dimension);
 		$this->settings->write($out);
 

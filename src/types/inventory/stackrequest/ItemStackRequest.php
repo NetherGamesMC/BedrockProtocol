@@ -75,6 +75,7 @@ final class ItemStackRequest{
 			CraftRecipeOptionalStackRequestAction::ID => CraftRecipeOptionalStackRequestAction::read($in),
 			GrindstoneStackRequestAction::ID => GrindstoneStackRequestAction::read($in),
 			LoomStackRequestAction::ID => LoomStackRequestAction::read($in),
+			CraftReservedStackRequestAction::ID => CraftReservedStackRequestAction::read($in),
 			DeprecatedCraftingNonImplementedStackRequestAction::ID => DeprecatedCraftingNonImplementedStackRequestAction::read($in),
 			DeprecatedCraftingResultsStackRequestAction::ID => DeprecatedCraftingResultsStackRequestAction::read($in),
 			default => throw new PacketDecodeException("Unhandled item stack request action type $typeId"),

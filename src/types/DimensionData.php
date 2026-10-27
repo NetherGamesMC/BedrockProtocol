@@ -31,7 +31,9 @@ final class DimensionData{
 		private int $generator,
 		private int $dimensionType,
 		private UuidInterface $packId,
-		private string $defaultBiome
+		private string $defaultBiome,
+		private int $cloudHeight,
+		private bool $renderClouds
 	){}
 
 	public function getMinimumY() : int{ return $this->minimumY; }
@@ -46,6 +48,10 @@ final class DimensionData{
 
 	public function getDefaultBiome() : string{ return $this->defaultBiome; }
 
+	public function getCloudHeight() : int{ return $this->cloudHeight; }
+
+	public function isRenderClouds() : bool{ return $this->renderClouds; }
+
 	public static function read(ByteBufferReader $in) : self{
 		$minimumY = VarInt::readSignedInt($in);
 		$heightRange = VarInt::readSignedInt($in);
@@ -53,8 +59,10 @@ final class DimensionData{
 		$dimensionType = VarInt::readSignedInt($in);
 		$packId = CommonTypes::getUUID($in);
 		$defaultBiome = CommonTypes::getString($in);
+		$cloudHeight = VarInt::readSignedInt($in);
+		$renderClouds = CommonTypes::getBool($in);
 
-		return new self($minimumY, $heightRange, $generator, $dimensionType, $packId, $defaultBiome);
+		return new self($minimumY, $heightRange, $generator, $dimensionType, $packId, $defaultBiome, $cloudHeight, $renderClouds);
 	}
 
 	public function write(ByteBufferWriter $out) : void{
@@ -64,5 +72,7 @@ final class DimensionData{
 		VarInt::writeSignedInt($out, $this->dimensionType);
 		CommonTypes::putUUID($out, $this->packId);
 		CommonTypes::putString($out, $this->defaultBiome);
+		VarInt::writeSignedInt($out, $this->cloudHeight);
+		CommonTypes::putBool($out, $this->renderClouds);
 	}
 }

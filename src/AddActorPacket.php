@@ -23,6 +23,7 @@ use pocketmine\network\mcpe\protocol\types\entity\Attribute;
 use pocketmine\network\mcpe\protocol\types\entity\EntityLink;
 use pocketmine\network\mcpe\protocol\types\entity\MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
+use pocketmine\network\mcpe\protocol\types\PassengerOfBlockData;
 
 class AddActorPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::ADD_ACTOR_PACKET;
@@ -53,6 +54,7 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 	 * @phpstan-var list<EntityLink>
 	 */
 	public array $links = [];
+	public ?PassengerOfBlockData $passengerBlockData = null;
 
 	/**
 	 * @generate-create-func
@@ -77,6 +79,7 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 		array $metadata,
 		PropertySyncData $syncedProperties,
 		array $links,
+		?PassengerOfBlockData $passengerBlockData,
 	) : self{
 		$result = new self;
 		$result->actorUniqueId = $actorUniqueId;
@@ -92,6 +95,7 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 		$result->metadata = $metadata;
 		$result->syncedProperties = $syncedProperties;
 		$result->links = $links;
+		$result->passengerBlockData = $passengerBlockData;
 		return $result;
 	}
 
@@ -118,6 +122,7 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 		$this->syncedProperties = PropertySyncData::read($in);
 
 		$this->links = CommonTypes::readList($in, CommonTypes::getEntityLink(...));
+		$this->passengerBlockData = CommonTypes::readOptional($in, PassengerOfBlockData::read(...));
 	}
 
 	protected function encodePayload(ByteBufferWriter $out) : void{
@@ -142,6 +147,7 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 		$this->syncedProperties->write($out);
 
 		CommonTypes::writeList($out, $this->links, CommonTypes::putEntityLink(...));
+		CommonTypes::writeOptional($out, $this->passengerBlockData, static fn(ByteBufferWriter $out, PassengerOfBlockData $data) => $data->write($out));
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

@@ -20,7 +20,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\VarInt;
 
 /**
- * @see AttributeEnvironment
+ * @see AttributeEnvironmentNoiseTransitionSettings
  */
 final class NoiseAlignment{
 
