@@ -39,12 +39,12 @@ class ServerboundStonecutterSetRecipePacket extends DataPacket implements Server
 
 	public function getRecipeIndex() : int{ return $this->recipeIndex; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->containerId = Byte::readUnsigned($in);
 		$this->recipeIndex = VarInt::readSignedInt($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		Byte::writeUnsigned($out, $this->containerId);
 		VarInt::writeSignedInt($out, $this->recipeIndex);
 	}

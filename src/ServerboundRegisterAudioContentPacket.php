@@ -47,11 +47,11 @@ final class ServerboundRegisterAudioContentPacket extends DataPacket implements 
 		return $this->registrations;
 	}
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->registrations = CommonTypes::readList($in, AudioContentRegistrationEntry::read(...));
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::writeList($out, $this->registrations, static fn(ByteBufferWriter $out, AudioContentRegistrationEntry $entry) => $entry->write($out));
 	}
 

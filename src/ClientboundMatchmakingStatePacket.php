@@ -51,13 +51,13 @@ class ClientboundMatchmakingStatePacket extends DataPacket implements Clientboun
 		return $this->options;
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		Byte::writeUnsigned($out, $this->state->toOrdinal());
 		CommonTypes::putString($out, $this->destinationName);
 		CommonTypes::writeOptional($out, $this->options, static fn(ByteBufferWriter $out, MatchmakingStateOptions $options) => $options->write($out));
 	}
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->state = MatchmakingState::fromOrdinal(Byte::readUnsigned($in));
 		$this->destinationName = CommonTypes::getString($in);
 		$this->options = CommonTypes::readOptional($in, MatchmakingStateOptions::read(...));

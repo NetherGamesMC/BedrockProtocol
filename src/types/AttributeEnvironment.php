@@ -23,14 +23,8 @@ use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\camera\CameraSetInstructionEaseType;
 
 /**
- * Since 1.26.60 an environment attribute is a name and a payload (constant value, transition or noise transition).
- * Before that it was a flat structure (a current value, optional from/to values, transition ticks and noise settings).
- * The payload is the public API for every protocol; for older protocols it is converted from/to the flat layout:
- * - no from/to value: {@link AttributeEnvironmentConstant}
- * - from and/or to value: {@link AttributeEnvironmentTransition}, or {@link AttributeEnvironmentNoiseTransition} if
- *   the noise transition flag is set (a missing from/to value is replaced by the current value)
- * Values that have no counterpart in the target layout (the clock name, the noise name of the environment) are lost
- * when converting.
+ * Since 1.26.60 this is a name and a payload. Older protocols use a flat layout, which is converted from/to the
+ * payload; the clock name and the noise name of the environment are lost in that conversion.
  *
  * @see AttributeLayer&AttributesUpdateEnvironment
  */

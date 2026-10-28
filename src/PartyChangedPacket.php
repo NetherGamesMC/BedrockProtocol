@@ -33,13 +33,10 @@ class PartyChangedPacket extends DataPacket implements ServerboundPacket{
 		return $result;
 	}
 
-	/**
-	 * >= ProtocolInfo::PROTOCOL_1_26_60: null if the player is not in a party.
-	 * Older protocols always provide a value when decoding.
-	 */
+	/** null if the player is not in a party. Always set when decoding protocols older than 1.26.60. */
 	public function getPartyInfo() : ?PlayerPartyInfo{ return $this->partyInfo; }
 
-	/** Kept for BC: party ID, or an empty string if the player is not in a party. */
+	/** Kept for BC. Empty if the player is not in a party. */
 	public function getPartyId() : string{ return $this->partyInfo?->getPartyId() ?? ""; }
 
 	/** Kept for BC */

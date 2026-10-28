@@ -55,11 +55,7 @@ final class ItemStackRequestActionType{
 
 	/**
 	 * Since 1.26.40, the action type is sent twice: once as a VarInt outer type (the constants above), and once as an
-	 * inner type byte (the values of this map).
-	 *
-	 * These are the values used since 1.26.60. 1.26.60 inserted CRAFTING_RESERVED, which shifted the outer type of the
-	 * deprecated crafting actions and the inner types of all three. For 1.26.40 - 1.26.50 (and before) see
-	 * {@link ItemStackRequestActionType::toPre1_26_60OuterId()} and {@link ItemStackRequestActionType::toLegacyId()}.
+	 * inner type byte (the values of this map). These are the 1.26.60 values, older protocols use the PRE_1_26_60 tables.
 	 */
 	public const INNER_TYPES = [
 		self::TAKE => 0,
@@ -85,10 +81,7 @@ final class ItemStackRequestActionType{
 		self::CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING => 20, //no idea what this is for
 	];
 
-	/**
-	 * Fork-only: wire IDs used before 1.26.60 for the "inner type" byte (1.26.40 - 1.26.50) and for the single type byte
-	 * (before 1.26.40). 1.26.60 inserted CRAFTING_RESERVED, which did not exist before.
-	 */
+	/** Fork-only: inner type (1.26.40 - 1.26.50) and single type (before 1.26.40) IDs, before CRAFTING_RESERVED. */
 	private const PRE_1_26_60_INNER_TYPES = [
 		self::TAKE => 0,
 		self::PLACE => 1,
@@ -110,9 +103,7 @@ final class ItemStackRequestActionType{
 		self::CRAFTING_RESULTS_DEPRECATED_ASK_TY_LAING => 19,
 	];
 
-	/**
-	 * Fork-only: outer types (VarInt) used by 1.26.40 - 1.26.50, before CRAFTING_RESERVED was inserted.
-	 */
+	/** Fork-only: outer types used by 1.26.40 - 1.26.50, before CRAFTING_RESERVED. */
 	private const PRE_1_26_60_OUTER_TYPES = [
 		self::TAKE => 0,
 		self::PLACE => 1,
@@ -154,33 +145,23 @@ final class ItemStackRequestActionType{
 	 */
 	private static ?array $pre1_26_60OuterToType = null;
 
-	/**
-	 * Returns the inner type / single type ID used before 1.26.60 for the given action type (protocols up to 1.26.50),
-	 * or null if the action type doesn't exist for them.
-	 */
+	/** Inner/single type ID used before 1.26.60, or null if the action type doesn't exist there. */
 	public static function toLegacyId(int $typeId) : ?int{
 		return self::PRE_1_26_60_INNER_TYPES[$typeId] ?? self::LEGACY_ONLY_TYPES[$typeId] ?? null;
 	}
 
-	/**
-	 * Returns the action type for the given single type ID used before 1.26.40, or null if unknown.
-	 */
+	/** Action type for a single type ID used before 1.26.40, or null if unknown. */
 	public static function fromLegacyId(int $legacyId) : ?int{
 		self::$legacyToType ??= array_flip(self::PRE_1_26_60_INNER_TYPES + self::LEGACY_ONLY_TYPES);
 		return self::$legacyToType[$legacyId] ?? null;
 	}
 
-	/**
-	 * Returns the outer type ID used by 1.26.40 - 1.26.50 for the given action type, or null if the action type doesn't
-	 * exist for them (CRAFTING_RESERVED, the removed bundle actions).
-	 */
+	/** Outer type ID used by 1.26.40 - 1.26.50, or null if the action type doesn't exist there. */
 	public static function toPre1_26_60OuterId(int $typeId) : ?int{
 		return self::PRE_1_26_60_OUTER_TYPES[$typeId] ?? null;
 	}
 
-	/**
-	 * Returns the action type for the given outer type ID used by 1.26.40 - 1.26.50, or null if unknown.
-	 */
+	/** Action type for an outer type ID used by 1.26.40 - 1.26.50, or null if unknown. */
 	public static function fromPre1_26_60OuterId(int $outerId) : ?int{
 		self::$pre1_26_60OuterToType ??= array_flip(self::PRE_1_26_60_OUTER_TYPES);
 		return self::$pre1_26_60OuterToType[$outerId] ?? null;

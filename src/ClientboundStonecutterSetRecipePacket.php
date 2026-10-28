@@ -44,13 +44,13 @@ class ClientboundStonecutterSetRecipePacket extends DataPacket implements Client
 
 	public function getRecipeIndex() : int{ return $this->recipeIndex; }
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->playerActorUniqueId = CommonTypes::getActorUniqueId($in);
 		$this->containerId = Byte::readUnsigned($in);
 		$this->recipeIndex = VarInt::readSignedInt($in);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putActorUniqueId($out, $this->playerActorUniqueId);
 		Byte::writeUnsigned($out, $this->containerId);
 		VarInt::writeSignedInt($out, $this->recipeIndex);

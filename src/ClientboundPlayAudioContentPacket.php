@@ -56,19 +56,19 @@ final class ClientboundPlayAudioContentPacket extends DataPacket implements Clie
 		return $this->playSound;
 	}
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->sharedMetadata = CommonTypes::getString($in);
 		$this->playbackContent = CommonTypes::getString($in);
 		$this->playbackType = AudioContentPlaybackType::fromPacket(Byte::readUnsigned($in));
 		$this->playSound = new PlaySoundPacket();
-		$this->playSound->decodePayload($in);
+		$this->playSound->decodePayload($in, $protocolId);
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->sharedMetadata);
 		CommonTypes::putString($out, $this->playbackContent);
 		Byte::writeUnsigned($out, $this->playbackType->value);
-		$this->playSound->encodePayload($out);
+		$this->playSound->encodePayload($out, $protocolId);
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

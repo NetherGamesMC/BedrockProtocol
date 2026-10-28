@@ -37,11 +37,11 @@ final class ServerboundCursorItemDragPacket extends DataPacket implements Server
 		return $this->state;
 	}
 
-	protected function decodePayload(ByteBufferReader $in) : void{
+	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->state = CursorItemDragState::fromPacket(Byte::readUnsigned($in));
 	}
 
-	protected function encodePayload(ByteBufferWriter $out) : void{
+	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
 		Byte::writeUnsigned($out, $this->state->value);
 	}
 

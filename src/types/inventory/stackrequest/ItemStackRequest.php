@@ -96,7 +96,7 @@ final class ItemStackRequest{
 					throw new PacketDecodeException("ItemStackRequestAction type mismatch: outer type $typeId, expected inner type $expectedInnerType, actual inner type $innerTypeId");
 				}
 			}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-				//1.26.40 - 1.26.50: the outer types were numbered differently (no reserved crafting action), and the inner types are the pre-1.26.40 IDs
+				//1.26.40 - 1.26.50: pre-1.26.60 outer types, pre-1.26.40 inner IDs
 				$outerTypeId = VarInt::readUnsignedInt($in);
 				$innerTypeId = Byte::readUnsigned($in);
 				$typeId = ItemStackRequestActionType::fromPre1_26_60OuterId($outerTypeId) ?? throw new PacketDecodeException("Unhandled item stack request action type $outerTypeId");
