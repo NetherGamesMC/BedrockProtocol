@@ -20,6 +20,7 @@ use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
 use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\inventory\HandSlot;
 
 class AnimatePacket extends DataPacket implements ClientboundPacket, ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::ANIMATE_PACKET;
@@ -36,13 +37,15 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 	public int $actorRuntimeId;
 	public float $data = 0.0;
 	public ?string $swingSource = null;
+	public HandSlot $hand = HandSlot::MAINHAND;
 
-	public static function create(int $actorRuntimeId, int $action, float $data = 0.0, ?string $swingSource = null) : self{
+	public static function create(int $actorRuntimeId, int $action, float $data = 0.0, ?string $swingSource = null, HandSlot $hand = HandSlot::MAINHAND) : self{
 		$result = new self;
 		$result->actorRuntimeId = $actorRuntimeId;
 		$result->action = $action;
 		$result->data = $data;
 		$result->swingSource = $swingSource;
+		$result->hand = $hand;
 		return $result;
 	}
 
@@ -65,6 +68,9 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_130){
 			$this->swingSource = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->hand = CommonTypes::readHandSlot($in);
+		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
@@ -79,6 +85,9 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_21_130){
 			CommonTypes::writeOptional($out, $this->swingSource, CommonTypes::putString(...));
+		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			CommonTypes::writeHandSlot($out, $this->hand);
 		}
 	}
 

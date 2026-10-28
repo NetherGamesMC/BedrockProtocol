@@ -35,6 +35,7 @@ class UseItemOnEntityTransactionData extends TransactionData{
 	private int $actorRuntimeId;
 	private int $actionType;
 	private int $hotbarSlot;
+	private HandSlot $hand = HandSlot::MAINHAND;
 	private ItemStackWrapper $itemInHand;
 	private Vector3 $playerPosition;
 	private Vector3 $clickPosition;
@@ -50,6 +51,8 @@ class UseItemOnEntityTransactionData extends TransactionData{
 	public function getHotbarSlot() : int{
 		return $this->hotbarSlot;
 	}
+
+	public function getHand() : HandSlot{ return $this->hand; }
 
 	public function getItemInHand() : ItemStackWrapper{
 		return $this->itemInHand;
@@ -71,6 +74,9 @@ class UseItemOnEntityTransactionData extends TransactionData{
 			$this->actionType = VarInt::readUnsignedInt($in);
 		}
 		$this->hotbarSlot = VarInt::readSignedInt($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->hand = CommonTypes::readHandSlot($in);
+		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$this->itemInHand = CommonTypes::getNetworkItemStackDescriptor($in, $protocolId);
 		}else{
@@ -88,6 +94,9 @@ class UseItemOnEntityTransactionData extends TransactionData{
 			VarInt::writeUnsignedInt($out, $this->actionType);
 		}
 		VarInt::writeSignedInt($out, $this->hotbarSlot);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			CommonTypes::writeHandSlot($out, $this->hand);
+		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			CommonTypes::putNetworkItemStackDescriptor($out, $protocolId, $this->itemInHand);
 		}else{
@@ -100,11 +109,20 @@ class UseItemOnEntityTransactionData extends TransactionData{
 	/**
 	 * @generate-create-func
 	 */
-	private static function initSelf(int $actorRuntimeId, int $actionType, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $playerPosition, Vector3 $clickPosition) : self{
+	private static function initSelf(
+		int $actorRuntimeId,
+		int $actionType,
+		int $hotbarSlot,
+		HandSlot $hand,
+		ItemStackWrapper $itemInHand,
+		Vector3 $playerPosition,
+		Vector3 $clickPosition,
+	) : self{
 		$result = new self;
 		$result->actorRuntimeId = $actorRuntimeId;
 		$result->actionType = $actionType;
 		$result->hotbarSlot = $hotbarSlot;
+		$result->hand = $hand;
 		$result->itemInHand = $itemInHand;
 		$result->playerPosition = $playerPosition;
 		$result->clickPosition = $clickPosition;
@@ -115,8 +133,8 @@ class UseItemOnEntityTransactionData extends TransactionData{
 	 * @param NetworkInventoryAction[] $actions
 	 * @phpstan-param list<NetworkInventoryAction> $actions
 	 */
-	public static function new(array $actions, int $actorRuntimeId, int $actionType, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $playerPosition, Vector3 $clickPosition) : self{
-		$result = self::initSelf($actorRuntimeId, $actionType, $hotbarSlot, $itemInHand, $playerPosition, $clickPosition);
+	public static function new(array $actions, int $actorRuntimeId, int $actionType, int $hotbarSlot, HandSlot $hand, ItemStackWrapper $itemInHand, Vector3 $playerPosition, Vector3 $clickPosition) : self{
+		$result = self::initSelf($actorRuntimeId, $actionType, $hotbarSlot, $hand, $itemInHand, $playerPosition, $clickPosition);
 		$result->actions = $actions;
 		return $result;
 	}

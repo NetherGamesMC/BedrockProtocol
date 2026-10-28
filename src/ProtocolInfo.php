@@ -32,7 +32,7 @@ final class ProtocolInfo{
 	 */
 
 	/** Actual Minecraft: PE protocol version */
-	public const CURRENT_PROTOCOL = self::PROTOCOL_1_26_50;
+	public const CURRENT_PROTOCOL = self::PROTOCOL_1_26_60;
 	public const ACCEPTED_PROTOCOL = [
 		self::PROTOCOL_1_20_0,
 		self::PROTOCOL_1_20_10,
@@ -64,14 +64,16 @@ final class ProtocolInfo{
 		self::PROTOCOL_1_26_30,
 		self::PROTOCOL_1_26_44,
 		self::PROTOCOL_1_26_45,
+		self::PROTOCOL_1_26_50,
 		self::CURRENT_PROTOCOL,
 	];
 
 	/** Display version shown in the server logs. This should match the version on the game's home screen. */
-	public const MINECRAFT_VERSION = 'v26.50';
+	public const MINECRAFT_VERSION = 'v26.60';
 	/** Version sent on the network for client side compatibility checks. This may differ from the display version. */
-	public const MINECRAFT_VERSION_NETWORK = '1.26.50';
+	public const MINECRAFT_VERSION_NETWORK = '1.26.60';
 
+	public const PROTOCOL_1_26_60 = 2225;
 	public const PROTOCOL_1_26_50 = 2193;
 	public const PROTOCOL_1_26_45 = 2169;
 	public const PROTOCOL_1_26_44 = 2168;
@@ -356,5 +358,13 @@ final class ProtocolInfo{
 	public const PARTY_DESTINATION_COOKIE_RESPONSE_PACKET = 0x15e;
 	public const SET_PLAYER_FURNACE_OPTIONS_PACKET = 0x15f;
 	public const RECORD_STARTED_PACKET = 0x160;
+	public const CLIENTBOUND_MATCHMAKING_STATE_PACKET = 0x161;
+	public const SERVERBOUND_STONECUTTER_SET_RECIPE_PACKET = 0x162;
+	public const CLIENTBOUND_STONECUTTER_SET_RECIPE_PACKET = 0x163;
+	public const SERVERBOUND_MATCHMAKING_CANCEL_PACKET = 0x164;
+	public const SET_PASSENGER_OF_BLOCK_PACKET = 0x165;
+	public const SERVERBOUND_CURSOR_ITEM_DRAG_PACKET = 0x166;
+	public const CLIENTBOUND_PLAY_AUDIO_CONTENT_PACKET = 0x167;
+	public const SERVERBOUND_REGISTER_AUDIO_CONTENT_PACKET = 0x168;
 
 }

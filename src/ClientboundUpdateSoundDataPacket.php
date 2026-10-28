@@ -23,7 +23,7 @@ use pocketmine\network\mcpe\protocol\types\sound\SoundDataEvent;
 class ClientboundUpdateSoundDataPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::CLIENTBOUND_UPDATE_SOUND_DATA_PACKET;
 
-	//BDS binds one event member under 7 field names (Stop to Resume)
+	/** 1.26.40 - 1.26.50: BDS binds one event member under 7 field names (Stop to Resume) */
 	private const EVENT_COPIES = 7;
 
 	private int $serverSoundHandle;
@@ -72,9 +72,11 @@ class ClientboundUpdateSoundDataPacket extends DataPacket implements Clientbound
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->serverSoundHandle = LE::readUnsignedLong($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->event = SoundDataEvent::read($in, $protocolId);
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			for($i = 0; $i < self::EVENT_COPIES; ++$i){
-				$this->event = SoundDataEvent::read($in);
+				$this->event = SoundDataEvent::read($in, $protocolId);
 			}
 		}else{
 			$this->soundEvent = CommonTypes::getString($in);
@@ -85,8 +87,12 @@ class ClientboundUpdateSoundDataPacket extends DataPacket implements Clientbound
 		LE::writeUnsignedLong($out, $this->serverSoundHandle);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			$event = $this->event ?? throw new \InvalidArgumentException("event must be set for protocols >= 1.26.40");
-			for($i = 0; $i < self::EVENT_COPIES; ++$i){
-				$event->write($out);
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+				$event->write($out, $protocolId);
+			}else{
+				for($i = 0; $i < self::EVENT_COPIES; ++$i){
+					$event->write($out, $protocolId);
+				}
 			}
 		}else{
 			CommonTypes::putString($out, $this->soundEvent);

@@ -17,93 +17,137 @@ namespace pocketmine\network\mcpe\protocol\types;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\LE;
+use pmmp\encoding\VarInt;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
 use pocketmine\network\mcpe\protocol\types\camera\CameraSetInstructionEaseType;
 
 /**
+ * Since 1.26.60 an environment attribute is a name and a payload (constant value, transition or noise transition).
+ * Before that it was a flat structure (a current value, optional from/to values, transition ticks and noise settings).
+ * The payload is the public API for every protocol; for older protocols it is converted from/to the flat layout:
+ * - no from/to value: {@link AttributeEnvironmentConstant}
+ * - from and/or to value: {@link AttributeEnvironmentTransition}, or {@link AttributeEnvironmentNoiseTransition} if
+ *   the noise transition flag is set (a missing from/to value is replaced by the current value)
+ * Values that have no counterpart in the target layout (the clock name, the noise name of the environment) are lost
+ * when converting.
+ *
  * @see AttributeLayer&AttributesUpdateEnvironment
  */
 final class AttributeEnvironment{
 
 	public function __construct(
 		private string $name,
-		private ?AttributeValue $fromAttribute,
-		private AttributeValue $attribute,
-		private ?AttributeValue $toAttribute,
-		private int $currentTransitionTicks,
-		private int $totalTransitionTicks,
-		private CameraSetInstructionEaseType $easeType,
-		private int $localTransitionTicks,
-		private bool $noiseTransition,
-		/** >= ProtocolInfo::PROTOCOL_1_26_50 */
-		private NoiseAlignment $noiseAlignment = new NoiseAlignment(NoiseAlignmentType::MIN_LOCAL_TRANSITION_END, 0)
+		private AttributeEnvironmentPayload $payload
 	){}
 
 	public function getName() : string{ return $this->name; }
 
-	public function getFromAttribute() : ?AttributeValue{ return $this->fromAttribute; }
-
-	public function getAttribute() : AttributeValue{ return $this->attribute; }
-
-	public function getToAttribute() : ?AttributeValue{ return $this->toAttribute; }
-
-	public function getCurrentTransitionTicks() : int{ return $this->currentTransitionTicks; }
-
-	public function getTotalTransitionTicks() : int{ return $this->totalTransitionTicks; }
-
-	public function getEaseType() : CameraSetInstructionEaseType{ return $this->easeType; }
-
-	public function getLocalTransitionTicks() : int{ return $this->localTransitionTicks; }
-
-	public function isNoiseTransition() : bool{ return $this->noiseTransition; }
-
-	public function getNoiseAlignment() : NoiseAlignment{ return $this->noiseAlignment; }
+	public function getPayload() : AttributeEnvironmentPayload{ return $this->payload; }
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			return new self($name, AttributeEnvironmentPayload::read($in));
+		}
+
 		$fromAttribute = CommonTypes::readOptional($in, AttributeValue::read(...));
 		$attribute = AttributeValue::read($in);
 		$toAttribute = CommonTypes::readOptional($in, AttributeValue::read(...));
 		$currentTransitionTicks = LE::readUnsignedInt($in);
 		$totalTransitionTicks = LE::readUnsignedInt($in);
 		$easeType = CameraSetInstructionEaseType::fromPacket(CommonTypes::getString($in));
+		$localTransitionTicks = 0;
+		$noiseTransition = false;
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$localTransitionTicks = LE::readUnsignedInt($in);
 			$noiseTransition = CommonTypes::getBool($in);
 		}
+		$noiseAlignment = new NoiseAlignment(NoiseAlignmentType::MIN_LOCAL_TRANSITION_END, 0);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
 			$noiseAlignment = NoiseAlignment::read($in);
 		}
 
-		return new self(
-			$name,
-			$fromAttribute,
-			$attribute,
-			$toAttribute,
-			$currentTransitionTicks,
-			$totalTransitionTicks,
-			$easeType,
-			$localTransitionTicks ?? 0,
-			$noiseTransition ?? false,
-			$noiseAlignment ?? new NoiseAlignment(NoiseAlignmentType::MIN_LOCAL_TRANSITION_END, 0)
-		);
+		if($noiseTransition){
+			$payload = new AttributeEnvironmentNoiseTransition(
+				$fromAttribute ?? $attribute,
+				$toAttribute ?? $attribute,
+				new AttributeEnvironmentNoiseTransitionSettings(
+					$totalTransitionTicks,
+					$currentTransitionTicks,
+					$easeType,
+					"",
+					$localTransitionTicks,
+					"",
+					$noiseAlignment
+				)
+			);
+		}elseif($fromAttribute !== null || $toAttribute !== null){
+			$payload = new AttributeEnvironmentTransition(
+				$fromAttribute ?? $attribute,
+				$toAttribute ?? $attribute,
+				new AttributeEnvironmentTransitionSettings($totalTransitionTicks, $currentTransitionTicks, $easeType, "")
+			);
+		}else{
+			$payload = new AttributeEnvironmentConstant($attribute);
+		}
+
+		return new self($name, $payload);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
-		CommonTypes::writeOptional($out, $this->fromAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->writeWithType($out));
-		$this->attribute->writeWithType($out);
-		CommonTypes::writeOptional($out, $this->toAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->writeWithType($out));
-		LE::writeUnsignedInt($out, $this->currentTransitionTicks);
-		LE::writeUnsignedInt($out, $this->totalTransitionTicks);
-		CommonTypes::putString($out, $this->easeType->value);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			VarInt::writeUnsignedInt($out, $this->payload->getTypeId());
+			$this->payload->write($out);
+			return;
+		}
+
+		$fromAttribute = null;
+		$toAttribute = null;
+		$totalTransitionTicks = 0;
+		$currentTransitionTicks = 0;
+		$easeType = CameraSetInstructionEaseType::LINEAR;
+		$localTransitionTicks = 0;
+		$noiseTransition = false;
+		$noiseAlignment = new NoiseAlignment(NoiseAlignmentType::MIN_LOCAL_TRANSITION_END, 0);
+
+		$payload = $this->payload;
+		if($payload instanceof AttributeEnvironmentConstant){
+			$attribute = $payload->getAttribute();
+		}elseif($payload instanceof AttributeEnvironmentTransition){
+			$attribute = $fromAttribute = $payload->getFromAttribute();
+			$toAttribute = $payload->getToAttribute();
+			$settings = $payload->getSettings();
+			$totalTransitionTicks = $settings->getTotalTransitionTicks();
+			$currentTransitionTicks = $settings->getCurrentTransitionTicks();
+			$easeType = $settings->getEaseType();
+		}elseif($payload instanceof AttributeEnvironmentNoiseTransition){
+			$attribute = $fromAttribute = $payload->getFromAttribute();
+			$toAttribute = $payload->getToAttribute();
+			$settings = $payload->getSettings();
+			$totalTransitionTicks = $settings->getTotalTransitionTicks();
+			$currentTransitionTicks = $settings->getCurrentTransitionTicks();
+			$easeType = $settings->getEaseType();
+			$localTransitionTicks = $settings->getLocalTransitionTicks();
+			$noiseTransition = true;
+			$noiseAlignment = $settings->getNoiseAlignment();
+		}else{
+			throw new \InvalidArgumentException("Unsupported attribute environment payload " . $payload::class);
+		}
+
+		CommonTypes::writeOptional($out, $fromAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->writeWithType($out));
+		$attribute->writeWithType($out);
+		CommonTypes::writeOptional($out, $toAttribute, fn(ByteBufferWriter $out, AttributeValue $value) => $value->writeWithType($out));
+		LE::writeUnsignedInt($out, $currentTransitionTicks);
+		LE::writeUnsignedInt($out, $totalTransitionTicks);
+		CommonTypes::putString($out, $easeType->value);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
-			LE::writeUnsignedInt($out, $this->localTransitionTicks);
-			CommonTypes::putBool($out, $this->noiseTransition);
+			LE::writeUnsignedInt($out, $localTransitionTicks);
+			CommonTypes::putBool($out, $noiseTransition);
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
-			$this->noiseAlignment->write($out);
+			$noiseAlignment->write($out);
 		}
 	}
 }

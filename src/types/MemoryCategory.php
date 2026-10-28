@@ -128,6 +128,7 @@ final class MemoryCategory{
 	public const GAMEFACE_SCRIPT_ENGINE = 107;
 	public const GAMEFACE_SCRIPT = 108;
 	public const GAMEFACE_LAYOUT = 109;
+	public const EXECUTABLE = 110;
 
 	/*
 	 * Removed in 1.26.40, which also renumbered most of the constants above (the constants above hold the newest

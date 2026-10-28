@@ -27,6 +27,9 @@ use Ramsey\Uuid\UuidInterface;
  */
 final class DimensionData{
 
+	/** Default used when the value is not available (protocols older than 1.26.60) */
+	public const DEFAULT_CLOUD_HEIGHT = 128;
+
 	/** >= ProtocolInfo::PROTOCOL_1_26_40 (nil UUID for older protocols) */
 	private UuidInterface $packId;
 
@@ -37,7 +40,11 @@ final class DimensionData{
 		private int $dimensionType,
 		?UuidInterface $packId = null,
 		/** >= ProtocolInfo::PROTOCOL_1_26_50 */
-		private string $defaultBiome = ""
+		private string $defaultBiome = "",
+		/** >= ProtocolInfo::PROTOCOL_1_26_60 */
+		private int $cloudHeight = self::DEFAULT_CLOUD_HEIGHT,
+		/** >= ProtocolInfo::PROTOCOL_1_26_60 */
+		private bool $renderClouds = true
 	){
 		$this->packId = $packId ?? Uuid::fromString(Uuid::NIL);
 	}
@@ -64,6 +71,12 @@ final class DimensionData{
 
 	public function getDefaultBiome() : string{ return $this->defaultBiome; }
 
+	/** >= ProtocolInfo::PROTOCOL_1_26_60 */
+	public function getCloudHeight() : int{ return $this->cloudHeight; }
+
+	/** >= ProtocolInfo::PROTOCOL_1_26_60 */
+	public function isRenderClouds() : bool{ return $this->renderClouds; }
+
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
 			$minimumY = VarInt::readSignedInt($in);
@@ -84,8 +97,21 @@ final class DimensionData{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
 			$defaultBiome = CommonTypes::getString($in);
 		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$cloudHeight = VarInt::readSignedInt($in);
+			$renderClouds = CommonTypes::getBool($in);
+		}
 
-		return new self($minimumY, $heightRange, $generator, $dimensionType ?? DimensionIds::OVERWORLD, $packId ?? null, $defaultBiome ?? "");
+		return new self(
+			$minimumY,
+			$heightRange,
+			$generator,
+			$dimensionType ?? DimensionIds::OVERWORLD,
+			$packId ?? null,
+			$defaultBiome ?? "",
+			$cloudHeight ?? self::DEFAULT_CLOUD_HEIGHT,
+			$renderClouds ?? true
+		);
 	}
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
@@ -105,6 +131,10 @@ final class DimensionData{
 		}
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
 			CommonTypes::putString($out, $this->defaultBiome);
+		}
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			VarInt::writeSignedInt($out, $this->cloudHeight);
+			CommonTypes::putBool($out, $this->renderClouds);
 		}
 	}
 }

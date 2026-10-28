@@ -35,6 +35,7 @@ class ReleaseItemTransactionData extends TransactionData{
 	private int $hotbarSlot;
 	private ItemStackWrapper $itemInHand;
 	private Vector3 $headPosition;
+	private HandSlot $hand = HandSlot::MAINHAND;
 
 	public function getActionType() : int{
 		return $this->actionType;
@@ -52,6 +53,8 @@ class ReleaseItemTransactionData extends TransactionData{
 		return $this->headPosition;
 	}
 
+	public function getHand() : HandSlot{ return $this->hand; }
+
 	protected function decodeData(ByteBufferReader $in, int $protocolId) : void{
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
 			$this->actionType = VarInt::readSignedInt($in);
@@ -65,6 +68,9 @@ class ReleaseItemTransactionData extends TransactionData{
 			$this->itemInHand = CommonTypes::getItemStackWrapper($in, $protocolId);
 		}
 		$this->headPosition = CommonTypes::getVector3($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->hand = CommonTypes::readHandSlot($in);
+		}
 	}
 
 	protected function encodeData(ByteBufferWriter $out, int $protocolId) : void{
@@ -80,17 +86,21 @@ class ReleaseItemTransactionData extends TransactionData{
 			CommonTypes::putItemStackWrapper($out, $protocolId, $this->itemInHand);
 		}
 		CommonTypes::putVector3($out, $this->headPosition);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			CommonTypes::writeHandSlot($out, $this->hand);
+		}
 	}
 
 	/**
 	 * @generate-create-func
 	 */
-	private static function initSelf(int $actionType, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $headPosition) : self{
+	private static function initSelf(int $actionType, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $headPosition, HandSlot $hand) : self{
 		$result = new self;
 		$result->actionType = $actionType;
 		$result->hotbarSlot = $hotbarSlot;
 		$result->itemInHand = $itemInHand;
 		$result->headPosition = $headPosition;
+		$result->hand = $hand;
 		return $result;
 	}
 
@@ -98,8 +108,8 @@ class ReleaseItemTransactionData extends TransactionData{
 	 * @param NetworkInventoryAction[] $actions
 	 * @phpstan-param list<NetworkInventoryAction> $actions
 	 */
-	public static function new(array $actions, int $actionType, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $headPosition) : self{
-		$result = self::initSelf($actionType, $hotbarSlot, $itemInHand, $headPosition);
+	public static function new(array $actions, int $actionType, int $hotbarSlot, ItemStackWrapper $itemInHand, Vector3 $headPosition, HandSlot $hand) : self{
+		$result = self::initSelf($actionType, $hotbarSlot, $itemInHand, $headPosition, $hand);
 		$result->actions = $actions;
 		return $result;
 	}

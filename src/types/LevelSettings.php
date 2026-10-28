@@ -37,6 +37,8 @@ final class LevelSettings{
 	public int $editorWorldType = EditorWorldType::NON_EDITOR;
 	public bool $createdInEditorMode = false;
 	public bool $exportedFromEditorMode = false;
+	/** >= ProtocolInfo::PROTOCOL_1_26_60 */
+	public int $editorLevelMigrationVersion = EditorLevelMigrationVersion::LEGACY;
 	public int $time = -1;
 	public int $eduEditionOffer = EducationEditionOffer::NONE;
 	public bool $hasEduFeaturesEnabled = false;
@@ -113,6 +115,9 @@ final class LevelSettings{
 		$this->editorWorldType = $protocolId >= ProtocolInfo::PROTOCOL_1_20_30 ? VarInt::readSignedInt($in) : (CommonTypes::getBool($in) ? EditorWorldType::PROJECT : EditorWorldType::NON_EDITOR);
 		$this->createdInEditorMode = CommonTypes::getBool($in);
 		$this->exportedFromEditorMode = CommonTypes::getBool($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->editorLevelMigrationVersion = Byte::readSigned($in);
+		}
 		$this->time = VarInt::readSignedInt($in);
 		$this->eduEditionOffer = $protocolId >= ProtocolInfo::PROTOCOL_1_26_40 ? VarInt::readUnsignedInt($in) : VarInt::readSignedInt($in);
 		$this->hasEduFeaturesEnabled = CommonTypes::getBool($in);
@@ -181,6 +186,9 @@ final class LevelSettings{
 		}
 		CommonTypes::putBool($out, $this->createdInEditorMode);
 		CommonTypes::putBool($out, $this->exportedFromEditorMode);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			Byte::writeSigned($out, $this->editorLevelMigrationVersion);
+		}
 		VarInt::writeSignedInt($out, $this->time);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
 			VarInt::writeUnsignedInt($out, $this->eduEditionOffer);

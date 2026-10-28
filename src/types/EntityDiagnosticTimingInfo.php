@@ -29,10 +29,10 @@ final class EntityDiagnosticTimingInfo{
 		private string $entity,
 		private int $timeInNS,
 		private int $percentOfTotal,
-		/** >= ProtocolInfo::PROTOCOL_1_26_50 */
-		private Vector3 $position = new Vector3(0, 0, 0),
-		/** >= ProtocolInfo::PROTOCOL_1_26_50 */
-		private string $dimension = "",
+		/** >= ProtocolInfo::PROTOCOL_1_26_50 (optional since ProtocolInfo::PROTOCOL_1_26_60) */
+		private ?Vector3 $position = null,
+		/** >= ProtocolInfo::PROTOCOL_1_26_50 (optional since ProtocolInfo::PROTOCOL_1_26_60) */
+		private ?string $dimension = null,
 	){}
 
 	public function getDisplayName() : string{ return $this->displayName; }
@@ -43,16 +43,21 @@ final class EntityDiagnosticTimingInfo{
 
 	public function getPercentOfTotal() : int{ return $this->percentOfTotal; }
 
-	public function getPosition() : Vector3{ return $this->position; }
+	public function getPosition() : ?Vector3{ return $this->position; }
 
-	public function getDimension() : string{ return $this->dimension; }
+	public function getDimension() : ?string{ return $this->dimension; }
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$displayName = CommonTypes::getString($in);
 		$entity = CommonTypes::getString($in);
 		$timeInNS = LE::readUnsignedLong($in);
 		$percentOfTotal = Byte::readUnsigned($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+		$position = null;
+		$dimension = null;
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$position = CommonTypes::readOptional($in, CommonTypes::getVector3(...));
+			$dimension = CommonTypes::readOptional($in, CommonTypes::getString(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
 			$position = CommonTypes::getVector3($in);
 			$dimension = CommonTypes::getString($in);
 		}
@@ -62,8 +67,8 @@ final class EntityDiagnosticTimingInfo{
 			$entity,
 			$timeInNS,
 			$percentOfTotal,
-			$position ?? new Vector3(0, 0, 0),
-			$dimension ?? ""
+			$position,
+			$dimension
 		);
 	}
 
@@ -72,9 +77,12 @@ final class EntityDiagnosticTimingInfo{
 		CommonTypes::putString($out, $this->entity);
 		LE::writeUnsignedLong($out, $this->timeInNS);
 		Byte::writeUnsigned($out, $this->percentOfTotal);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
-			CommonTypes::putVector3($out, $this->position);
-			CommonTypes::putString($out, $this->dimension);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			CommonTypes::writeOptional($out, $this->position, CommonTypes::putVector3(...));
+			CommonTypes::writeOptional($out, $this->dimension, CommonTypes::putString(...));
+		}elseif($protocolId >= ProtocolInfo::PROTOCOL_1_26_50){
+			CommonTypes::putVector3($out, $this->position ?? new Vector3(0, 0, 0));
+			CommonTypes::putString($out, $this->dimension ?? "");
 		}
 	}
 }

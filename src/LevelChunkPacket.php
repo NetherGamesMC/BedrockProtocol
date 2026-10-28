@@ -61,6 +61,11 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 	/** @var int[] */
 	private array $usedBlobHashes = [];
 	private string $extraPayload;
+	/**
+	 * Whether the server biome data overrides the client biome data.
+	 * >= ProtocolInfo::PROTOCOL_1_26_60
+	 */
+	private bool $clientBiomeUpdate = false;
 
 	/**
 	 * @generate-create-func
@@ -75,6 +80,7 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 		bool $cacheEnabled,
 		array $usedBlobHashes,
 		string $extraPayload,
+		bool $clientBiomeUpdate,
 	) : self{
 		$result = new self;
 		$result->chunkPosition = $chunkPosition;
@@ -84,6 +90,7 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 		$result->cacheEnabled = $cacheEnabled;
 		$result->usedBlobHashes = $usedBlobHashes;
 		$result->extraPayload = $extraPayload;
+		$result->clientBiomeUpdate = $clientBiomeUpdate;
 		return $result;
 	}
 
@@ -123,6 +130,9 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 		return $this->extraPayload;
 	}
 
+	/** >= ProtocolInfo::PROTOCOL_1_26_60 */
+	public function isClientBiomeUpdate() : bool{ return $this->clientBiomeUpdate; }
+
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
 		$this->chunkPosition = ChunkPosition::read($in);
 		if($protocolId >= ProtocolInfo::PROTOCOL_1_20_60){
@@ -153,6 +163,9 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 		}
 
 		$this->extraPayload = CommonTypes::getString($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->clientBiomeUpdate = CommonTypes::getBool($in);
+		}
 	}
 
 	/**
@@ -208,6 +221,9 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 		}
 
 		CommonTypes::putString($out, $this->extraPayload);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			CommonTypes::putBool($out, $this->clientBiomeUpdate);
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

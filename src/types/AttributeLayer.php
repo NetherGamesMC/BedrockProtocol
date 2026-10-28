@@ -32,6 +32,7 @@ final class AttributeLayer{
 	 */
 	public function __construct(
 		private string $name,
+		/** >= ProtocolInfo::PROTOCOL_1_26_30 && <= ProtocolInfo::PROTOCOL_1_26_50 */
 		private ?string $noiseName,
 		private int $dimension,
 		private AttributeLayerSettings $settings,
@@ -40,6 +41,7 @@ final class AttributeLayer{
 
 	public function getName() : string{ return $this->name; }
 
+	/** >= ProtocolInfo::PROTOCOL_1_26_30 && <= ProtocolInfo::PROTOCOL_1_26_50 */
 	public function getNoiseName() : ?string{ return $this->noiseName; }
 
 	public function getDimension() : int{ return $this->dimension; }
@@ -54,7 +56,7 @@ final class AttributeLayer{
 
 	public static function read(ByteBufferReader $in, int $protocolId) : self{
 		$name = CommonTypes::getString($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 && $protocolId <= ProtocolInfo::PROTOCOL_1_26_50){
 			$noiseName = CommonTypes::readOptional($in, CommonTypes::getString(...));
 		}
 		$dimension = VarInt::readSignedInt($in);
@@ -76,7 +78,7 @@ final class AttributeLayer{
 
 	public function write(ByteBufferWriter $out, int $protocolId) : void{
 		CommonTypes::putString($out, $this->name);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30 && $protocolId <= ProtocolInfo::PROTOCOL_1_26_50){
 			CommonTypes::writeOptional($out, $this->noiseName, CommonTypes::putString(...));
 		}
 		VarInt::writeSignedInt($out, $this->dimension);

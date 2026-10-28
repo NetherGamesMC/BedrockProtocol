@@ -43,5 +43,7 @@ final class CommandParameterTypes{
 	public const JSON_OBJECT = 74; // json
 	public const BLOCK_STATE_ARRAY = 84; // block states
 	public const CLOCK_TIMEMARKER_NAME = 86; // timemarker name
-	public const CODEBUILDERARGS = 88; // command
+	public const POI_TAG = 87; // poi tag
+	public const POI_TYPE = 88; // poi type
+	public const CODEBUILDERARGS = 90; // command
 }

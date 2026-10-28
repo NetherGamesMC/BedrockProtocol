@@ -52,11 +52,11 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 	 */
 	private array $systemDiagnostics = [];
 	/**
-	 * >= ProtocolInfo::PROTOCOL_1_26_40
-	 * @var SystemCategory[]
-	 * @phpstan-var list<SystemCategory>
+	 * >= ProtocolInfo::PROTOCOL_1_26_40 (optional since ProtocolInfo::PROTOCOL_1_26_60, a list for 1.26.40 - 1.26.50)
+	 * @var SystemCategory[]|null
+	 * @phpstan-var list<SystemCategory>|null
 	 */
-	private array $systemCategories = [];
+	private ?array $systemCategories = null;
 	/**
 	 * @var WhiskerScopeDataSummary[]
 	 * @phpstan-var list<WhiskerScopeDataSummary>
@@ -68,12 +68,12 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 	 * @param MemoryCategoryCounter[]      $memoryCategoryValues
 	 * @param EntityDiagnosticTimingInfo[] $entityDiagnostics
 	 * @param SystemDiagnosticTimingInfo[] $systemDiagnostics
-	 * @param SystemCategory[]             $systemCategories
+	 * @param SystemCategory[]|null        $systemCategories
 	 * @param WhiskerScopeDataSummary[]    $whiskerScopes
 	 * @phpstan-param list<MemoryCategoryCounter>      $memoryCategoryValues
 	 * @phpstan-param list<EntityDiagnosticTimingInfo> $entityDiagnostics
 	 * @phpstan-param list<SystemDiagnosticTimingInfo> $systemDiagnostics
-	 * @phpstan-param list<SystemCategory>             $systemCategories
+	 * @phpstan-param list<SystemCategory>|null        $systemCategories
 	 * @phpstan-param list<WhiskerScopeDataSummary>    $whiskerScopes
 	 */
 	public static function create(
@@ -89,7 +89,7 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 		array $memoryCategoryValues,
 		array $entityDiagnostics,
 		array $systemDiagnostics,
-		array $systemCategories,
+		?array $systemCategories,
 		array $whiskerScopes,
 	) : self{
 		$result = new self;
@@ -147,10 +147,10 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 	public function getSystemDiagnostics() : array{ return $this->systemDiagnostics; }
 
 	/**
-	 * @return SystemCategory[]
-	 * @phpstan-return list<SystemCategory>
+	 * @return SystemCategory[]|null
+	 * @phpstan-return list<SystemCategory>|null
 	 */
-	public function getSystemCategories() : array{ return $this->systemCategories; }
+	public function getSystemCategories() : ?array{ return $this->systemCategories; }
 
 	/**
 	 * @return WhiskerScopeDataSummary[]
@@ -177,7 +177,11 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 				$this->systemDiagnostics = CommonTypes::readList($in, SystemDiagnosticTimingInfo::read(...));
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-					$this->systemCategories = CommonTypes::readList($in, SystemCategory::read(...));
+					if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+						$this->systemCategories = CommonTypes::readOptional($in, static fn(ByteBufferReader $in) => CommonTypes::readList($in, SystemCategory::read(...)));
+					}else{
+						$this->systemCategories = CommonTypes::readList($in, SystemCategory::read(...));
+					}
 				}
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){
@@ -206,7 +210,11 @@ class ServerboundDiagnosticsPacket extends DataPacket implements ServerboundPack
 				CommonTypes::writeList($out, $this->systemDiagnostics, static fn(ByteBufferWriter $out, SystemDiagnosticTimingInfo $v) => $v->write($out));
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_40){
-					CommonTypes::writeList($out, $this->systemCategories, static fn(ByteBufferWriter $out, SystemCategory $v) => $v->write($out));
+					if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+						CommonTypes::writeOptional($out, $this->systemCategories, static fn(ByteBufferWriter $out, array $categories) => CommonTypes::writeList($out, $categories, static fn(ByteBufferWriter $out, SystemCategory $v) => $v->write($out)));
+					}else{
+						CommonTypes::writeList($out, $this->systemCategories ?? [], static fn(ByteBufferWriter $out, SystemCategory $v) => $v->write($out));
+					}
 				}
 
 				if($protocolId >= ProtocolInfo::PROTOCOL_1_26_30){

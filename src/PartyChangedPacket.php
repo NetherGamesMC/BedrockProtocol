@@ -17,38 +17,55 @@ namespace pocketmine\network\mcpe\protocol;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pocketmine\network\mcpe\protocol\serializer\CommonTypes;
+use pocketmine\network\mcpe\protocol\types\PlayerPartyInfo;
 
 class PartyChangedPacket extends DataPacket implements ServerboundPacket{
 	public const NETWORK_ID = ProtocolInfo::PARTY_CHANGED_PACKET;
 
-	private string $partyId;
-	private bool $partyLeader;
+	private ?PlayerPartyInfo $partyInfo;
 
 	/**
 	 * @generate-create-func
 	 */
-	public static function create(string $partyId, bool $partyLeader) : self{
+	public static function create(?PlayerPartyInfo $partyInfo) : self{
 		$result = new self;
-		$result->partyId = $partyId;
-		$result->partyLeader = $partyLeader;
+		$result->partyInfo = $partyInfo;
 		return $result;
 	}
 
-	public function getPartyId() : string{ return $this->partyId; }
+	/**
+	 * >= ProtocolInfo::PROTOCOL_1_26_60: null if the player is not in a party.
+	 * Older protocols always provide a value when decoding.
+	 */
+	public function getPartyInfo() : ?PlayerPartyInfo{ return $this->partyInfo; }
 
-	public function isPartyLeader() : bool{ return $this->partyLeader; }
+	/** Kept for BC: party ID, or an empty string if the player is not in a party. */
+	public function getPartyId() : string{ return $this->partyInfo?->getPartyId() ?? ""; }
+
+	/** Kept for BC */
+	public function isPartyLeader() : bool{ return $this->partyInfo?->isPartyLeader() ?? false; }
 
 	protected function decodePayload(ByteBufferReader $in, int $protocolId) : void{
-		$this->partyId = CommonTypes::getString($in);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
-			$this->partyLeader = CommonTypes::getBool($in);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			$this->partyInfo = CommonTypes::readOptional($in, PlayerPartyInfo::read(...));
+		}else{
+			$partyId = CommonTypes::getString($in);
+			$partyLeader = false;
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+				$partyLeader = CommonTypes::getBool($in);
+			}
+			$this->partyInfo = new PlayerPartyInfo($partyId, $partyLeader);
 		}
 	}
 
 	protected function encodePayload(ByteBufferWriter $out, int $protocolId) : void{
-		CommonTypes::putString($out, $this->partyId);
-		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
-			CommonTypes::putBool($out, $this->partyLeader);
+		if($protocolId >= ProtocolInfo::PROTOCOL_1_26_60){
+			CommonTypes::writeOptional($out, $this->partyInfo, static fn(ByteBufferWriter $out, PlayerPartyInfo $info) => $info->write($out));
+		}else{
+			CommonTypes::putString($out, $this->getPartyId());
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_20){
+				CommonTypes::putBool($out, $this->isPartyLeader());
+			}
 		}
 	}
 

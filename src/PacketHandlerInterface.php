@@ -495,4 +495,20 @@ interface PacketHandlerInterface{
 	public function handleSetPlayerFurnaceOptions(SetPlayerFurnaceOptionsPacket $packet) : bool;
 
 	public function handleRecordStarted(RecordStartedPacket $packet) : bool;
+
+	public function handleClientboundMatchmakingState(ClientboundMatchmakingStatePacket $packet) : bool;
+
+	public function handleServerboundStonecutterSetRecipe(ServerboundStonecutterSetRecipePacket $packet) : bool;
+
+	public function handleClientboundStonecutterSetRecipe(ClientboundStonecutterSetRecipePacket $packet) : bool;
+
+	public function handleServerboundMatchmakingCancel(ServerboundMatchmakingCancelPacket $packet) : bool;
+
+	public function handleSetPassengerOfBlock(SetPassengerOfBlockPacket $packet) : bool;
+
+	public function handleServerboundCursorItemDrag(ServerboundCursorItemDragPacket $packet) : bool;
+
+	public function handleClientboundPlayAudioContent(ClientboundPlayAudioContentPacket $packet) : bool;
+
+	public function handleServerboundRegisterAudioContent(ServerboundRegisterAudioContentPacket $packet) : bool;
 }

@@ -187,6 +187,14 @@ final class AvailableCommandsPacket extends DataPacket implements ClientboundPac
 			};
 		}
 
+		if($protocolId <= ProtocolInfo::PROTOCOL_1_26_50){
+			//1.26.60 inserted POI_TAG (87), POI_TYPE (88) and another type (89), which shifted CODEBUILDERARGS from 88 to 90
+			return match($type){
+				self::ARG_TYPE_COMMAND => 88,
+				default => $type,
+			};
+		}
+
 		return $type;
 	}
 

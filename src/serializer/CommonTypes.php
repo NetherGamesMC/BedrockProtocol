@@ -45,6 +45,7 @@ use pocketmine\network\mcpe\protocol\types\entity\Vec3MetadataProperty;
 use pocketmine\network\mcpe\protocol\types\FloatGameRule;
 use pocketmine\network\mcpe\protocol\types\GameRule;
 use pocketmine\network\mcpe\protocol\types\IntGameRule;
+use pocketmine\network\mcpe\protocol\types\inventory\HandSlot;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\types\NullGameRule;
@@ -161,10 +162,23 @@ final class CommonTypes{
 		return $result;
 	}
 
+	/**
+	 * @throws PacketDecodeException
+	 * @throws DataDecodeException
+	 */
+	public static function readHandSlot(ByteBufferReader $in) : HandSlot{
+		return HandSlot::fromPacket(Byte::readUnsigned($in));
+	}
+
+	public static function writeHandSlot(ByteBufferWriter $out, HandSlot $hand) : void{
+		Byte::writeUnsigned($out, $hand->value);
+	}
+
 	/** @throws DataDecodeException */
 	public static function getSkin(ByteBufferReader $in, int $protocolId) : SkinData{
 		$skinId = self::getString($in);
-		$skinPlayFabId = self::getString($in);
+		//the PlayFab ID moved from the skin to the player list entry in 1.26.60
+		$skinPlayFabId = $protocolId <= ProtocolInfo::PROTOCOL_1_26_50 ? self::getString($in) : "";
 		$skinResourcePatch = self::getString($in);
 		$skinData = self::getSkinImage($in);
 		$animations = self::legacyReadList($in, $protocolId, static function(ByteBufferReader $in) use ($protocolId) : SkinAnimation{
@@ -275,7 +289,9 @@ final class CommonTypes{
 
 	public static function putSkin(ByteBufferWriter $out, int $protocolId, SkinData $skin) : void{
 		self::putString($out, $skin->getSkinId());
-		self::putString($out, $skin->getPlayFabId());
+		if($protocolId <= ProtocolInfo::PROTOCOL_1_26_50){
+			self::putString($out, $skin->getPlayFabId());
+		}
 		self::putString($out, $skin->getResourcePatch());
 		self::putSkinImage($out, $skin->getSkinImage());
 		self::legacyWriteListCount($out, $protocolId, count($skin->getAnimations()));
