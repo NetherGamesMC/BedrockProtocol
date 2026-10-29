@@ -308,7 +308,11 @@ final class CommonTypes{
 			}
 		}
 		self::putSkinImage($out, $skin->getCapeImage());
-		self::putString($out, $skin->getGeometryDataJson());
+		$geometryData = $skin->getGeometryDataJson();
+		if($protocolId < ProtocolInfo::PROTOCOL_1_26_40 && $geometryData === SkinData::GEOMETRY_DATA_NONE){
+			$geometryData = ""; //older clients expect an empty string for no geometry data
+		}
+		self::putString($out, $geometryData);
 		self::putString($out, $skin->getGeometryDataEngineVersion());
 		self::putString($out, $skin->getAnimationData());
 		self::putString($out, $skin->getCapeId());
@@ -318,7 +322,8 @@ final class CommonTypes{
 			self::writeColor($out, $skin->getSkinColor());
 		}else{
 			self::putString($out, $skin->getArmSize()->value);
-			self::putString($out, self::legacyColorToString($skin->getSkinColor()));
+			$skinColor = $skin->getSkinColor();
+			self::putString($out, $skinColor->toARGB() === 0 ? "" : self::legacyColorToString($skinColor)); //older clients expect an empty string for no colour
 		}
 		self::legacyWriteListCount($out, $protocolId, count($skin->getPersonaPieces()));
 		foreach($skin->getPersonaPieces() as $piece){
